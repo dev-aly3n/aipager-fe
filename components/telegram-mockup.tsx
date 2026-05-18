@@ -31,6 +31,10 @@ type Phase =
   | "USER_SEND_2"
   | "BOT_THINKING_2"
   | "BOT_PERMISSION"
+  | "KB_SHOW"
+  | "KB_TAP_COMMANDS"
+  | "KB_SHOW_COMMANDS"
+  | "KB_TAP_COMPACT"
   | "PAUSE"
   | "RESET";
 
@@ -383,18 +387,150 @@ function Bubble({ msg }: { msg: ChatMessage }) {
   );
 }
 
+// ─── Touch indicator (iOS developer mode style) ───
+
+function TouchIndicator({ x, y }: { x: number; y: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0.5, scale: 0.3 }}
+      animate={{ opacity: 0, scale: 1.2 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="absolute pointer-events-none z-50"
+      style={{
+        left: x,
+        top: y,
+        width: 28,
+        height: 28,
+        marginLeft: -14,
+        marginTop: -14,
+        borderRadius: "50%",
+        backgroundColor: "rgba(255,255,255,0.35)",
+        boxShadow: "0 0 8px rgba(255,255,255,0.2)",
+      }}
+    />
+  );
+}
+
+// ─── Persistent reply keyboard (Telegram-style) ───
+
+type KBPage = "main" | "commands";
+
+interface KBButton {
+  label: string;
+  id: string;
+}
+
+const KB_MAIN: KBButton[][] = [
+  [
+    { label: "dev ⚙️", id: "dev" },
+    { label: "jim 💤", id: "jim" },
+    { label: "tim ✅", id: "tim" },
+  ],
+  [
+    { label: "⏹ stop", id: "stop" },
+    { label: "☠ kill", id: "kill" },
+  ],
+  [
+    { label: "Templates", id: "templates" },
+    { label: "Commands", id: "commands" },
+  ],
+];
+
+const KB_COMMANDS: KBButton[][] = [
+  [
+    { label: "Compact", id: "compact" },
+    { label: "Clear", id: "clear" },
+    { label: "Plan mode", id: "plan" },
+  ],
+  [
+    { label: "Init", id: "init" },
+    { label: "Security review", id: "security" },
+  ],
+  [
+    { label: "Model ›", id: "model" },
+    { label: "« Back", id: "back" },
+  ],
+];
+
+interface TouchPoint {
+  x: number;
+  y: number;
+  key: number;
+}
+
+function PersistentKeyboard({
+  page,
+  touch,
+}: {
+  page: KBPage;
+  touch: TouchPoint | null;
+}) {
+  const rows = page === "main" ? KB_MAIN : KB_COMMANDS;
+
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="relative overflow-hidden"
+      style={{
+        backgroundColor: TG.headerBg,
+        borderTop: `0.5px solid ${TG.separator}`,
+      }}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={page}
+          initial={{ opacity: 0, x: page === "commands" ? 12 : -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: page === "commands" ? -12 : 12 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          className="px-[5px] py-[4px] space-y-[3px]"
+        >
+          {rows.map((row, ri) => (
+            <div key={ri} className="flex gap-[3px]">
+              {row.map((btn) => (
+                <div
+                  key={btn.id}
+                  className="flex-1 py-[5px] rounded-[5px] text-[11px] font-medium text-center"
+                  style={{
+                    backgroundColor: TG.inputBg,
+                    color: TG.text,
+                  }}
+                >
+                  {btn.label}
+                </div>
+              ))}
+            </div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+      {/* Touch indicator overlay */}
+      <AnimatePresence>
+        {touch && <TouchIndicator key={touch.key} x={touch.x} y={touch.y} />}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 // ─── Main export ───
 
 export function TelegramMockup() {
   const [phase, setPhase] = useState<Phase>("IDLE");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  const [kbVisible, setKbVisible] = useState(false);
+  const [kbPage, setKbPage] = useState<KBPage>("main");
+  const [kbTouch, setKbTouch] = useState<TouchPoint | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: false, margin: "-100px" });
   const hasStartedRef = useRef(false);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const intervalsRef = useRef<Set<ReturnType<typeof setInterval>>>(new Set());
+  const kbRef = useRef<HTMLDivElement>(null);
+  const touchKeyRef = useRef(0);
 
   // ─── Timer helpers ───
 
@@ -441,6 +577,9 @@ export function TelegramMockup() {
     clearAllTimers();
     setMessages([]);
     setInputText("");
+    setKbVisible(false);
+    setKbPage("main");
+    setKbTouch(null);
     hasStartedRef.current = false;
   }, [clearAllTimers]);
 
@@ -647,7 +786,59 @@ export function TelegramMockup() {
           radius: "17px 17px 17px 4px",
         }));
 
-        schedule(() => setPhase("PAUSE"), 2500);
+        schedule(() => setPhase("KB_SHOW"), 2500);
+        break;
+      }
+
+      case "KB_SHOW": {
+        setKbVisible(true);
+        setKbPage("main");
+        // Wait for keyboard to slide in, then tap Commands
+        schedule(() => setPhase("KB_TAP_COMMANDS"), 1200);
+        break;
+      }
+
+      case "KB_TAP_COMMANDS": {
+        // Touch position on "Commands" button
+        // Main layout row 2 (3rd row): [Templates] [Commands] — 2 buttons
+        // Button geometry: container px-[5px], gap-[3px], each row py-[5px] text ~14px
+        // Row height ~24px, gap 3px, container py-[4px]
+        // Row 2 center y: 4 + 24 + 3 + 24 + 3 + 12 = 70
+        if (kbRef.current) {
+          const kbWidth = kbRef.current.offsetWidth;
+          const btnWidth = (kbWidth - 10 - 3) / 2;
+          const x = 5 + btnWidth + 3 + btnWidth / 2;
+          touchKeyRef.current++;
+          setKbTouch({ x, y: 70, key: touchKeyRef.current });
+        }
+        schedule(() => {
+          setKbTouch(null);
+          setPhase("KB_SHOW_COMMANDS");
+        }, 400);
+        break;
+      }
+
+      case "KB_SHOW_COMMANDS": {
+        setKbPage("commands");
+        schedule(() => setPhase("KB_TAP_COMPACT"), 1000);
+        break;
+      }
+
+      case "KB_TAP_COMPACT": {
+        // Touch position on "Compact" button
+        // Commands layout row 0 (1st row): [Compact] [Clear] [Plan mode] — 3 buttons
+        // Row 0 center y: 4 + 12 = 16
+        if (kbRef.current) {
+          const kbWidth = kbRef.current.offsetWidth;
+          const btnWidth = (kbWidth - 10 - 6) / 3;
+          const x = 5 + btnWidth / 2;
+          touchKeyRef.current++;
+          setKbTouch({ x, y: 16, key: touchKeyRef.current });
+        }
+        schedule(() => {
+          setKbTouch(null);
+          setPhase("PAUSE");
+        }, 400);
         break;
       }
 
@@ -657,8 +848,11 @@ export function TelegramMockup() {
       }
 
       case "RESET": {
+        setKbVisible(false);
         setMessages([]);
         setInputText("");
+        setKbPage("main");
+        setKbTouch(null);
         // Wait for AnimatePresence exit animations to finish before restarting
         schedule(() => setPhase("USER_TYPING"), 800);
         break;
@@ -735,7 +929,9 @@ export function TelegramMockup() {
               className="transition-opacity duration-300"
               style={{
                 opacity:
-                  phase === "BOT_PERMISSION" || phase === "BOT_THINKING_2"
+                  phase === "BOT_PERMISSION" || phase === "BOT_THINKING_2" ||
+                  phase === "KB_SHOW" || phase === "KB_TAP_COMMANDS" ||
+                  phase === "KB_SHOW_COMMANDS" || phase === "KB_TAP_COMPACT"
                     ? 1
                     : 0.5,
               }}
@@ -788,6 +984,15 @@ export function TelegramMockup() {
                       ))}
                     </AnimatePresence>
                   </div>
+                </div>
+
+                {/* Persistent reply keyboard */}
+                <div ref={kbRef} className="shrink-0">
+                  <AnimatePresence>
+                    {kbVisible && (
+                      <PersistentKeyboard page={kbPage} touch={kbTouch} />
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Input bar */}
