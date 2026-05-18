@@ -837,6 +837,15 @@ export function TelegramMockup() {
       }
 
       case "KB_SHOW_COMMANDS": {
+        // Bot responds with 🎛 Commands confirmation
+        addMessage({
+          id: "bot-commands-ack",
+          direction: "incoming",
+          hasTail: true,
+          radius: "17px 17px 17px 4px",
+          time: "10:26",
+          content: "🎛 Commands",
+        });
         setKbPage("commands");
         schedule(() => setPhase("KB_TAP_COMPACT"), 1500);
         break;
