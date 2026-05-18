@@ -35,6 +35,9 @@ type Phase =
   | "KB_TAP_COMMANDS"
   | "KB_SHOW_COMMANDS"
   | "KB_TAP_COMPACT"
+  | "KB_COMPACT_SENT"
+  | "BOT_COMPACTING"
+  | "BOT_COMPACTED"
   | "PAUSE"
   | "RESET";
 
@@ -45,13 +48,15 @@ interface ToolEntry {
   target: string;
 }
 
+type StatusEmoji = "gear" | "checkmark" | "lock" | "refresh" | "package";
+
 interface ChatMessage {
   id: string;
   direction: "incoming" | "outgoing";
   hasTail: boolean;
   radius: string;
   time: string;
-  statusEmoji?: "gear" | "checkmark" | "lock";
+  statusEmoji?: StatusEmoji;
   sessionName?: string;
   statusVerb?: string;
   elapsedSeconds?: number;
@@ -65,7 +70,8 @@ interface ChatMessage {
 
 // ─── Constants ───
 const CHAR_DELAY = 45;
-const PAUSE_BEFORE_RESTART = 2000;
+const THINKING_DURATION = 7000;
+const PAUSE_BEFORE_RESTART = 2500;
 
 const THINKING_VERBS = ["Thinking", "Reasoning", "Analyzing", "Pondering"] as const;
 
@@ -255,11 +261,13 @@ function TelegramInput({ text }: { text: string }) {
 
 // ─── Emoji helpers ───
 
-function statusEmojiStr(emoji: ChatMessage["statusEmoji"]): string {
+function statusEmojiStr(emoji: StatusEmoji | undefined): string {
   switch (emoji) {
     case "gear": return "⚙️";
     case "checkmark": return "✅";
     case "lock": return "🔐";
+    case "refresh": return "🔄";
+    case "package": return "📦";
     default: return "";
   }
 }
@@ -583,6 +591,13 @@ export function TelegramMockup() {
     hasStartedRef.current = false;
   }, [clearAllTimers]);
 
+  // ─── Touch helper ───
+
+  const fireTouchAt = useCallback((x: number, y: number) => {
+    touchKeyRef.current++;
+    setKbTouch({ x, y, key: touchKeyRef.current });
+  }, []);
+
   // ─── Start when in view ───
 
   useEffect(() => {
@@ -591,7 +606,6 @@ export function TelegramMockup() {
       setPhase("USER_TYPING");
     }
     if (!isInView && hasStartedRef.current) {
-      // Scrolled away — reset so it restarts fresh next time
       reset();
       setPhase("IDLE");
     }
@@ -624,6 +638,8 @@ export function TelegramMockup() {
     if (!isInView) return;
 
     switch (phase) {
+      // ── Chat flow ──
+
       case "USER_SEND": {
         const msgId = "user-1";
         addMessage({
@@ -636,13 +652,11 @@ export function TelegramMockup() {
         });
         setInputText("");
 
-        // Add reaction after delay
         schedule(() => {
           updateMessage(msgId, (m) => ({ ...m, reaction: "👀" }));
-        }, 400);
+        }, 500);
 
-        // Transition to thinking
-        schedule(() => setPhase("BOT_THINKING"), 800);
+        schedule(() => setPhase("BOT_THINKING"), 1200);
         break;
       }
 
@@ -676,40 +690,39 @@ export function TelegramMockup() {
           updateMessage(thinkId, (m) => ({ ...m, statusVerb: THINKING_VERBS[verbIdx] }));
         }, 1500);
 
-        // Tool entries
+        // Tool entries — staggered
         schedule(() => {
           updateMessage(thinkId, (m) => ({
             ...m,
             toolEntries: [...(m.toolEntries ?? []), { status: "done", verb: "Read", target: "src/auth.ts" }],
           }));
-        }, 800);
+        }, 1200);
 
         schedule(() => {
           updateMessage(thinkId, (m) => ({
             ...m,
             toolEntries: [...(m.toolEntries ?? []), { status: "done", verb: "Read", target: "src/middleware.ts" }],
           }));
-        }, 1800);
+        }, 2800);
 
         schedule(() => {
           updateMessage(thinkId, (m) => ({
             ...m,
             toolEntries: [...(m.toolEntries ?? []), { status: "pending", verb: "Edit", target: "src/auth.ts" }],
           }));
-        }, 2800);
+        }, 4500);
 
-        // Transition to finished
+        // Transition to finished — elapsed will show ~7s
         schedule(() => {
           clearAllTimers();
           setPhase("BOT_FINISHED");
-        }, 4000);
+        }, THINKING_DURATION);
         break;
       }
 
       case "BOT_FINISHED": {
         removeMessage("bot-thinking-1");
 
-        // Small delay so the exit animation plays before the new message enters
         schedule(() => {
           addMessage({
             id: "bot-finished-1",
@@ -719,13 +732,12 @@ export function TelegramMockup() {
             time: "10:24",
             statusEmoji: "checkmark",
             sessionName: "dev",
-            statusVerb: "Finished (10s, +42 -7)",
+            statusVerb: `Finished (${Math.round(THINKING_DURATION / 1000)}s, +42 -7)`,
             summaryText: "Refactored auth middleware\nto use JWT verification.",
           });
         }, 300);
 
-        // Wait for user to read, then continue
-        schedule(() => setPhase("USER_TYPING_2"), 2500);
+        schedule(() => setPhase("USER_TYPING_2"), 3500);
         break;
       }
 
@@ -743,9 +755,9 @@ export function TelegramMockup() {
 
         schedule(() => {
           updateMessage(msgId, (m) => ({ ...m, reaction: "👀" }));
-        }, 400);
+        }, 500);
 
-        schedule(() => setPhase("BOT_THINKING_2"), 800);
+        schedule(() => setPhase("BOT_THINKING_2"), 1200);
         break;
       }
 
@@ -768,9 +780,9 @@ export function TelegramMockup() {
             ...m,
             toolEntries: [{ status: "pending", verb: "Bash", target: "npm install express-rate-limit" }],
           }));
-        }, 700);
+        }, 900);
 
-        schedule(() => setPhase("BOT_PERMISSION"), 1600);
+        schedule(() => setPhase("BOT_PERMISSION"), 2000);
         break;
       }
 
@@ -786,61 +798,129 @@ export function TelegramMockup() {
           radius: "17px 17px 17px 4px",
         }));
 
-        schedule(() => setPhase("KB_SHOW"), 2500);
+        schedule(() => setPhase("KB_SHOW"), 3000);
         break;
       }
+
+      // ── Keyboard flow ──
 
       case "KB_SHOW": {
         setKbVisible(true);
         setKbPage("main");
-        // Wait for keyboard to slide in, then tap Commands
-        schedule(() => setPhase("KB_TAP_COMMANDS"), 1200);
+        schedule(() => setPhase("KB_TAP_COMMANDS"), 1500);
         break;
       }
 
       case "KB_TAP_COMMANDS": {
-        // Touch position on "Commands" button
-        // Main layout row 2 (3rd row): [Templates] [Commands] — 2 buttons
-        // Button geometry: container px-[5px], gap-[3px], each row py-[5px] text ~14px
-        // Row height ~24px, gap 3px, container py-[4px]
-        // Row 2 center y: 4 + 24 + 3 + 24 + 3 + 12 = 70
+        // Touch "Commands" — 2nd button in 3rd row of main layout
+        // Row centers: row0=16, row1=43, row2=70 (see geometry notes in plan)
         if (kbRef.current) {
           const kbWidth = kbRef.current.offsetWidth;
-          const btnWidth = (kbWidth - 10 - 3) / 2;
+          const btnWidth = (kbWidth - 10 - 3) / 2; // 2 buttons in row 2
           const x = 5 + btnWidth + 3 + btnWidth / 2;
-          touchKeyRef.current++;
-          setKbTouch({ x, y: 70, key: touchKeyRef.current });
+          fireTouchAt(x, 70);
         }
+        // Send "Commands" as user message (Telegram sends keyboard text to chat)
         schedule(() => {
           setKbTouch(null);
-          setPhase("KB_SHOW_COMMANDS");
-        }, 400);
+          addMessage({
+            id: "user-commands",
+            direction: "outgoing",
+            hasTail: true,
+            radius: "17px 17px 4px 17px",
+            time: "10:26",
+            content: "Commands",
+          });
+        }, 300);
+        schedule(() => setPhase("KB_SHOW_COMMANDS"), 800);
         break;
       }
 
       case "KB_SHOW_COMMANDS": {
         setKbPage("commands");
-        schedule(() => setPhase("KB_TAP_COMPACT"), 1000);
+        schedule(() => setPhase("KB_TAP_COMPACT"), 1500);
         break;
       }
 
       case "KB_TAP_COMPACT": {
-        // Touch position on "Compact" button
-        // Commands layout row 0 (1st row): [Compact] [Clear] [Plan mode] — 3 buttons
-        // Row 0 center y: 4 + 12 = 16
+        // Touch "Compact" — 1st button in 1st row of commands layout
         if (kbRef.current) {
           const kbWidth = kbRef.current.offsetWidth;
-          const btnWidth = (kbWidth - 10 - 6) / 3;
+          const btnWidth = (kbWidth - 10 - 6) / 3; // 3 buttons in row 0
           const x = 5 + btnWidth / 2;
-          touchKeyRef.current++;
-          setKbTouch({ x, y: 16, key: touchKeyRef.current });
+          fireTouchAt(x, 16);
         }
+        // Send "Compact" as user message
         schedule(() => {
           setKbTouch(null);
-          setPhase("PAUSE");
-        }, 400);
+          setPhase("KB_COMPACT_SENT");
+        }, 300);
         break;
       }
+
+      case "KB_COMPACT_SENT": {
+        const msgId = "user-compact";
+        addMessage({
+          id: msgId,
+          direction: "outgoing",
+          hasTail: true,
+          radius: "17px 17px 4px 17px",
+          time: "10:26",
+          content: "Compact",
+        });
+
+        // Bot reacts with ✅ to the compact command
+        schedule(() => {
+          updateMessage(msgId, (m) => ({ ...m, reaction: "✅" }));
+        }, 500);
+
+        schedule(() => setPhase("BOT_COMPACTING"), 1200);
+        break;
+      }
+
+      case "BOT_COMPACTING": {
+        const compactId = "bot-compacting";
+        let dots = 0;
+        addMessage({
+          id: compactId,
+          direction: "incoming",
+          hasTail: true,
+          radius: "17px 17px 17px 4px",
+          time: "10:26",
+          statusEmoji: "refresh",
+          sessionName: "dev",
+          statusVerb: "Compacting",
+        });
+
+        // Animate dots: Compacting. → Compacting.. → Compacting...
+        scheduleInterval(() => {
+          dots = (dots + 1) % 4;
+          const dotStr = ".".repeat(dots || 1);
+          updateMessage(compactId, (m) => ({
+            ...m,
+            statusVerb: `Compacting${dotStr}`,
+          }));
+        }, 500);
+
+        schedule(() => {
+          clearAllTimers();
+          setPhase("BOT_COMPACTED");
+        }, 2500);
+        break;
+      }
+
+      case "BOT_COMPACTED": {
+        updateMessage("bot-compacting", (m) => ({
+          ...m,
+          statusEmoji: "package",
+          statusVerb: "Compacted: 73% → 42%",
+        }));
+
+        schedule(() => setPhase("PAUSE"), 3000);
+        break;
+      }
+
+      // ── End of cycle ──
 
       case "PAUSE": {
         schedule(() => setPhase("RESET"), PAUSE_BEFORE_RESTART);
@@ -853,15 +933,13 @@ export function TelegramMockup() {
         setInputText("");
         setKbPage("main");
         setKbTouch(null);
-        // Wait for AnimatePresence exit animations to finish before restarting
         schedule(() => setPhase("USER_TYPING"), 800);
         break;
       }
     }
 
     return () => {
-      // Only clear timers on phase change, not on every render
-      // The clearAllTimers in specific phases handles targeted cleanup
+      // Cleanup handled by clearAllTimers at specific transition points
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, isInView]);
@@ -931,7 +1009,9 @@ export function TelegramMockup() {
                 opacity:
                   phase === "BOT_PERMISSION" || phase === "BOT_THINKING_2" ||
                   phase === "KB_SHOW" || phase === "KB_TAP_COMMANDS" ||
-                  phase === "KB_SHOW_COMMANDS" || phase === "KB_TAP_COMPACT"
+                  phase === "KB_SHOW_COMMANDS" || phase === "KB_TAP_COMPACT" ||
+                  phase === "KB_COMPACT_SENT" || phase === "BOT_COMPACTING" ||
+                  phase === "BOT_COMPACTED"
                     ? 1
                     : 0.5,
               }}
