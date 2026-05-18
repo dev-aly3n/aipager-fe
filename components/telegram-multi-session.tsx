@@ -44,7 +44,7 @@ const TYPED_MESSAGES: Record<string, string> = {
   USER_TYPING_1: "/new !john",
   USER_TYPING_2: "/new tim",
   USER_TYPING_3: "write tests for the payment webhook",
-  USER_TYPING_4: "/john review PR #38 for security issues",
+  USER_TYPING_4: "/john review PR #38",
 };
 
 const SEND_AFTER: Record<string, Phase> = {
@@ -457,7 +457,7 @@ export function TelegramMultiSession() {
             sessionName: "tim",
             statusVerb: "Finished (4s)",
             summaryText:
-              "Added 6 tests covering success, invalid signature, duplicate event, and retry scenarios.",
+              "Added 6 tests covering success, invalid signature, duplicate event, and retry scenarios. Opened PR #38.",
           });
         }, 200);
 
@@ -475,7 +475,7 @@ export function TelegramMultiSession() {
           hasTail: true,
           radius: "17px 17px 4px 17px",
           time: "10:32",
-          content: "/john review PR #38 for security issues",
+          content: "/john review PR #38",
         });
         setInputText("");
 
@@ -530,7 +530,7 @@ export function TelegramMultiSession() {
             sessionName: "john",
             statusVerb: "Finished (2s)",
             summaryText:
-              "Found 2 issues: unvalidated redirect in OAuth callback, missing rate limit on login endpoint.",
+              "PR #38 looks good. Left 2 comments: missing edge case for empty payload, and a nit on error message wording. Approved.",
           });
         }, 200);
 
