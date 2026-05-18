@@ -1,6 +1,22 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* highlight.js — single theme that works inside our dark-bg pre
+   blocks regardless of the page's light/dark mode. */
+@import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* react-markdown wraps every fenced code block in <pre><code>…</code></pre>.
+   For mermaid blocks we render an SVG inside a .mermaid-block div, so
+   the surrounding <pre>'s monospace background and border become noise.
+   Strip it. */
+.prose pre:has(> .mermaid-block) {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 
 :root {
   --background: #fafafa;

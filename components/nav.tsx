@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 
 const LINKS = [
-  { label: "Demo", href: "#demo" },
-  { label: "Features", href: "#features" },
-  { label: "Install", href: "#install" },
-  { label: "Keyboard", href: "#keyboard" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Demo", href: "/#demo" },
+  { label: "Features", href: "/#features" },
+  { label: "Install", href: "/#install" },
+  { label: "Docs", href: "/docs" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 export function Nav() {
@@ -19,7 +19,7 @@ export function Nav() {
       className="fixed top-0 left-0 right-0 z-40 backdrop-blur-sm border-b border-border/50 bg-background/80"
     >
       <div className="mx-auto max-w-4xl flex items-center justify-between px-4 py-3">
-        <a href="#" className="font-bold text-sm tracking-tight">
+        <a href="/" className="font-bold text-sm tracking-tight">
           aipager
         </a>
         <div className="hidden sm:flex items-center gap-5">
