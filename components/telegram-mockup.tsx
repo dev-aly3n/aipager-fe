@@ -151,10 +151,10 @@ function TelegramNav() {
       style={{ backgroundColor: TG.headerBg, borderBottom: `0.5px solid ${TG.separator}` }}
     >
       <div className="flex items-center gap-0 pl-0.5 shrink-0">
-        <svg width="10" height="17" viewBox="0 0 10 17" fill="none">
+        <svg width="7" height="12" viewBox="0 0 10 17" fill="none">
           <path d="M9 1L2 8.5L9 16" stroke={TG.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="text-[13px] ml-[-1px]" style={{ color: TG.accent }}>Back</span>
+        <span className="text-[11px] ml-[-1px]" style={{ color: TG.accent }}>Back</span>
       </div>
       <div
         className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-white text-[13px] font-medium shrink-0 ml-1"
