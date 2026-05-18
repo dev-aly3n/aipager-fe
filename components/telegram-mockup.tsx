@@ -154,7 +154,7 @@ function TelegramNav() {
         <svg width="10" height="17" viewBox="0 0 10 17" fill="none">
           <path d="M9 1L2 8.5L9 16" stroke={TG.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="text-[15px] ml-[-1px]" style={{ color: TG.accent }}>Back</span>
+        <span className="text-[13px] ml-[-1px]" style={{ color: TG.accent }}>Back</span>
       </div>
       <div
         className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-white text-[13px] font-medium shrink-0 ml-1"
@@ -220,7 +220,7 @@ function TelegramInput({ text }: { text: string }) {
       className="flex items-center gap-1.5 px-[6px] py-[5px]"
       style={{ backgroundColor: TG.headerBg, borderTop: `0.5px solid ${TG.separator}` }}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0 ml-0.5">
         <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke={TG.meta} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
       <div
@@ -240,14 +240,14 @@ function TelegramInput({ text }: { text: string }) {
         )}
       </div>
       {showPlaceholder ? (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0 mr-0.5">
           <path d="M12 2a3 3 0 00-3 3v6a3 3 0 006 0V5a3 3 0 00-3-3z" stroke={TG.accent} strokeWidth="1.5" strokeLinecap="round" />
           <path d="M19 10v1a7 7 0 01-14 0v-1" stroke={TG.accent} strokeWidth="1.5" strokeLinecap="round" />
           <path d="M12 19v3" stroke={TG.accent} strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       ) : (
         <div
-          className="w-[24px] h-[24px] rounded-full flex items-center justify-center shrink-0"
+          className="w-[24px] h-[24px] rounded-full flex items-center justify-center shrink-0 mr-0.5"
           style={{ backgroundColor: TG.accent }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
