@@ -2,6 +2,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Nav } from "@/components/nav";
 import { Hero } from "@/components/hero";
 import { TelegramMockup } from "@/components/telegram-mockup";
+import { TelegramMultiSession } from "@/components/telegram-multi-session";
 import { Features } from "@/components/features";
 import { InstallSteps } from "@/components/install-steps";
 import { KeyboardPreview } from "@/components/keyboard-preview";
@@ -16,6 +17,7 @@ export default function Home() {
       <main>
         <Hero />
         <TelegramMockup />
+        <TelegramMultiSession />
         <Features />
         <InstallSteps />
         <KeyboardPreview />
