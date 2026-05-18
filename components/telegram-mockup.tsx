@@ -9,8 +9,10 @@ import {
   TelegramInput,
   DateSeparator,
   PhoneFrame,
+  TouchIndicator,
   type ChatMessage,
   type StatusEmoji,
+  type TouchPoint,
 } from "./telegram-shared";
 
 // ─── Phase machine ───
@@ -42,30 +44,6 @@ const THINKING_VERBS = ["Thinking", "Reasoning", "Analyzing", "Pondering"] as co
 
 const USER_MSG_1 = "refactor the auth middleware";
 const USER_MSG_2 = "now add rate limiting";
-
-// ─── Touch indicator (iOS developer mode style) ───
-
-function TouchIndicator({ x, y }: { x: number; y: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0.5, scale: 0.3 }}
-      animate={{ opacity: 0, scale: 1.2 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="absolute pointer-events-none z-50"
-      style={{
-        left: x,
-        top: y,
-        width: 28,
-        height: 28,
-        marginLeft: -14,
-        marginTop: -14,
-        borderRadius: "50%",
-        backgroundColor: "rgba(255,255,255,0.35)",
-        boxShadow: "0 0 8px rgba(255,255,255,0.2)",
-      }}
-    />
-  );
-}
 
 // ─── Persistent reply keyboard (Telegram-style) ───
 
@@ -107,12 +85,6 @@ const KB_COMMANDS: KBButton[][] = [
     { label: "\u00AB Back", id: "back" },
   ],
 ];
-
-interface TouchPoint {
-  x: number;
-  y: number;
-  key: number;
-}
 
 function PersistentKeyboard({
   page,

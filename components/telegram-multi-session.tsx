@@ -9,7 +9,9 @@ import {
   TelegramInput,
   DateSeparator,
   PhoneFrame,
+  TouchIndicator,
   type ChatMessage,
+  type TouchPoint,
 } from "./telegram-shared";
 
 // ─── Phase machine ───
@@ -17,17 +19,20 @@ type Phase =
   | "IDLE"
   | "USER_TYPING_1"
   | "USER_SEND_1"
+  | "BOT_JOHN_LAUNCH"
   | "USER_TYPING_2"
   | "USER_SEND_2"
-  | "BOT_LAUNCHES"
+  | "BOT_TIM_LAUNCH"
+  | "KB_SHOW"
+  | "KB_TAP_TIM"
+  | "BOT_DASHBOARD"
   | "USER_TYPING_3"
   | "USER_SEND_3"
-  | "BOT_DASHBOARD"
+  | "BOT_TIM_THINKING"
+  | "BOT_TIM_REPLY"
   | "USER_TYPING_4"
   | "USER_SEND_4"
-  | "BOT_TIM_REPLY"
-  | "USER_TYPING_5"
-  | "USER_SEND_5"
+  | "BOT_JOHN_THINKING"
   | "BOT_JOHN_REPLY"
   | "PAUSE"
   | "RESET";
@@ -38,9 +43,8 @@ const PAUSE_BEFORE_RESTART = 2500;
 const TYPED_MESSAGES: Record<string, string> = {
   USER_TYPING_1: "/new !john",
   USER_TYPING_2: "/new tim",
-  USER_TYPING_3: "tim",
-  USER_TYPING_4: "hey tim how are you?",
-  USER_TYPING_5: "/john are you ready for a task?",
+  USER_TYPING_3: "write tests for the payment webhook",
+  USER_TYPING_4: "/john review PR #38 for security issues",
 };
 
 const SEND_AFTER: Record<string, Phase> = {
@@ -48,7 +52,6 @@ const SEND_AFTER: Record<string, Phase> = {
   USER_TYPING_2: "USER_SEND_2",
   USER_TYPING_3: "USER_SEND_3",
   USER_TYPING_4: "USER_SEND_4",
-  USER_TYPING_5: "USER_SEND_5",
 };
 
 const TYPING_PHASES = new Set<Phase>([
@@ -56,8 +59,64 @@ const TYPING_PHASES = new Set<Phase>([
   "USER_TYPING_2",
   "USER_TYPING_3",
   "USER_TYPING_4",
-  "USER_TYPING_5",
 ]);
+
+// ─── Persistent keyboard layout ───
+
+interface KBButton {
+  label: string;
+  id: string;
+}
+
+const KB_ROWS: KBButton[][] = [
+  [
+    { label: "john \u2699\uFE0F", id: "john" },
+    { label: "tim \uD83D\uDCA4", id: "tim" },
+  ],
+  [
+    { label: "\u23F9 stop", id: "stop" },
+    { label: "\u2620 kill", id: "kill" },
+  ],
+];
+
+function PersistentKeyboard({ touch }: { touch: TouchPoint | null }) {
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="relative overflow-hidden"
+      style={{
+        backgroundColor: TG.headerBg,
+        borderTop: `0.5px solid ${TG.separator}`,
+      }}
+    >
+      <div className="px-[5px] py-[4px] space-y-[3px]">
+        {KB_ROWS.map((row, ri) => (
+          <div key={ri} className="flex gap-[3px]">
+            {row.map((btn) => (
+              <div
+                key={btn.id}
+                className="flex-1 py-[5px] rounded-[5px] text-[11px] font-medium text-center"
+                style={{
+                  backgroundColor: TG.inputBg,
+                  color: TG.text,
+                }}
+              >
+                {btn.label}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Touch indicator overlay */}
+      <AnimatePresence>
+        {touch && <TouchIndicator key={touch.key} x={touch.x} y={touch.y} />}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
 
 // ─── Main export ───
 
@@ -65,11 +124,16 @@ export function TelegramMultiSession() {
   const [phase, setPhase] = useState<Phase>("IDLE");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  const [kbVisible, setKbVisible] = useState(false);
+  const [kbTouch, setKbTouch] = useState<TouchPoint | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: false, margin: "-100px" });
   const hasStartedRef = useRef(false);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const intervalsRef = useRef<Set<ReturnType<typeof setInterval>>>(new Set());
+  const kbRef = useRef<HTMLDivElement>(null);
+  const touchKeyRef = useRef(0);
 
   // ─── Timer helpers ───
 
@@ -82,9 +146,17 @@ export function TelegramMultiSession() {
     return id;
   }, []);
 
+  const scheduleInterval = useCallback((fn: () => void, ms: number) => {
+    const id = setInterval(fn, ms);
+    intervalsRef.current.add(id);
+    return id;
+  }, []);
+
   const clearAllTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current.clear();
+    intervalsRef.current.forEach(clearInterval);
+    intervalsRef.current.clear();
   }, []);
 
   // ─── Message helpers ───
@@ -100,12 +172,25 @@ export function TelegramMultiSession() {
     [],
   );
 
+  const removeMessage = useCallback((id: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+
   const reset = useCallback(() => {
     clearAllTimers();
     setMessages([]);
     setInputText("");
+    setKbVisible(false);
+    setKbTouch(null);
     hasStartedRef.current = false;
   }, [clearAllTimers]);
+
+  // ─── Touch helper ───
+
+  const fireTouchAt = useCallback((x: number, y: number) => {
+    touchKeyRef.current++;
+    setKbTouch({ x, y, key: touchKeyRef.current });
+  }, []);
 
   // ─── Start when in view ───
 
@@ -120,7 +205,7 @@ export function TelegramMultiSession() {
     }
   }, [isInView, reset]);
 
-  // ─── Typing sub-effect (handles all 5 typing phases) ───
+  // ─── Typing sub-effect (handles all typing phases) ───
 
   useEffect(() => {
     if (!TYPING_PHASES.has(phase)) return;
@@ -150,7 +235,7 @@ export function TelegramMultiSession() {
     if (!isInView) return;
 
     switch (phase) {
-      // ── Launch flow ──
+      // ── /new !john ──
 
       case "USER_SEND_1": {
         addMessage({
@@ -162,9 +247,46 @@ export function TelegramMultiSession() {
           content: "/new !john",
         });
         setInputText("");
-        schedule(() => setPhase("USER_TYPING_2"), 400);
+        schedule(() => setPhase("BOT_JOHN_LAUNCH"), 600);
         break;
       }
+
+      case "BOT_JOHN_LAUNCH": {
+        // ⏳ launching john...
+        addMessage({
+          id: "bot-john-launching",
+          direction: "incoming",
+          hasTail: true,
+          radius: "17px 17px 17px 4px",
+          time: "10:30",
+          content: "\u23F3 launching john\u2026",
+        });
+
+        // Update to ✅ john launched
+        schedule(() => {
+          updateMessage("bot-john-launching", (m) => ({
+            ...m,
+            content: "\u2705 john launched",
+          }));
+        }, 800);
+
+        // ⌨️ staggered
+        schedule(() => {
+          addMessage({
+            id: "bot-kb-1",
+            direction: "incoming",
+            hasTail: false,
+            radius: "17px 17px 17px 6px",
+            time: "10:30",
+            content: "\u2328\uFE0F",
+          });
+        }, 1200);
+
+        schedule(() => setPhase("USER_TYPING_2"), 2000);
+        break;
+      }
+
+      // ── /new tim ──
 
       case "USER_SEND_2": {
         addMessage({
@@ -176,45 +298,30 @@ export function TelegramMultiSession() {
           content: "/new tim",
         });
         setInputText("");
-        schedule(() => setPhase("BOT_LAUNCHES"), 600);
+        schedule(() => setPhase("BOT_TIM_LAUNCH"), 600);
         break;
       }
 
-      case "BOT_LAUNCHES": {
-        // Stagger: ✅ john launched → ⌨️ → ✅ tim launched → ⌨️
-        schedule(() => {
-          addMessage({
-            id: "bot-john-launched",
-            direction: "incoming",
-            hasTail: true,
-            radius: "17px 17px 17px 4px",
-            time: "10:30",
-            content: "\u2705 john launched",
-          });
-        }, 300);
+      case "BOT_TIM_LAUNCH": {
+        // ⏳ launching tim...
+        addMessage({
+          id: "bot-tim-launching",
+          direction: "incoming",
+          hasTail: true,
+          radius: "17px 17px 17px 4px",
+          time: "10:30",
+          content: "\u23F3 launching tim\u2026",
+        });
 
+        // Update to ✅ tim launched
         schedule(() => {
-          addMessage({
-            id: "bot-kb-1",
-            direction: "incoming",
-            hasTail: false,
-            radius: "17px 17px 17px 6px",
-            time: "10:30",
-            content: "\u2328\uFE0F",
-          });
-        }, 700);
-
-        schedule(() => {
-          addMessage({
-            id: "bot-tim-launched",
-            direction: "incoming",
-            hasTail: false,
-            radius: "17px 17px 17px 6px",
-            time: "10:30",
+          updateMessage("bot-tim-launching", (m) => ({
+            ...m,
             content: "\u2705 tim launched",
-          });
-        }, 1100);
+          }));
+        }, 800);
 
+        // ⌨️ staggered
         schedule(() => {
           addMessage({
             id: "bot-kb-2",
@@ -224,27 +331,48 @@ export function TelegramMultiSession() {
             time: "10:30",
             content: "\u2328\uFE0F",
           });
-        }, 1500);
+        }, 1200);
 
-        schedule(() => setPhase("USER_TYPING_3"), 2200);
+        schedule(() => setPhase("KB_SHOW"), 2000);
         break;
       }
 
-      // ── Session switching ──
+      // ── Keyboard shows, tap tim ──
 
-      case "USER_SEND_3": {
-        addMessage({
-          id: "user-switch-tim",
-          direction: "outgoing",
-          hasTail: true,
-          radius: "17px 17px 4px 17px",
-          time: "10:31",
-          content: "tim",
-        });
-        setInputText("");
+      case "KB_SHOW": {
+        setKbVisible(true);
+        schedule(() => setPhase("KB_TAP_TIM"), 1000);
+        break;
+      }
+
+      case "KB_TAP_TIM": {
+        // Touch indicator on "tim 💤" button (2nd button in 1st row)
+        if (kbRef.current) {
+          const kbWidth = kbRef.current.offsetWidth;
+          const btnWidth = (kbWidth - 10 - 3) / 2; // 2 buttons, px-[5px] each side, gap-[3px]
+          const x = 5 + btnWidth + 3 + btnWidth / 2;
+          fireTouchAt(x, 16);
+        }
+
+        // After 300ms: send "tim" to chat, hide keyboard
+        schedule(() => {
+          setKbTouch(null);
+          setKbVisible(false);
+          addMessage({
+            id: "user-switch-tim",
+            direction: "outgoing",
+            hasTail: true,
+            radius: "17px 17px 4px 17px",
+            time: "10:31",
+            content: "tim",
+          });
+        }, 300);
+
         schedule(() => setPhase("BOT_DASHBOARD"), 600);
         break;
       }
+
+      // ── Dashboard ──
 
       case "BOT_DASHBOARD": {
         addMessage({
@@ -260,13 +388,13 @@ export function TelegramMultiSession() {
           ],
         });
 
-        schedule(() => setPhase("USER_TYPING_4"), 3000);
+        schedule(() => setPhase("USER_TYPING_3"), 3000);
         break;
       }
 
-      // ── Direct messaging ──
+      // ── Tim: write tests ──
 
-      case "USER_SEND_4": {
+      case "USER_SEND_3": {
         const msgId = "user-msg-tim";
         addMessage({
           id: msgId,
@@ -274,7 +402,7 @@ export function TelegramMultiSession() {
           hasTail: true,
           radius: "17px 17px 4px 17px",
           time: "10:31",
-          content: "hey tim how are you?",
+          content: "write tests for the payment webhook",
         });
         setInputText("");
 
@@ -282,29 +410,64 @@ export function TelegramMultiSession() {
           updateMessage(msgId, (m) => ({ ...m, reaction: "\uD83D\uDC40" }));
         }, 500);
 
-        schedule(() => setPhase("BOT_TIM_REPLY"), 1200);
+        schedule(() => setPhase("BOT_TIM_THINKING"), 1200);
         break;
       }
 
-      case "BOT_TIM_REPLY": {
+      case "BOT_TIM_THINKING": {
+        const thinkId = "bot-tim-thinking";
+        let elapsed = 0;
+
         addMessage({
-          id: "bot-tim-finished",
+          id: thinkId,
           direction: "incoming",
           hasTail: true,
           radius: "17px 17px 17px 4px",
           time: "10:31",
-          statusEmoji: "checkmark",
+          statusEmoji: "gear",
           sessionName: "tim",
-          statusVerb: "Finished (3s)",
-          summaryText:
-            "Hey! I\u2019m doing well, thanks for asking.\nReady when you are \u2014 what are\nwe working on today?",
+          statusVerb: "Thinking",
+          elapsedSeconds: 0,
         });
 
-        schedule(() => setPhase("USER_TYPING_5"), 3000);
+        scheduleInterval(() => {
+          elapsed++;
+          updateMessage(thinkId, (m) => ({ ...m, elapsedSeconds: elapsed }));
+        }, 1000);
+
+        schedule(() => {
+          intervalsRef.current.forEach(clearInterval);
+          intervalsRef.current.clear();
+          setPhase("BOT_TIM_REPLY");
+        }, 3500);
         break;
       }
 
-      case "USER_SEND_5": {
+      case "BOT_TIM_REPLY": {
+        removeMessage("bot-tim-thinking");
+
+        schedule(() => {
+          addMessage({
+            id: "bot-tim-finished",
+            direction: "incoming",
+            hasTail: true,
+            radius: "17px 17px 17px 4px",
+            time: "10:31",
+            statusEmoji: "checkmark",
+            sessionName: "tim",
+            statusVerb: "Finished (4s)",
+            summaryText:
+              "Added 6 tests covering success, invalid signature, duplicate event, and retry scenarios.",
+          });
+        }, 200);
+
+        schedule(() => setPhase("USER_TYPING_4"), 3200);
+        break;
+      }
+
+      // ── John: review PR ──
+
+      case "USER_SEND_4": {
         const msgId = "user-msg-john";
         addMessage({
           id: msgId,
@@ -312,7 +475,7 @@ export function TelegramMultiSession() {
           hasTail: true,
           radius: "17px 17px 4px 17px",
           time: "10:32",
-          content: "/john are you ready for a task?",
+          content: "/john review PR #38 for security issues",
         });
         setInputText("");
 
@@ -320,24 +483,58 @@ export function TelegramMultiSession() {
           updateMessage(msgId, (m) => ({ ...m, reaction: "\uD83D\uDC40" }));
         }, 500);
 
-        schedule(() => setPhase("BOT_JOHN_REPLY"), 1200);
+        schedule(() => setPhase("BOT_JOHN_THINKING"), 1200);
         break;
       }
 
-      case "BOT_JOHN_REPLY": {
+      case "BOT_JOHN_THINKING": {
+        const thinkId = "bot-john-thinking";
+        let elapsed = 0;
+
         addMessage({
-          id: "bot-john-finished",
+          id: thinkId,
           direction: "incoming",
           hasTail: true,
           radius: "17px 17px 17px 4px",
           time: "10:32",
-          statusEmoji: "checkmark",
+          statusEmoji: "gear",
           sessionName: "john",
-          statusVerb: "Finished (1s)",
-          summaryText: "Ready. What\u2019s the task?",
+          statusVerb: "Thinking",
+          elapsedSeconds: 0,
         });
 
-        schedule(() => setPhase("PAUSE"), 3000);
+        scheduleInterval(() => {
+          elapsed++;
+          updateMessage(thinkId, (m) => ({ ...m, elapsedSeconds: elapsed }));
+        }, 1000);
+
+        schedule(() => {
+          intervalsRef.current.forEach(clearInterval);
+          intervalsRef.current.clear();
+          setPhase("BOT_JOHN_REPLY");
+        }, 2500);
+        break;
+      }
+
+      case "BOT_JOHN_REPLY": {
+        removeMessage("bot-john-thinking");
+
+        schedule(() => {
+          addMessage({
+            id: "bot-john-finished",
+            direction: "incoming",
+            hasTail: true,
+            radius: "17px 17px 17px 4px",
+            time: "10:32",
+            statusEmoji: "checkmark",
+            sessionName: "john",
+            statusVerb: "Finished (2s)",
+            summaryText:
+              "Found 2 issues: unvalidated redirect in OAuth callback, missing rate limit on login endpoint.",
+          });
+        }, 200);
+
+        schedule(() => setPhase("PAUSE"), 3200);
         break;
       }
 
@@ -349,6 +546,8 @@ export function TelegramMultiSession() {
       }
 
       case "RESET": {
+        setKbVisible(false);
+        setKbTouch(null);
         setMessages([]);
         setInputText("");
         schedule(() => setPhase("USER_TYPING_1"), 800);
@@ -367,21 +566,24 @@ export function TelegramMultiSession() {
   const launchActive =
     phase === "USER_TYPING_1" ||
     phase === "USER_SEND_1" ||
+    phase === "BOT_JOHN_LAUNCH" ||
     phase === "USER_TYPING_2" ||
     phase === "USER_SEND_2" ||
-    phase === "BOT_LAUNCHES";
+    phase === "BOT_TIM_LAUNCH";
 
   const switchActive =
-    phase === "USER_TYPING_3" ||
-    phase === "USER_SEND_3" ||
+    phase === "KB_SHOW" ||
+    phase === "KB_TAP_TIM" ||
     phase === "BOT_DASHBOARD";
 
   const directActive =
+    phase === "USER_TYPING_3" ||
+    phase === "USER_SEND_3" ||
+    phase === "BOT_TIM_THINKING" ||
+    phase === "BOT_TIM_REPLY" ||
     phase === "USER_TYPING_4" ||
     phase === "USER_SEND_4" ||
-    phase === "BOT_TIM_REPLY" ||
-    phase === "USER_TYPING_5" ||
-    phase === "USER_SEND_5" ||
+    phase === "BOT_JOHN_THINKING" ||
     phase === "BOT_JOHN_REPLY";
 
   return (
@@ -460,6 +662,13 @@ export function TelegramMultiSession() {
                     ))}
                   </AnimatePresence>
                 </div>
+              </div>
+
+              {/* Persistent reply keyboard */}
+              <div ref={kbRef} className="shrink-0">
+                <AnimatePresence>
+                  {kbVisible && <PersistentKeyboard touch={kbTouch} />}
+                </AnimatePresence>
               </div>
 
               {/* Input bar */}

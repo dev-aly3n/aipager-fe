@@ -383,6 +383,36 @@ export function Bubble({ msg }: { msg: ChatMessage }) {
   );
 }
 
+// ─── Touch indicator (iOS developer mode style) ───
+
+export interface TouchPoint {
+  x: number;
+  y: number;
+  key: number;
+}
+
+export function TouchIndicator({ x, y }: { x: number; y: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0.5, scale: 0.3 }}
+      animate={{ opacity: 0, scale: 1.2 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="absolute pointer-events-none z-50"
+      style={{
+        left: x,
+        top: y,
+        width: 28,
+        height: 28,
+        marginLeft: -14,
+        marginTop: -14,
+        borderRadius: "50%",
+        backgroundColor: "rgba(255,255,255,0.35)",
+        boxShadow: "0 0 8px rgba(255,255,255,0.2)",
+      }}
+    />
+  );
+}
+
 // ─── iPhone frame wrapper ───
 
 export function PhoneFrame({ children }: { children: React.ReactNode }) {
