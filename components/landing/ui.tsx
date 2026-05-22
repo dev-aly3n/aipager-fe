@@ -216,21 +216,58 @@ export function typeInto(
 }
 
 export function PersistentKeyboard({
+  mode = "sessions",
   activeName = "jim",
   tapTrigger = 0,
+  tapKey,
 }: {
+  /** Which tier of the bot's persistent reply keyboard to render. */
+  mode?: "sessions" | "commands";
+  /** Sessions mode: which session pill is currently selected (gets the ping). */
   activeName?: string;
+  /** Bumped to trigger a tap-feedback ping on this render. */
   tapTrigger?: number;
+  /** Which key (by label) the ping fires on; defaults to the active session. */
+  tapKey?: string;
 }) {
+  const activeStyle: CSSProperties = {
+    borderColor: "var(--accent)",
+    color: "var(--fg)",
+  };
+
+  if (mode === "commands") {
+    // Commands tier — `Compact` is how a user kicks off /compact without
+    // having to type the slash command. Mirrors the real bot's layout.
+    const keys: { label: string; col?: 2 | 3 }[] = [
+      { label: "Compact" },
+      { label: "Clear" },
+      { label: "Plan mode" },
+      { label: "Init" },
+      { label: "Security review", col: 2 },
+      { label: "‹ Back" },
+      { label: "Model ›", col: 2 },
+    ];
+    return (
+      <div className="persistent-kb">
+        {keys.map((k) => (
+          <div
+            key={k.label}
+            className={`k${k.col === 2 ? " col-2" : ""}${k.col === 3 ? " col-3" : ""}`}
+          >
+            {k.label}
+            {tapKey === k.label && tapTrigger > 0 && <TapPing key={tapTrigger} />}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const sessions: { name: string; status: "busy" | "idle" | "live" }[] = [
     { name: "jim", status: "busy" },
     { name: "john", status: "idle" },
     { name: "tim", status: "live" },
   ];
-  const activeStyle: CSSProperties = {
-    borderColor: "var(--accent)",
-    color: "var(--fg)",
-  };
+  const sessionsTapKey = tapKey ?? activeName;
   return (
     <div className="persistent-kb">
       {sessions.map((s) => (
@@ -241,7 +278,7 @@ export function PersistentKeyboard({
         >
           <span className={`pip ${s.status}`} />
           {s.name}
-          {s.name === activeName && tapTrigger > 0 && <TapPing key={tapTrigger} />}
+          {s.name === sessionsTapKey && tapTrigger > 0 && <TapPing key={tapTrigger} />}
         </div>
       ))}
       <div className="k">⏹ stop</div>

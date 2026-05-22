@@ -777,6 +777,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative;
   overflow: hidden;
 }
+.persistent-kb .k.col-2 { grid-column: span 2; }
 .persistent-kb .k.col-3 { grid-column: span 3; }
 .persistent-kb .k .pip {
   width: 6px; height: 6px; border-radius: 50%;

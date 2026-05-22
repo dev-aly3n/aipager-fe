@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Icon,
   PhoneFrame,
+  PersistentKeyboard,
   TapPing,
   useChatEngine,
   ChatMessageView,
@@ -49,6 +50,8 @@ export function Demo() {
   const [cc, setCc] = useState<CCLine[]>([]);
   const [typed, setTyped] = useState("");
   const [sendPing, setSendPing] = useState(0);
+  // Bumped to ping the persistent keyboard's Compact button in the warn scenario.
+  const [kbCompactTap, setKbCompactTap] = useState(0);
 
   const engine = useChatEngine();
   const { messages, addMessage, updateMessage, removeMessage, resetChat, schedule, scheduleInterval, clearAllTimers } = engine;
@@ -326,41 +329,46 @@ export function Demo() {
         summary: "risk of truncation — reply /compact to free space",
       });
     }, 1600);
-    // The human reacts to the warning by typing /compact, then it sends.
+    // The human reacts to the warning by tapping the persistent keyboard's
+    // Compact button (no typing — this is how aipager's reply keyboard works).
     schedule(() => {
-      typeInto("/compact", setTyped, schedule, () => {
-        addMessage({ id: "u-compact", kind: "user", text: "/compact" });
-        addCC({ id: "w-user", kind: "user", text: "/compact" });
-        addCC({ id: "w-compact-cmd", kind: "note", tone: "key", text: "› /compact" });
-        schedule(() => {
-          setTurn({ emoji: "refresh", verb: "Compacting", spinner: true });
-          const frames = ["Compacting", "Compacting.", "Compacting..", "Compacting..."];
-          let di = 0;
-          dotsRef.current = scheduleInterval(() => {
-            di = (di + 1) % frames.length;
-            updateMessage("turn", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
-          }, 500);
-          updateCC("spin", { verb: "Compacting" });
-          addCC({ id: "w-summarizing", kind: "note", tone: "dim", text: "Summarizing prior turns…" });
-        }, 200);
-        schedule(() => {
-          stopDotsInterval();
-          // Done: drop the thinking bubble, post the result as a fresh message.
-          removeMessage("turn");
-          addMessage({
-            id: "w-result",
-            kind: "result",
-            emoji: "📦",
-            session: "dev",
-            headline: "Compacted (85% → 22% · 9 turns kept)",
-            text: "Context compacted — resuming the refactor.",
-          });
-          removeCC("spin");
-          addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
-          addCC({ id: "w-resume", kind: "assistant", text: "Context freed — resuming the refactor." });
-        }, 2200);
-      }, { cps: 12 });
-    }, 2400);
+      setKbCompactTap((k) => k + 1); // tap-feedback on the Compact key
+    }, 2800);
+    schedule(() => {
+      // Telegram custom reply keyboards send the button label as a message,
+      // so "Compact" lands as the user's message; the daemon maps it to
+      // /compact and injects it into the session.
+      addMessage({ id: "u-compact", kind: "user", text: "Compact" });
+      addCC({ id: "w-user", kind: "user", text: "/compact" });
+      addCC({ id: "w-compact-cmd", kind: "note", tone: "key", text: "› /compact" });
+    }, 3100);
+    schedule(() => {
+      setTurn({ emoji: "refresh", verb: "Compacting", spinner: true });
+      const frames = ["Compacting", "Compacting.", "Compacting..", "Compacting..."];
+      let di = 0;
+      dotsRef.current = scheduleInterval(() => {
+        di = (di + 1) % frames.length;
+        updateMessage("turn", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
+      }, 500);
+      updateCC("spin", { verb: "Compacting" });
+      addCC({ id: "w-summarizing", kind: "note", tone: "dim", text: "Summarizing prior turns…" });
+    }, 3300);
+    schedule(() => {
+      stopDotsInterval();
+      // Done: drop the thinking bubble, post the result as a fresh message.
+      removeMessage("turn");
+      addMessage({
+        id: "w-result",
+        kind: "result",
+        emoji: "📦",
+        session: "dev",
+        headline: "Compacted (85% → 22% · 9 turns kept)",
+        text: "Context compacted — resuming the refactor.",
+      });
+      removeCC("spin");
+      addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
+      addCC({ id: "w-resume", kind: "assistant", text: "Context freed — resuming the refactor." });
+    }, 5300);
   };
 
   const runScenario = (key: ScenarioKey) => {
@@ -413,6 +421,7 @@ export function Demo() {
     resetChat();
     setCc([]);
     setTyped("");
+    setKbCompactTap(0);
     // Defer running the script so reset state lands first.
     schedule(() => runScenario(key), 0);
   };
@@ -506,6 +515,13 @@ export function Demo() {
                   {sendPing > 0 && <TapPing key={sendPing} />}
                 </button>
               </form>
+              {scenario === "warn" && (
+                <PersistentKeyboard
+                  mode="commands"
+                  tapKey="Compact"
+                  tapTrigger={kbCompactTap}
+                />
+              )}
             </PhoneFrame>
           </div>
         </div>
