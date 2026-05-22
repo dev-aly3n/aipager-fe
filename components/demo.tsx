@@ -146,6 +146,7 @@ export function Demo() {
     endThinking();
     // Show the tap feedback first; the buttons + command card clear shortly after.
     setTurn({ resolved: "allow" });
+    addMessage({ id: "u-allow", kind: "user", text: "Allow" });
     schedule(() => {
       removeCC("perm");
       addCC({ id: "p-approved", kind: "note", tone: "key", text: "✓ Approved via Telegram" });
@@ -176,6 +177,7 @@ export function Demo() {
     if (cur?.resolved) return;
     endThinking();
     setTurn({ resolved: "deny" });
+    addMessage({ id: "u-deny", kind: "user", text: "Deny" });
     schedule(() => {
       setTurn({
         emoji: "warn",
