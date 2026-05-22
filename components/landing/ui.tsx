@@ -477,7 +477,23 @@ export interface BotTextMsg {
   time?: string;
 }
 
-export type ChatMsg = StatusMsg | UserMsg | SystemMsg | BotTextMsg;
+/**
+ * The "you're done" message. When Claude finishes a turn the bot DELETES the
+ * thinking bubble and posts this fresh result — a header (✅ session · stats)
+ * plus the assistant's reply — so it reads as a notification, not a stale
+ * status. Mirrors hook_receiver → idle_prompt in the real daemon.
+ */
+export interface ResultMsg {
+  id: string;
+  kind: "result";
+  emoji?: string;
+  session: string;
+  stats?: string;
+  text: string;
+  time?: string;
+}
+
+export type ChatMsg = StatusMsg | UserMsg | SystemMsg | BotTextMsg | ResultMsg;
 
 export function StatusBubble({ msg }: { msg: StatusMsg }) {
   const showElapsed = msg.elapsed !== undefined && msg.elapsed >= 2;
@@ -540,6 +556,18 @@ export function StatusBubble({ msg }: { msg: StatusMsg }) {
 export function ChatMessageView({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "status") return <StatusBubble msg={msg} />;
   if (msg.kind === "system") return <div className="msg system">{msg.text}</div>;
+  if (msg.kind === "result") {
+    return (
+      <div className="msg bot">
+        <span className="label" style={{ color: "var(--live)" }}>
+          {msg.emoji ?? "✅"} {msg.session}
+          {msg.stats ? ` · ${msg.stats}` : ""}
+        </span>
+        <div className="result-body">{msg.text}</div>
+        <span className="time">{msg.time ?? "9:41"}</span>
+      </div>
+    );
+  }
   if (msg.kind === "user") {
     return (
       <div className="msg me">

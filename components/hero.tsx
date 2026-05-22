@@ -25,6 +25,7 @@ function HeroChat() {
     messages,
     addMessage,
     updateMessage,
+    removeMessage,
     resetChat,
     schedule,
     scheduleInterval,
@@ -184,13 +185,16 @@ function HeroChat() {
         removeCC("spin2");
         addCC({ id: "res-test", kind: "result", text: "142 passed · 0 failed · 8.3s" });
       }, 6700);
-      // 10 — finished
+      // 10 — done: delete the thinking bubble and post the result as a fresh
+      //      message (the "it's ready" notification), exactly like the bot.
       schedule(() => {
-        patchTurn({
-          emoji: "check",
-          verb: "Finished (8.3s · 142/142)",
-          spinner: false,
-          summary: "All tests green.\nctx 32% · $0.18 · 412 lines",
+        removeMessage("turn");
+        addMessage({
+          id: "result",
+          kind: "result",
+          session: "dev",
+          stats: "8.3s · 142/142",
+          text: "All green — auth middleware hardened.",
         });
         addCC({
           id: "asst-done",

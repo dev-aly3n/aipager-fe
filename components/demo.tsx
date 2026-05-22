@@ -167,11 +167,14 @@ export function Demo() {
     schedule(() => addCC({ id: "p-applying", kind: "result", text: "Applying migration 20260522_add_users" }), 900);
     schedule(() => addCC({ id: "p-synced", kind: "result", text: "Database is in sync (684ms)" }), 2600);
     schedule(() => {
-      setTurn({
-        emoji: "check",
-        verb: "Finished · migration applied",
-        spinner: false,
-        summary: "684ms · database in sync",
+      // Done: drop the thinking bubble, post the result as a fresh message.
+      removeMessage("turn");
+      addMessage({
+        id: "p-result",
+        kind: "result",
+        session: "dev",
+        stats: "684ms",
+        text: "Migration applied — database in sync.",
       });
       addCC({ id: "p-done", kind: "assistant", text: "Migration applied." });
     }, 3000);
@@ -287,11 +290,14 @@ export function Demo() {
         }, 3200);
         schedule(() => {
           endThinking();
-          setTurn({
-            emoji: "check",
-            verb: "Finished · 2 files · +38 −4",
-            spinner: false,
-            summary: "feature flag toggle shipped\n+ changelog entry",
+          // Done: drop the thinking bubble, post the result as a fresh message.
+          removeMessage("turn");
+          addMessage({
+            id: "i-result",
+            kind: "result",
+            session: "dev",
+            stats: "2 files · +38 −4",
+            text: "Shipped the feature flag toggle and added a changelog entry.",
           });
           removeCC("spin");
           addCC({ id: "i-done", kind: "assistant", text: "Done — 2 files changed (+38 −4)." });
@@ -339,11 +345,15 @@ export function Demo() {
         }, 200);
         schedule(() => {
           stopDotsInterval();
-          setTurn({
-            emoji: "package",
-            verb: "Compacted: 85% → 22%",
-            spinner: false,
-            summary: "9 turns kept",
+          // Done: drop the thinking bubble, post the result as a fresh message.
+          removeMessage("turn");
+          addMessage({
+            id: "w-result",
+            kind: "result",
+            emoji: "📦",
+            session: "dev",
+            stats: "85% → 22% · 9 turns kept",
+            text: "Context compacted — resuming the refactor.",
           });
           removeCC("spin");
           addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
