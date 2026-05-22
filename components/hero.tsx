@@ -168,7 +168,7 @@ function HeroChat() {
       // 8 — approval clears the box, run tests, status back to busy
       schedule(() => {
         removeCC("perm");
-        addCC({ id: "note-approved", kind: "note", text: "✓ Approved via Telegram", tone: "key" });
+        // Claude Code just runs the command once approved — no "via Telegram".
         addCC({ id: "tool-bash", kind: "tool", name: "Bash", args: "pnpm test --filter server" });
         addCC({ id: "spin2", kind: "spinner", verb: "Running tests", elapsed: 0 });
         patchTurn({

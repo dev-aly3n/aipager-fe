@@ -153,7 +153,8 @@ export function Demo() {
     setTurn({ resolved: "allow" });
     schedule(() => {
       removeCC("perm");
-      addCC({ id: "p-approved", kind: "note", tone: "key", text: "✓ Approved via Telegram" });
+      // Claude Code just runs the command once approved — it doesn't know or
+      // print how the approval arrived.
       addCC({ id: "p-bash", kind: "tool", name: "Bash", args: "prisma migrate dev --name add_users" });
       setTurn({
         emoji: "gear",
@@ -184,13 +185,14 @@ export function Demo() {
     schedule(() => {
       setTurn({
         emoji: "warn",
-        verb: "Denied via telegram",
+        verb: "Permission denied",
         spinner: false,
         hasKeyboard: false,
         permissionCmd: undefined,
       });
       removeCC("perm");
-      addCC({ id: "p-denied", kind: "note", tone: "warn", text: "✗ Denied via Telegram" });
+      // Claude Code shows the request was declined, then responds.
+      addCC({ id: "p-denied", kind: "note", tone: "dim", text: "✗ Command not run." });
       addCC({ id: "p-deny-msg", kind: "assistant", text: "Understood — I won't run that." });
     }, 520);
   };
