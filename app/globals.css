@@ -1254,6 +1254,92 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================
+   Claude Code terminal (TUI shape)
+   =========================== */
+.cc-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 14px 16px 10px;
+  min-height: 300px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  overflow: hidden;
+}
+.cc-row { display: flex; gap: 8px; align-items: baseline; }
+.cc-row .ind { width: 1ch; flex-shrink: 0; }
+
+.cc-welcome { color: var(--fg-3); display: flex; gap: 8px; align-items: baseline; }
+.cc-welcome .star { color: var(--accent); }
+
+.cc-user { color: var(--fg); }
+.cc-user .caret { color: var(--accent); margin-right: 8px; }
+
+.cc-dot { flex-shrink: 0; }
+.cc-dot.asst { color: var(--accent); }
+.cc-dot.tool { color: var(--fg-2); }
+.cc-asst { color: var(--fg-2); }
+.cc-tool-name { color: var(--fg); }
+.cc-tool-args { color: var(--fg-3); word-break: break-all; }
+
+.cc-tree { color: var(--fg-4); flex-shrink: 0; }
+.cc-result { color: var(--fg-4); word-break: break-all; }
+
+.cc-note.ok { color: var(--live); }
+.cc-note.warn { color: var(--warn); }
+.cc-note.dim { color: var(--fg-4); }
+.cc-note.key { color: var(--accent); }
+
+.cc-spin { display: flex; gap: 8px; align-items: baseline; }
+.cc-spin .glyph { color: var(--accent); flex-shrink: 0; }
+.cc-spin .verb { color: var(--fg-2); }
+.cc-spin .meta { color: var(--fg-4); }
+
+/* permission prompt box (claude-style) */
+.cc-box {
+  margin: 6px 0 2px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cc-box .box-title { color: var(--fg); font-size: 12px; }
+.cc-box .box-cmd { color: var(--accent); font-size: 12px; word-break: break-all; }
+.cc-box .box-desc { color: var(--fg-3); font-size: 11.5px; }
+.cc-box .box-q { color: var(--fg-2); font-size: 12px; margin-top: 2px; }
+.cc-box .box-opt { color: var(--fg-3); font-size: 12px; }
+.cc-box .box-opt.sel { color: var(--fg); }
+.cc-box .box-opt .sel-caret { color: var(--accent); }
+
+/* input prompt box at the bottom */
+.cc-input { padding: 4px 12px 12px; }
+.cc-prompt-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--fg-3);
+}
+.cc-prompt-box .caret { color: var(--accent); }
+.cc-prompt-box .ph { color: var(--fg); }
+.cc-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--fg-4);
+}
+.cc-hint .mode { color: var(--fg-4); }
+
+/* ===========================
    Status bubble (single in-place message)
    =========================== */
 .msg .status-head {

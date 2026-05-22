@@ -7,8 +7,10 @@ import {
   PhoneFrame,
   useChatEngine,
   ChatMessageView,
+  ClaudeTerminal,
   THINKING_VERBS,
   type StatusMsg,
+  type CCLine,
 } from "@/components/landing/ui";
 
 // Hero — synced terminal + telegram pair with a looping micro-story.
@@ -16,41 +18,6 @@ import {
 // in place (rotating verb + ticking elapsed + a growing tool list inside the
 // same bubble) that transforms into permission / finished. The terminal panel
 // stays append-only.
-
-interface TermLine {
-  kind: "cmd" | "out";
-  text: string;
-  cls?: string;
-}
-
-function HeroTerminal({ lines }: { lines: TermLine[] }) {
-  return (
-    <div className="terminal">
-      <div className="terminal-bar">
-        <div className="terminal-dots"><span></span><span></span><span></span></div>
-        <span className="terminal-title">~/work/dev · claude code</span>
-      </div>
-      <div className="terminal-body">
-        {lines.map((l, i) =>
-          l.kind === "cmd" ? (
-            <div className="t-line" key={`l${i}`}>
-              <span className="t-prompt">$</span>
-              <span className="t-cmd">{l.text}</span>
-            </div>
-          ) : (
-            <div className="t-line" key={`l${i}`}>
-              <span className={`t-out ${l.cls || ""}`}>{l.text}</span>
-            </div>
-          )
-        )}
-        <div className="t-line">
-          <span className="t-prompt">$</span>
-          <span className="t-cursor"></span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function HeroChat() {
   const {
@@ -63,7 +30,7 @@ function HeroChat() {
     clearAllTimers,
   } = useChatEngine();
 
-  const [termLines, setTermLines] = useState<TermLine[]>([]);
+  const [cc, setCc] = useState<CCLine[]>([]);
   const mounted = useRef(true);
   // Refs for the two per-turn intervals (elapsed/verb) so step 7 can clear
   // just those without killing the scheduled story steps.
@@ -73,9 +40,19 @@ function HeroChat() {
   useEffect(() => {
     mounted.current = true;
 
-    const addTerm = (line: TermLine) => {
+    const addCC = (line: CCLine) => {
       if (!mounted.current) return;
-      setTermLines((prev) => [...prev, line]);
+      setCc((prev) => [...prev, line]);
+    };
+    const updateCC = (id: string, patch: Partial<CCLine>) => {
+      if (!mounted.current) return;
+      setCc((prev) =>
+        prev.map((l) => (l.id === id ? ({ ...l, ...patch } as CCLine) : l))
+      );
+    };
+    const removeCC = (id: string) => {
+      if (!mounted.current) return;
+      setCc((prev) => prev.filter((l) => l.id !== id));
     };
 
     const patchTurn = (patch: Partial<StatusMsg>) =>
@@ -91,19 +68,21 @@ function HeroChat() {
     const runStory = () => {
       if (!mounted.current) return;
 
-      // 1
-      schedule(() => addTerm({ kind: "cmd", text: "claude --resume dev" }), 0);
-      // 2
-      schedule(
-        () => addTerm({ kind: "out", text: "● Loading session dev (sonnet 4.5)…", cls: "t-dim" }),
-        600
-      );
-      // 3
+      // 1 — welcome + the user prompt
       schedule(() => {
-        addTerm({ kind: "out", text: "✓ Hooks attached. Session live.", cls: "t-ok" });
-        addMessage({ id: "sys", kind: "system", text: "dev — session started · sonnet" });
-      }, 1200);
-      // 4 — the single status message for this turn + the two intervals
+        addCC({ id: "welcome", kind: "welcome", text: "Welcome to Claude Code" });
+        addCC({ id: "prompt", kind: "user", text: "harden the auth middleware" });
+      }, 0);
+      // 2 — assistant prose
+      schedule(() => {
+        addCC({
+          id: "asst-plan",
+          kind: "assistant",
+          text: "I'll review the handlers, then run the tests.",
+        });
+      }, 600);
+      // 3 — the single status message for this turn + the two intervals;
+      //     terminal gets the matching ✻ spinner.
       schedule(() => {
         addMessage({
           id: "turn",
@@ -115,20 +94,25 @@ function HeroChat() {
           elapsed: 0,
           tools: [],
         });
+        addCC({ id: "spin", kind: "spinner", verb: "Cogitating", elapsed: 0, tokens: "0.4k" });
         let elapsed = 0;
         let vi = 0;
         elapsedIv.current = scheduleInterval(() => {
           elapsed += 1;
           patchTurn({ elapsed });
+          updateCC("spin", {
+            elapsed,
+            tokens: `${(0.4 + elapsed * 0.3).toFixed(1)}k`,
+          } as Partial<CCLine>);
         }, 1000);
         verbIv.current = scheduleInterval(() => {
           vi = (vi + 1) % THINKING_VERBS.length;
           patchTurn({ verb: THINKING_VERBS[vi] });
         }, 1500);
       }, 1700);
-      // 5 — grow the tool list in place
+      // 4 — Read tool, grow the tool list in place
       schedule(() => {
-        addTerm({ kind: "out", text: "› Reading src/server/handlers.ts", cls: "t-dim" });
+        addCC({ id: "tool-read", kind: "tool", name: "Read", args: "src/server/handlers.ts" });
         updateMessage("turn", (m) => {
           const s = m as StatusMsg;
           return {
@@ -140,9 +124,17 @@ function HeroChat() {
           };
         });
       }, 2200);
-      // 6
       schedule(() => {
-        addTerm({ kind: "out", text: "› Editing src/server/handlers.ts:142", cls: "t-dim" });
+        addCC({ id: "res-read", kind: "result", text: "Read 142 lines" });
+      }, 2350);
+      // 5 — Update tool
+      schedule(() => {
+        addCC({ id: "tool-edit", kind: "tool", name: "Update", args: "src/server/handlers.ts" });
+        addCC({
+          id: "res-edit",
+          kind: "result",
+          text: "Updated with 12 additions and 3 removals",
+        });
         updateMessage("turn", (m) => {
           const s = m as StatusMsg;
           return {
@@ -154,9 +146,17 @@ function HeroChat() {
           };
         });
       }, 3000);
-      // 7 — transform into permission; stop just the per-turn intervals
+      // 6 — transform into permission; stop just the per-turn intervals,
+      //     drop the spinner and show the permission box.
       schedule(() => {
-        addTerm({ kind: "out", text: "⚠ Permission required: Bash", cls: "t-warn" });
+        removeCC("spin");
+        addCC({
+          id: "perm",
+          kind: "perm",
+          tool: "Bash command",
+          cmd: "pnpm test --filter server",
+          desc: "Run the server test suite",
+        });
         stopTurnIntervals();
         patchTurn({
           emoji: "lock",
@@ -166,7 +166,7 @@ function HeroChat() {
           hasKeyboard: true,
         });
       }, 3900);
-      // 8 — user replies "Allow", turn resolves, reaction lands
+      // 7 — user replies "Allow", turn resolves, reaction lands
       schedule(() => {
         addMessage({ id: "u-allow", kind: "user", text: "Allow", time: "9:41" });
         patchTurn({ resolved: "allow" });
@@ -174,17 +174,20 @@ function HeroChat() {
       schedule(() => {
         updateMessage("u-allow", (m) => ({ ...m, reaction: "👀" }));
       }, 5700);
-      // 9 — run tests, status back to busy
+      // 8 — approval clears the box, run tests, status back to busy
       schedule(() => {
-        addTerm({ kind: "out", text: "› Bash: pnpm test --filter server", cls: "t-key" });
+        removeCC("perm");
+        addCC({ id: "note-approved", kind: "note", text: "✓ Approved via Telegram", tone: "key" });
+        addCC({ id: "tool-bash", kind: "tool", name: "Bash", args: "pnpm test --filter server" });
+        addCC({ id: "spin2", kind: "spinner", verb: "Running tests", elapsed: 0 });
         patchTurn({ emoji: "gear", verb: "Running tests", spinner: true });
       }, 5800);
-      // 10
-      schedule(
-        () => addTerm({ kind: "out", text: "✓ 142 passed · 0 failed · 8.3s", cls: "t-ok" }),
-        7000
-      );
-      // 11 — finished
+      // 9 — test result
+      schedule(() => {
+        removeCC("spin2");
+        addCC({ id: "res-test", kind: "result", text: "142 passed · 0 failed · 8.3s" });
+      }, 7000);
+      // 10 — finished
       schedule(() => {
         patchTurn({
           emoji: "check",
@@ -192,13 +195,17 @@ function HeroChat() {
           spinner: false,
           summary: "All tests green.\nctx 32% · $0.18 · 412 lines",
         });
-        addTerm({ kind: "out", text: "● Idle. Context 32% · $0.18 · 412 lines", cls: "t-dim" });
+        addCC({
+          id: "asst-done",
+          kind: "assistant",
+          text: "All green — auth middleware hardened.",
+        });
       }, 7600);
-      // 12 — reset and loop
+      // 11 — reset and loop
       schedule(() => {
         stopTurnIntervals();
         resetChat();
-        setTermLines([]);
+        setCc([]);
         schedule(runStory, 800);
       }, 10300);
     };
@@ -222,7 +229,7 @@ function HeroChat() {
         alignItems: "stretch",
       }}
     >
-      <HeroTerminal lines={termLines} />
+      <ClaudeTerminal title="~/work/dev — claude" lines={cc} />
       <PhoneFrame sessionName="aipager · dev" status="bot · online">
         <div className="chat-body" style={{ minHeight: 320 }}>
           <div className="chat-day">Today</div>

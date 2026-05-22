@@ -215,6 +215,160 @@ export function PersistentKeyboard({ activeName = "jim" }: { activeName?: string
 }
 
 /* ===========================================================================
+   Claude Code terminal — reproduces the real CLI TUI: ⏺ tool-call dots with
+   ⎿ result lines, the animated ✻ spinner with elapsed + tokens, a permission
+   box, and the rounded > input box. Driven by an append-only CCLine list.
+   =========================================================================== */
+
+const SPINNER_GLYPHS = ["·", "✢", "✳", "∗", "✻", "✽", "✻", "∗", "✳", "✢"] as const;
+
+export type CCLine =
+  | { id: string; kind: "welcome"; text: string }
+  | { id: string; kind: "user"; text: string }
+  | { id: string; kind: "assistant"; text: string }
+  | { id: string; kind: "tool"; name: string; args: string }
+  | { id: string; kind: "result"; text: string }
+  | { id: string; kind: "note"; text: string; tone?: "ok" | "warn" | "dim" | "key" }
+  | { id: string; kind: "spinner"; verb: string; elapsed: number; tokens?: string }
+  | { id: string; kind: "perm"; tool: string; cmd: string; desc?: string };
+
+export function ClaudeTerminal({
+  title,
+  lines,
+  live = false,
+}: {
+  title: string;
+  lines: CCLine[];
+  live?: boolean;
+}) {
+  const [glyph, setGlyph] = useState(0);
+  const hasSpinner = lines.some((l) => l.kind === "spinner");
+  useEffect(() => {
+    if (!hasSpinner) return;
+    const id = setInterval(() => setGlyph((g) => (g + 1) % SPINNER_GLYPHS.length), 110);
+    return () => clearInterval(id);
+  }, [hasSpinner]);
+
+  return (
+    <div className="terminal">
+      <div className="terminal-bar">
+        <div className="terminal-dots">
+          <span />
+          <span />
+          <span />
+        </div>
+        <span className="terminal-title">{title}</span>
+        {live && (
+          <span
+            style={{
+              marginLeft: "auto",
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--live)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--live)" }} />
+            live
+          </span>
+        )}
+      </div>
+
+      <div className="cc-body">
+        {lines.map((l) => {
+          switch (l.kind) {
+            case "welcome":
+              return (
+                <div className="cc-welcome" key={l.id}>
+                  <span className="star">✻</span>
+                  <span>{l.text}</span>
+                </div>
+              );
+            case "user":
+              return (
+                <div className="cc-user" key={l.id}>
+                  <span className="caret">&gt;</span>
+                  {l.text}
+                </div>
+              );
+            case "assistant":
+              return (
+                <div className="cc-row" key={l.id}>
+                  <span className="cc-dot asst">⏺</span>
+                  <span className="cc-asst">{l.text}</span>
+                </div>
+              );
+            case "tool":
+              return (
+                <div className="cc-row" key={l.id}>
+                  <span className="cc-dot tool">⏺</span>
+                  <span>
+                    <span className="cc-tool-name">{l.name}</span>
+                    <span className="cc-tool-args">({l.args})</span>
+                  </span>
+                </div>
+              );
+            case "result":
+              return (
+                <div className="cc-row" key={l.id}>
+                  <span className="ind" />
+                  <span className="cc-tree">⎿</span>
+                  <span className="cc-result">{l.text}</span>
+                </div>
+              );
+            case "note":
+              return (
+                <div className={`cc-note ${l.tone ?? "dim"}`} key={l.id}>
+                  {l.text}
+                </div>
+              );
+            case "spinner":
+              return (
+                <div className="cc-spin" key={l.id}>
+                  <span className="glyph">{SPINNER_GLYPHS[glyph]}</span>
+                  <span className="verb">{l.verb}…</span>
+                  <span className="meta">
+                    ({l.elapsed}s
+                    {l.tokens ? ` · ↑ ${l.tokens} tokens` : ""} · esc to interrupt)
+                  </span>
+                </div>
+              );
+            case "perm":
+              return (
+                <div className="cc-box" key={l.id}>
+                  <span className="box-title">{l.tool}</span>
+                  <span className="box-cmd">{l.cmd}</span>
+                  {l.desc && <span className="box-desc">{l.desc}</span>}
+                  <span className="box-q">Do you want to proceed?</span>
+                  <span className="box-opt sel">
+                    <span className="sel-caret">❯</span> 1. Yes
+                  </span>
+                  <span className="box-opt">&nbsp;&nbsp; 2. Yes, and don&apos;t ask again</span>
+                  <span className="box-opt">&nbsp;&nbsp; 3. No, and tell Claude what to do differently</span>
+                </div>
+              );
+          }
+        })}
+      </div>
+
+      <div className="cc-input">
+        <div className="cc-prompt-box">
+          <span className="caret">&gt;</span>
+          <span className="ph" style={{ flex: 1 }} />
+          <span className="t-cursor" />
+        </div>
+        <div className="cc-hint">
+          <span>? for shortcuts</span>
+          <span className="mode">⏵⏵ accept edits on</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===========================================================================
    Chat engine — models the REAL aipager behavior: one status message per turn,
    edited in place (rotating verb + elapsed + a growing tool list), that
    transforms into finished / permission / compacted. NOT a bubble per tool.
