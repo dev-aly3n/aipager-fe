@@ -559,13 +559,14 @@ export function ChatMessageView({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "result") {
     return (
       <div className="msg bot" style={{ width: "86%", maxWidth: 320 }}>
-        <div className="status-head">
-          <span className="label-emoji">{msg.emoji ?? "✅"}</span>
-          <span>
-            {msg.session} · {msg.headline}
-          </span>
+        <div className="result-head">
+          <span>{msg.emoji ?? "✅"}</span>
+          <span className="session">{msg.session}</span>
+          <span className="sep">·</span>
+          <span className="meta">{msg.headline}</span>
         </div>
-        <div className="summary">{msg.text}</div>
+        <div className="result-body">{msg.text}</div>
+        <span className="time">{msg.time ?? "9:41"}</span>
       </div>
     );
   }

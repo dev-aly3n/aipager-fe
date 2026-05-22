@@ -1424,6 +1424,34 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* Result message — the "you're done" notification the bot posts after deleting
+   the thinking bubble. Mirrors Telegram's normal sans bot-message look + the
+   blockquoted reply, NOT the mono live-status line. */
+.msg .result-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--fg);
+  margin-bottom: 6px;
+}
+.msg .result-head .session { font-weight: 600; }
+.msg .result-head .sep { color: var(--fg-3); }
+.msg .result-head .meta { color: var(--fg-3); }
+.msg .result-body {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--fg);
+  border-left: 3px solid oklch(1 0 0 / 0.22);
+  padding-left: 8px;
+  margin-left: 1px;
+  white-space: pre-line;
+}
+
 .msg .summary {
   margin-top: 7px;
   padding: 6px 9px;
