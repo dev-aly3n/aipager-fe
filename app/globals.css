@@ -566,7 +566,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     radial-gradient(circle at 30% 20%, oklch(0.22 0.01 250 / 0.6), transparent 60%),
     oklch(0.155 0.008 250);
   overflow: hidden;
+  /* Telegram has no visible scrollbar — hide it but keep scrolling. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.chat-body::-webkit-scrollbar { display: none; }
 
 .chat-day {
   text-align: center;
