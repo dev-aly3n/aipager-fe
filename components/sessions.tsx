@@ -2,7 +2,11 @@
 
 // Multi-session orchestration section
 import { useEffect, useState } from "react";
-import { PhoneFrame, PersistentKeyboard, TapPing, ChatMessageView, type ChatMsg, type StatusMsg } from "@/components/landing/ui";
+import { Icon, PhoneFrame, PersistentKeyboard, TapPing, ChatMessageView, type ChatMsg, type StatusMsg } from "@/components/landing/ui";
+
+// Gerunds the busy session's status cycles through, in place — same idea as the
+// hero/demo "Thinking…" bubble (the real bot edits one message, it never stacks).
+const BUSY_VERBS = ["Editing", "Analyzing", "Reasoning", "Editing"] as const;
 
 type SessionStatus = "busy" | "idle" | "live";
 
@@ -100,6 +104,9 @@ export function Sessions() {
   const [pick, setPick] = useState(0);
   // Bumped on every switch (auto or tap) to replay the tap-feedback ping.
   const [tapKey, setTapKey] = useState(0);
+  // Live animation for the active busy session.
+  const [elapsed, setElapsed] = useState(0);
+  const [verbIdx, setVerbIdx] = useState(0);
 
   // Auto-rotate the active session unless user interacts
   const [userPicked, setUserPicked] = useState(false);
@@ -108,12 +115,36 @@ export function Sessions() {
     const id = setInterval(() => {
       setPick((p) => (p + 1) % SESSION_CHAT_FRAMES.length);
       setTapKey((k) => k + 1);
-    }, 3200);
+    }, 3600);
     return () => clearInterval(id);
   }, [userPicked]);
 
   const frame = SESSION_CHAT_FRAMES[pick];
   const activeName = frame.pick;
+  const activeBusy =
+    SESSION_TILES.find((t) => t.name === activeName)?.status === "busy";
+
+  // Animate the busy session's status in place — rotating verb + ticking
+  // elapsed — exactly like a live "Thinking…" bubble. Idle / needs-you
+  // sessions stay still (they aren't working).
+  useEffect(() => {
+    setElapsed(0);
+    setVerbIdx(0);
+    if (!activeBusy) return;
+    const e = setInterval(() => setElapsed((s) => s + 1), 1000);
+    const v = setInterval(() => setVerbIdx((i) => i + 1), 1500);
+    return () => {
+      clearInterval(e);
+      clearInterval(v);
+    };
+  }, [pick, activeBusy]);
+
+  // Inject the live verb/elapsed into the active busy session's bubble.
+  const msgs: ChatMsg[] = frame.msgs.map((m) =>
+    m.kind === "status" && activeBusy
+      ? { ...m, verb: BUSY_VERBS[verbIdx % BUSY_VERBS.length], elapsed, spinner: true }
+      : m,
+  );
 
   return (
     <section className="section" id="sessions">
@@ -169,9 +200,14 @@ export function Sessions() {
           <PhoneFrame sessionName={`aipager · ${activeName}`} status={`${SESSION_TILES.find((t) => t.name === activeName)?.statusLabel}`}>
             <div className="chat-body" style={{ minHeight: 280, paddingBottom: 6 }}>
               <div className="chat-day">Today</div>
-              {frame.msgs.map((m) => (
+              {msgs.map((m) => (
                 <ChatMessageView key={m.id} msg={m} />
               ))}
+            </div>
+            <div className="reply-bar">
+              <span className="icon"><Icon name="paperclip" size={16} /></span>
+              <div className="reply-input" style={{ color: "var(--fg-4)" }}>Message</div>
+              <span className="icon"><Icon name="mic" size={16} /></span>
             </div>
             <PersistentKeyboard activeName={activeName} tapTrigger={tapKey} />
           </PhoneFrame>
