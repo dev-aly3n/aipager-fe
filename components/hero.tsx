@@ -167,14 +167,11 @@ function HeroChat() {
           hasKeyboard: true,
         });
       }, 3900);
-      // 7 — user replies "Allow", turn resolves, reaction lands
+      // 7 — user taps the inline "Allow" button: a callback that resolves the
+      //     prompt in place (tap feedback on the button), NOT a chat message.
       schedule(() => {
-        addMessage({ id: "u-allow", kind: "user", text: "Allow", time: "9:41" });
         patchTurn({ resolved: "allow" });
       }, 5200);
-      schedule(() => {
-        updateMessage("u-allow", (m) => ({ ...m, reaction: "👀" }));
-      }, 5700);
       // 8 — approval clears the box, run tests, status back to busy
       schedule(() => {
         removeCC("perm");

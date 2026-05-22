@@ -144,9 +144,10 @@ export function Demo() {
     const cur = messages.find((m) => m.id === "turn") as StatusMsg | undefined;
     if (cur?.resolved) return;
     endThinking();
-    // Show the tap feedback first; the buttons + command card clear shortly after.
+    // Inline-keyboard tap is a callback — it resolves the prompt in place
+    // (tap feedback on the button, then the keyboard/command card clear). It
+    // does NOT post an "Allow" chat message, matching real Telegram.
     setTurn({ resolved: "allow" });
-    addMessage({ id: "u-allow", kind: "user", text: "Allow" });
     schedule(() => {
       removeCC("perm");
       addCC({ id: "p-approved", kind: "note", tone: "key", text: "✓ Approved via Telegram" });
@@ -177,7 +178,6 @@ export function Demo() {
     if (cur?.resolved) return;
     endThinking();
     setTurn({ resolved: "deny" });
-    addMessage({ id: "u-deny", kind: "user", text: "Deny" });
     schedule(() => {
       setTurn({
         emoji: "warn",
