@@ -12,6 +12,7 @@ import {
   useChatEngine,
   ChatMessageView,
   ClaudeTerminal,
+  typeInto,
   THINKING_VERBS,
   type StatusMsg,
   type ToolEntry,
@@ -67,9 +68,11 @@ export function Demo() {
 
   // Auto-scroll chat to bottom on new messages.
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Depend on the whole messages array (not just length) so the chat also
+  // follows the status bubble as its tool list grows.
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages.length]);
+  }, [messages]);
 
   // --- thinking turn helpers -------------------------------------------------
   const stopVerbInterval = () => {
@@ -196,42 +199,44 @@ export function Demo() {
   const runPermission = () => {
     const prompt = "add a users table migration";
     addCC({ id: "p-welcome", kind: "welcome", text: "Welcome to Claude Code" });
-    addCC({ id: "p-user", kind: "user", text: prompt });
-    // Mirror the prompt to Telegram at the same instant it hits the terminal.
-    addMessage({ id: "p-user-msg", kind: "user", text: prompt });
-    schedule(() => addCC({ id: "p-asst", kind: "assistant", text: "I'll create the migration and apply it." }), 400);
-    schedule(() => {
-      startThinking();
-      addCC({ id: "spin", kind: "spinner", verb: "Cogitating", elapsed: 0, tokens: "0.5k" });
-      addCC({ id: "p-edit", kind: "tool", name: "Update", args: "prisma/schema.prisma" });
-      addCC({ id: "p-edit-res", kind: "result", text: "Added User model" });
-      addTool({ status: "pending", verb: "Edit", target: "src/db/migration.ts" });
-    }, 600);
-    schedule(() => {
-      removeCC("spin");
-      addCC({
-        id: "perm",
-        kind: "perm",
-        tool: "Bash command",
-        cmd: "pnpm prisma migrate dev --name add_users",
-        desc: "Apply the database migration",
-      });
-      endThinking();
-      setTurn({
-        emoji: "lock",
-        verb: "Permission needed",
-        spinner: false,
-        permissionCmd: "pnpm prisma migrate dev --name add_users",
-        hasKeyboard: true,
-        onAllow: handleAllow,
-        onDeny: handleDeny,
-      });
-    }, 1400);
-    // Auto-resolve if the visitor doesn't tap.
-    schedule(() => {
-      const cur = messages.find((m) => m.id === "turn") as StatusMsg | undefined;
-      if (!cur?.resolved) handleAllow();
-    }, 4000);
+    // The human types the prompt into Telegram, then it sends.
+    typeInto(prompt, setTyped, schedule, () => {
+      addMessage({ id: "p-user-msg", kind: "user", text: prompt });
+      addCC({ id: "p-user", kind: "user", text: prompt });
+      schedule(() => addCC({ id: "p-asst", kind: "assistant", text: "I'll create the migration and apply it." }), 200);
+      schedule(() => {
+        startThinking();
+        addCC({ id: "spin", kind: "spinner", verb: "Cogitating", elapsed: 0, tokens: "0.5k" });
+        addCC({ id: "p-edit", kind: "tool", name: "Update", args: "prisma/schema.prisma" });
+        addCC({ id: "p-edit-res", kind: "result", text: "Added User model" });
+        addTool({ status: "pending", verb: "Edit", target: "src/db/migration.ts" });
+      }, 400);
+      schedule(() => {
+        removeCC("spin");
+        addCC({
+          id: "perm",
+          kind: "perm",
+          tool: "Bash command",
+          cmd: "pnpm prisma migrate dev --name add_users",
+          desc: "Apply the database migration",
+        });
+        endThinking();
+        setTurn({
+          emoji: "lock",
+          verb: "Permission needed",
+          spinner: false,
+          permissionCmd: "pnpm prisma migrate dev --name add_users",
+          hasKeyboard: true,
+          onAllow: handleAllow,
+          onDeny: handleDeny,
+        });
+      }, 1200);
+      // Auto-resolve if the visitor doesn't tap.
+      schedule(() => {
+        const cur = messages.find((m) => m.id === "turn") as StatusMsg | undefined;
+        if (!cur?.resolved) handleAllow();
+      }, 3800);
+    });
   };
 
   const runInject = () => {
@@ -246,48 +251,51 @@ export function Demo() {
       spinner: false,
     });
     const promptText = "ship the feature flag toggle and write a changelog entry";
+    // After a beat the human types a fresh prompt into Telegram, then it sends.
     schedule(() => {
-      addMessage({ id: "u1", kind: "user", text: promptText });
-      addMessage({ id: "s1", kind: "system", text: "↳ injected into dev" });
-      removeCC("i-idle");
-      addCC({ id: "i-user", kind: "user", text: promptText });
-    }, 1600);
-    schedule(() => {
-      startThinking();
-      addCC({ id: "i-asst", kind: "assistant", text: "Updating the flag registry and changelog." });
-      addCC({ id: "spin", kind: "spinner", verb: "Synthesizing", elapsed: 0, tokens: "0.6k" });
-    }, 2000);
-    schedule(() => {
-      addTool({ status: "done", verb: "Read", target: "CHANGELOG.md" });
-      addCC({ id: "i-read1", kind: "tool", name: "Read", args: "CHANGELOG.md" });
-      addCC({ id: "i-read1-res", kind: "result", text: "Read 80 lines" });
-    }, 2600);
-    schedule(() => {
-      addTool({ status: "done", verb: "Read", target: "src/flags/registry.ts" });
-      addCC({ id: "i-read2", kind: "tool", name: "Read", args: "src/flags/registry.ts" });
-      addCC({ id: "i-read2-res", kind: "result", text: "Read 120 lines" });
-    }, 3300);
-    schedule(() => {
-      addTool({ status: "pending", verb: "Edit", target: "src/flags/registry.ts:42" });
-      addCC({ id: "i-edit1", kind: "tool", name: "Update", args: "src/flags/registry.ts" });
-      addCC({ id: "i-edit1-res", kind: "result", text: "Updated with 24 additions" });
-    }, 4100);
-    schedule(() => {
-      addTool({ status: "pending", verb: "Edit", target: "CHANGELOG.md:1" });
-      addCC({ id: "i-edit2", kind: "tool", name: "Update", args: "CHANGELOG.md" });
-      addCC({ id: "i-edit2-res", kind: "result", text: "Updated with 14 additions and 4 removals" });
-    }, 4900);
-    schedule(() => {
-      endThinking();
-      setTurn({
-        emoji: "check",
-        verb: "Finished · 2 files · +38 −4",
-        spinner: false,
-        summary: "feature flag toggle shipped\n+ changelog entry",
+      typeInto(promptText, setTyped, schedule, () => {
+        removeCC("i-idle");
+        addMessage({ id: "u1", kind: "user", text: promptText });
+        addMessage({ id: "s1", kind: "system", text: "↳ injected into dev" });
+        addCC({ id: "i-user", kind: "user", text: promptText });
+        schedule(() => {
+          startThinking();
+          addCC({ id: "i-asst", kind: "assistant", text: "Updating the flag registry and changelog." });
+          addCC({ id: "spin", kind: "spinner", verb: "Synthesizing", elapsed: 0, tokens: "0.6k" });
+        }, 300);
+        schedule(() => {
+          addTool({ status: "done", verb: "Read", target: "CHANGELOG.md" });
+          addCC({ id: "i-read1", kind: "tool", name: "Read", args: "CHANGELOG.md" });
+          addCC({ id: "i-read1-res", kind: "result", text: "Read 80 lines" });
+        }, 900);
+        schedule(() => {
+          addTool({ status: "done", verb: "Read", target: "src/flags/registry.ts" });
+          addCC({ id: "i-read2", kind: "tool", name: "Read", args: "src/flags/registry.ts" });
+          addCC({ id: "i-read2-res", kind: "result", text: "Read 120 lines" });
+        }, 1600);
+        schedule(() => {
+          addTool({ status: "pending", verb: "Edit", target: "src/flags/registry.ts:42" });
+          addCC({ id: "i-edit1", kind: "tool", name: "Update", args: "src/flags/registry.ts" });
+          addCC({ id: "i-edit1-res", kind: "result", text: "Updated with 24 additions" });
+        }, 2400);
+        schedule(() => {
+          addTool({ status: "pending", verb: "Edit", target: "CHANGELOG.md:1" });
+          addCC({ id: "i-edit2", kind: "tool", name: "Update", args: "CHANGELOG.md" });
+          addCC({ id: "i-edit2-res", kind: "result", text: "Updated with 14 additions and 4 removals" });
+        }, 3200);
+        schedule(() => {
+          endThinking();
+          setTurn({
+            emoji: "check",
+            verb: "Finished · 2 files · +38 −4",
+            spinner: false,
+            summary: "feature flag toggle shipped\n+ changelog entry",
+          });
+          removeCC("spin");
+          addCC({ id: "i-done", kind: "assistant", text: "Done — 2 files changed (+38 −4)." });
+        }, 3900);
       });
-      removeCC("spin");
-      addCC({ id: "i-done", kind: "assistant", text: "Done — 2 files changed (+38 −4)." });
-    }, 5600);
+    }, 1000);
   };
 
   const runWarn = () => {
@@ -310,34 +318,37 @@ export function Demo() {
         summary: "risk of truncation — reply /compact to free space",
       });
     }, 1600);
+    // The human reacts to the warning by typing /compact, then it sends.
     schedule(() => {
-      addMessage({ id: "u-compact", kind: "user", text: "/compact" });
-      addCC({ id: "w-user", kind: "user", text: "/compact" });
-      addCC({ id: "w-compact-cmd", kind: "note", tone: "key", text: "› /compact" });
-    }, 3000);
-    schedule(() => {
-      setTurn({ emoji: "refresh", verb: "Compacting", spinner: true });
-      const frames = ["Compacting", "Compacting.", "Compacting..", "Compacting..."];
-      let di = 0;
-      dotsRef.current = scheduleInterval(() => {
-        di = (di + 1) % frames.length;
-        updateMessage("turn", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
-      }, 500);
-      updateCC("spin", { verb: "Compacting" });
-      addCC({ id: "w-summarizing", kind: "note", tone: "dim", text: "Summarizing prior turns…" });
-    }, 3600);
-    schedule(() => {
-      stopDotsInterval();
-      setTurn({
-        emoji: "package",
-        verb: "Compacted: 85% → 22%",
-        spinner: false,
-        summary: "9 turns kept",
-      });
-      removeCC("spin");
-      addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
-      addCC({ id: "w-resume", kind: "assistant", text: "Context freed — resuming the refactor." });
-    }, 5600);
+      typeInto("/compact", setTyped, schedule, () => {
+        addMessage({ id: "u-compact", kind: "user", text: "/compact" });
+        addCC({ id: "w-user", kind: "user", text: "/compact" });
+        addCC({ id: "w-compact-cmd", kind: "note", tone: "key", text: "› /compact" });
+        schedule(() => {
+          setTurn({ emoji: "refresh", verb: "Compacting", spinner: true });
+          const frames = ["Compacting", "Compacting.", "Compacting..", "Compacting..."];
+          let di = 0;
+          dotsRef.current = scheduleInterval(() => {
+            di = (di + 1) % frames.length;
+            updateMessage("turn", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
+          }, 500);
+          updateCC("spin", { verb: "Compacting" });
+          addCC({ id: "w-summarizing", kind: "note", tone: "dim", text: "Summarizing prior turns…" });
+        }, 200);
+        schedule(() => {
+          stopDotsInterval();
+          setTurn({
+            emoji: "package",
+            verb: "Compacted: 85% → 22%",
+            spinner: false,
+            summary: "9 turns kept",
+          });
+          removeCC("spin");
+          addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
+          addCC({ id: "w-resume", kind: "assistant", text: "Context freed — resuming the refactor." });
+        }, 2200);
+      }, { cps: 12 });
+    }, 2400);
   };
 
   const runScenario = (key: ScenarioKey) => {
@@ -389,6 +400,7 @@ export function Demo() {
     stopDotsInterval();
     resetChat();
     setCc([]);
+    setTyped("");
     // Defer running the script so reset state lands first.
     schedule(() => runScenario(key), 0);
   };

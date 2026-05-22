@@ -186,6 +186,35 @@ export function TapPing() {
   return <span className="tap-ping" aria-hidden="true" />;
 }
 
+/**
+ * Type `text` into `setText` one character at a time at a natural pace, then
+ * (after a short hold) clear the field and call `onSend`. Uses the caller's
+ * tracked `schedule` so an in-flight type is cancelled on reset/unmount.
+ */
+export function typeInto(
+  text: string,
+  setText: (s: string) => void,
+  schedule: (fn: () => void, ms: number) => unknown,
+  onSend: () => void,
+  opts: { cps?: number; holdMs?: number } = {},
+) {
+  const perChar = 1000 / (opts.cps ?? 18);
+  const step = (i: number) => {
+    setText(text.slice(0, i));
+    if (i < text.length) {
+      // jitter + the odd longer pause at spaces → feels human, not robotic
+      const extra = text[i - 1] === " " ? 90 : Math.random() * 50;
+      schedule(() => step(i + 1), perChar + extra);
+    } else {
+      schedule(() => {
+        setText("");
+        onSend();
+      }, opts.holdMs ?? 320);
+    }
+  };
+  schedule(() => step(1), perChar);
+}
+
 export function PersistentKeyboard({
   activeName = "jim",
   tapTrigger = 0,

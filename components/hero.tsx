@@ -8,6 +8,7 @@ import {
   useChatEngine,
   ChatMessageView,
   ClaudeTerminal,
+  typeInto,
   THINKING_VERBS,
   type StatusMsg,
   type CCLine,
@@ -31,6 +32,7 @@ function HeroChat() {
   } = useChatEngine();
 
   const [cc, setCc] = useState<CCLine[]>([]);
+  const [typed, setTyped] = useState("");
   const mounted = useRef(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   // Refs for the two per-turn intervals (elapsed/verb) so step 7 can clear
@@ -66,16 +68,8 @@ function HeroChat() {
       verbIv.current = null;
     };
 
-    const runStory = () => {
-      if (!mounted.current) return;
-
-      // 1 — prompt sent: appears on Telegram (your message) and mirrors into
-      //     the terminal at the same moment.
-      schedule(() => {
-        addCC({ id: "welcome", kind: "welcome", text: "Welcome to Claude Code" });
-        addCC({ id: "prompt", kind: "user", text: "harden the auth middleware" });
-        addMessage({ id: "u-prompt", kind: "user", text: "harden the auth middleware" });
-      }, 0);
+    // The agent turn, scheduled relative to the moment the prompt is "sent".
+    const runTurn = () => {
       // 2 — agent starts working: assistant prose + the single status bubble +
       //     the matching ✻ terminal spinner, all in lockstep.
       schedule(() => {
@@ -109,7 +103,7 @@ function HeroChat() {
           vi = (vi + 1) % THINKING_VERBS.length;
           patchTurn({ verb: THINKING_VERBS[vi] });
         }, 1500);
-      }, 600);
+      }, 300);
       // 4 — Read tool, grow the tool list in place
       schedule(() => {
         addCC({ id: "tool-read", kind: "tool", name: "Read", args: "src/server/handlers.ts" });
@@ -123,10 +117,10 @@ function HeroChat() {
             ],
           };
         });
-      }, 2200);
+      }, 1900);
       schedule(() => {
         addCC({ id: "res-read", kind: "result", text: "Read 142 lines" });
-      }, 2350);
+      }, 2050);
       // 5 — Update tool
       schedule(() => {
         addCC({ id: "tool-edit", kind: "tool", name: "Update", args: "src/server/handlers.ts" });
@@ -145,7 +139,7 @@ function HeroChat() {
             ],
           };
         });
-      }, 3000);
+      }, 2700);
       // 6 — transform into permission; stop just the per-turn intervals,
       //     drop the spinner and show the permission box.
       schedule(() => {
@@ -165,12 +159,12 @@ function HeroChat() {
           permissionCmd: "pnpm test --filter server",
           hasKeyboard: true,
         });
-      }, 3900);
+      }, 3600);
       // 7 — user taps the inline "Allow" button: a callback that resolves the
       //     prompt in place (tap feedback on the button), NOT a chat message.
       schedule(() => {
         patchTurn({ resolved: "allow" });
-      }, 5200);
+      }, 4900);
       // 8 — approval clears the box, run tests, status back to busy
       schedule(() => {
         removeCC("perm");
@@ -184,12 +178,12 @@ function HeroChat() {
           hasKeyboard: false,
           permissionCmd: undefined,
         });
-      }, 5800);
+      }, 5500);
       // 9 — test result
       schedule(() => {
         removeCC("spin2");
         addCC({ id: "res-test", kind: "result", text: "142 passed · 0 failed · 8.3s" });
-      }, 7000);
+      }, 6700);
       // 10 — finished
       schedule(() => {
         patchTurn({
@@ -203,14 +197,29 @@ function HeroChat() {
           kind: "assistant",
           text: "All green — auth middleware hardened.",
         });
-      }, 7600);
+      }, 7300);
       // 11 — reset and loop
       schedule(() => {
         stopTurnIntervals();
         resetChat();
         setCc([]);
-        schedule(runStory, 800);
-      }, 10300);
+        setTyped("");
+        schedule(runStory, 1000);
+      }, 10000);
+    };
+
+    const runStory = () => {
+      if (!mounted.current) return;
+      const prompt = "harden the auth middleware";
+      // 1 — the human types the prompt into Telegram at a natural pace, then
+      //     it sends: the bubble lands and mirrors into the terminal at once.
+      addCC({ id: "welcome", kind: "welcome", text: "Welcome to Claude Code" });
+      typeInto(prompt, setTyped, schedule, () => {
+        if (!mounted.current) return;
+        addMessage({ id: "u-prompt", kind: "user", text: prompt });
+        addCC({ id: "prompt", kind: "user", text: prompt });
+        runTurn();
+      });
     };
 
     runStory();
@@ -223,11 +232,12 @@ function HeroChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the chat pinned to the newest message (it scrolls inside a fixed
-  // height — the phone never grows).
+  // Keep the chat pinned to the newest content. Depends on the whole messages
+  // array (not just length) so it also follows the status bubble as its tool
+  // list grows — the phone scrolls, it never grows.
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages.length]);
+  }, [messages]);
 
   return (
     <div
@@ -248,8 +258,21 @@ function HeroChat() {
         </div>
         <div className="reply-bar">
           <span className="icon"><Icon name="paperclip" size={16} /></span>
-          <div className="reply-input" style={{ color: "var(--fg-4)" }}>Message</div>
-          <span className="icon"><Icon name="mic" size={16} /></span>
+          <div className="reply-input" style={{ color: typed ? "var(--fg)" : "var(--fg-4)" }}>
+            {typed ? (
+              <>
+                {typed}
+                <span className="type-caret" />
+              </>
+            ) : (
+              "Message"
+            )}
+          </div>
+          {typed ? (
+            <span className="reply-send"><Icon name="send" size={14} /></span>
+          ) : (
+            <span className="icon"><Icon name="mic" size={16} /></span>
+          )}
         </div>
       </PhoneFrame>
     </div>
