@@ -1,98 +1,65 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQ_ITEMS: FaqItem[] = [
+const FAQS: { q: string; a: string }[] = [
   {
-    question: "How is this different from Claude Code's web/mobile?",
-    answer:
-      "Claude Code's web interface requires a browser session and runs in Anthropic's cloud. aipager mirrors your local CLI session — your code never leaves your machine. You get the same terminal power with Telegram as the remote.",
+    q: "How is this different from Claude's official mobile / web apps?",
+    a: "Claude's mobile and web apps connect to Anthropic's hosted assistant. aipager mirrors a Claude Code session running on your own machine — with your repo, your tools, your environment. It's not a chat client; it's a remote control for the CLI.",
   },
   {
-    question: "Does my code leave my machine?",
-    answer:
-      "No. aipager is a local daemon that bridges Telegram and your Claude Code CLI. Only status messages, permission prompts, and your replies travel through the Telegram Bot API. Your source code stays on your machine.",
+    q: "Does my code leave my machine?",
+    a: "No. The daemon runs locally and talks directly to the Telegram Bot API using your bot token. File contents, prompts, and outputs are only sent to the chat IDs you configure. There is no aipager server in the middle.",
   },
   {
-    question: "What's dtach?",
-    answer:
-      "dtach is a lightweight pseudo-terminal multiplexer (think minimal tmux). aipager uses it to keep Claude Code sessions alive after you disconnect. It ships with the installer — you don't need to set it up.",
+    q: "What's dtach and why do I need it?",
+    a: "dtach is a tiny terminal-multiplexer (~30KB). It lets Claude Code keep running after you close your terminal or lose SSH, so a Telegram approval an hour later still goes to a live session. The installer fetches it for you if you don't have it.",
   },
   {
-    question: "Why Telegram and not Slack or Discord?",
-    answer:
-      "Telegram has the right primitives: inline keyboards for permission prompts, reply threading for prompt injection, bots that don't require workspace approval, and a solid mobile app. It's the shortest path from idea to working integration.",
+    q: "Why Telegram and not Slack or Discord?",
+    a: "Telegram bots are dead-simple to spin up (one BotFather conversation), support inline keyboards, work everywhere, and don't require a workspace or org. Slack and Discord support are tracked in the issues — PRs welcome.",
+  },
+  {
+    q: "Can I share with my team?",
+    a: "Yes. Add an observer bot to a group chat as a read-only mirror — your teammates see status and outputs without being able to inject prompts. Or create separate bots for separate humans.",
+  },
+  {
+    q: "What models does it work with?",
+    a: "Whatever Claude Code supports — currently sonnet, opus, haiku, and the opusplan alias. Switch per-session from the Models tier of the persistent keyboard.",
+  },
+  {
+    q: "What if Claude stalls or I want to kill it?",
+    a: "The keyboard has ⏹ stop (graceful) and ☠ kill (hard) buttons, plus /kill <name> from any chat. Sessions also surface a stall warning if they go silent for too long.",
   },
 ];
 
-function FaqEntry({ item }: { item: FaqItem }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="border-b border-border">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-4 text-left text-sm font-medium hover:text-accent transition-colors duration-200 cursor-pointer"
-      >
-        <span>{item.question}</span>
-        <ChevronDown
-          size={16}
-          className={`text-dim flex-shrink-0 ml-4 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="overflow-hidden"
-          >
-            <p className="pb-4 text-sm text-dim leading-relaxed">
-              {item.answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export function Faq() {
+  const [open, setOpen] = useState(0);
   return (
-    <section id="faq" className="px-4 py-20 sm:py-28">
-      <div className="mx-auto max-w-2xl">
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.25 }}
-          className="text-2xl sm:text-3xl font-bold text-center mb-10"
-        >
-          Why?
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.25, delay: 0.05 }}
-          className="border-t border-border"
-        >
-          {FAQ_ITEMS.map((item) => (
-            <FaqEntry key={item.question} item={item} />
+    <section className="section" id="faq">
+      <div className="wrap" style={{ maxWidth: 900 }}>
+        <div className="section-head">
+          <span className="eyebrow">FAQ</span>
+          <h2 className="h2">Common questions.</h2>
+        </div>
+        <div className="faq-list">
+          {FAQS.map((item, i) => (
+            <div key={i} className={`faq-item ${open === i ? "open" : ""}`}>
+              <button
+                type="button"
+                className="faq-q"
+                onClick={() => setOpen(open === i ? -1 : i)}
+                aria-expanded={open === i}
+              >
+                <span>{item.q}</span>
+                <span className="plus" aria-hidden="true"></span>
+              </button>
+              <div className="faq-a">
+                <div className="faq-a-inner">{item.a}</div>
+              </div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

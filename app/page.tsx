@@ -1,27 +1,25 @@
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Nav } from "@/components/nav";
 import { Hero } from "@/components/hero";
-import { TelegramMockup } from "@/components/telegram-mockup";
-import { TelegramMultiSession } from "@/components/telegram-multi-session";
-import { Features } from "@/components/features";
-import { InstallSteps } from "@/components/install-steps";
-import { KeyboardPreview } from "@/components/keyboard-preview";
+import { Demo } from "@/components/demo";
+import { Sessions } from "@/components/sessions";
+import { HowItWorks } from "@/components/how";
+import { Install } from "@/components/install";
 import { Faq } from "@/components/faq";
+import { FinalCta } from "@/components/final-cta";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
   return (
     <>
-      <ThemeToggle />
       <Nav />
-      <main>
+      <main id="top">
         <Hero />
-        <TelegramMockup />
-        <TelegramMultiSession />
-        <Features />
-        <InstallSteps />
-        <KeyboardPreview />
+        <Demo />
+        <Sessions />
+        <HowItWorks />
+        <Install />
         <Faq />
+        <FinalCta />
       </main>
       <Footer />
     </>

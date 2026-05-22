@@ -1,47 +1,39 @@
 "use client";
 
-import { motion } from "framer-motion";
-
-const LINKS = [
-  { label: "Demo", href: "/#demo" },
-  { label: "Features", href: "/#features" },
-  { label: "Install", href: "/#install" },
-  { label: "Docs", href: "/docs" },
-  { label: "FAQ", href: "/#faq" },
-];
+import { useEffect, useState } from "react";
+import { Logo, Icon } from "@/components/landing/ui";
 
 export function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <motion.nav
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.3 }}
-      className="fixed top-0 left-0 right-0 z-40 backdrop-blur-sm border-b border-border/50 bg-background/80"
-    >
-      <div className="mx-auto max-w-4xl flex items-center justify-between px-4 py-3">
-        <a href="/" className="font-bold text-sm tracking-tight">
-          aipager
+    <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
+      <div className="wrap nav-inner">
+        <a href="/" className="nav-brand">
+          <Logo size={22} />
+          <span>aipager</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-4)", marginLeft: 4 }}>v0.4.4</span>
         </a>
-        <div className="hidden sm:flex items-center gap-5">
-          {LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-xs text-dim hover:text-foreground transition-colors duration-200"
-            >
-              {link.label}
-            </a>
-          ))}
+        <div className="nav-links">
+          <a href="/#demo">Demo</a>
+          <a href="/#sessions">Sessions</a>
+          <a href="/#how">How it works</a>
+          <a href="/#install">Install</a>
+          <a href="/#faq">FAQ</a>
+          <a href="/docs">Docs</a>
+          <a href="https://github.com/dev-aly3n/aipager" className="nav-gh nav-cta" aria-label="github">
+            <Icon name="github" size={14} />
+            <span>GitHub</span>
+            <span className="badge">★</span>
+          </a>
         </div>
-        <a
-          href="https://github.com/dev-aly3n/aipager"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-dim hover:text-foreground transition-colors duration-200"
-        >
-          GitHub
-        </a>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

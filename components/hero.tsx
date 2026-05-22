@@ -1,161 +1,269 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import { CopyButton } from "./copy-button";
+import { useEffect, useState } from "react";
+import { Icon, CopyButton, PhoneFrame } from "@/components/landing/ui";
 
-const COMMAND = "curl -fsSL aipager.run/install | sh";
-const PROMPT = "$ ";
+// Hero — synced terminal + telegram pair with a looping micro-story
 
-interface OutputLine {
+interface HeroTerm {
+  kind: "cmd" | "out";
   text: string;
-  color: string;
+  cls?: string;
 }
 
-const OUTPUT_LINES: OutputLine[] = [
-  { text: "[1/3] Detecting platform… macOS (arm64)", color: "text-accent" },
-  { text: "[2/3] Installing aipager v0.3.11…", color: "text-accent" },
-  { text: "[3/3] Installing dtach…", color: "text-accent" },
+interface HeroMsg {
+  kind: "system" | "status" | "bot" | "me" | "permission";
+  text?: string;
+  state?: string;
+  cmd?: string;
+  show?: boolean;
+}
+
+interface HeroStep {
+  t: number;
+  term: HeroTerm | null;
+  msg: HeroMsg | null;
+}
+
+// One looping story step: a terminal event and the matching telegram message it produces.
+const HERO_STEPS: HeroStep[] = [
   {
-    text: "  ✓  aipager installed — run `aipager config` to start",
-    color: "text-success",
+    t: 600,
+    term: { kind: "cmd", text: "claude --resume dev" },
+    msg: null,
+  },
+  {
+    t: 1100,
+    term: { kind: "out", text: "● Loading session dev (sonnet 4.5)…" },
+    msg: null,
+  },
+  {
+    t: 1700,
+    term: { kind: "out", text: "✓ Hooks attached. Session live.", cls: "t-ok" },
+    msg: { kind: "system", text: "dev — session started · sonnet" },
+  },
+  {
+    t: 2400,
+    term: { kind: "out", text: "› Reading src/server/handlers.ts", cls: "t-dim" },
+    msg: { kind: "status", state: "busy", text: "reading handlers.ts" },
+  },
+  {
+    t: 3100,
+    term: { kind: "out", text: "› Editing src/server/handlers.ts:142", cls: "t-dim" },
+    msg: null,
+  },
+  {
+    t: 3900,
+    term: { kind: "out", text: "⚠ Permission required: Bash", cls: "t-warn" },
+    msg: { kind: "permission", cmd: "pnpm test --filter server", show: true },
+  },
+  {
+    t: 5200,
+    term: null,
+    msg: { kind: "me", text: "Allow" },
+  },
+  {
+    t: 5800,
+    term: { kind: "out", text: "› Bash: pnpm test --filter server", cls: "t-key" },
+    msg: { kind: "status", state: "busy", text: "running pnpm test" },
+  },
+  {
+    t: 7000,
+    term: { kind: "out", text: "✓ 142 passed · 0 failed · 8.3s", cls: "t-ok" },
+    msg: { kind: "bot", text: "✓ tests passed · 142/142 · 8.3s" },
+  },
+  {
+    t: 7800,
+    term: { kind: "out", text: "● Idle. Context 32% · $0.18 · 412 lines", cls: "t-dim" },
+    msg: { kind: "status", state: "idle", text: "idle · ctx 32% · $0.18" },
   },
 ];
 
-const CHAR_DELAY = 45;
-const LINE_DELAY = 500;
-const PAUSE_BEFORE_RESTART = 3000;
-
-type Phase = "typing" | "output" | "pause";
-
-export function Hero() {
-  const [phase, setPhase] = useState<Phase>("typing");
-  const [charIndex, setCharIndex] = useState(0);
-  const [visibleLines, setVisibleLines] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const reset = useCallback(() => {
-    setPhase("typing");
-    setCharIndex(0);
-    setVisibleLines(0);
-  }, []);
-
+function useLoopedStory(steps: HeroStep[], totalCycle = 11000): number {
+  const [phase, setPhase] = useState(0);
   useEffect(() => {
-    if (phase === "typing") {
-      if (charIndex < COMMAND.length) {
-        timerRef.current = setTimeout(
-          () => setCharIndex((i) => i + 1),
-          CHAR_DELAY,
-        );
-      } else {
-        timerRef.current = setTimeout(() => setPhase("output"), 400);
+    let raf: number;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = (now - start) % totalCycle;
+      let p = 0;
+      for (let i = 0; i < steps.length; i++) {
+        if (t >= steps[i].t) p = i + 1;
       }
-    }
-
-    if (phase === "output") {
-      if (visibleLines < OUTPUT_LINES.length) {
-        timerRef.current = setTimeout(
-          () => setVisibleLines((n) => n + 1),
-          LINE_DELAY,
-        );
-      } else {
-        timerRef.current = setTimeout(() => setPhase("pause"), 200);
-      }
-    }
-
-    if (phase === "pause") {
-      timerRef.current = setTimeout(reset, PAUSE_BEFORE_RESTART);
-    }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      setPhase(p);
+      raf = requestAnimationFrame(tick);
     };
-  }, [phase, charIndex, visibleLines, reset]);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [steps, totalCycle]);
+  return phase;
+}
 
+function HeroTerminal({ phase }: { phase: number }) {
+  const lines = [];
+  for (let i = 0; i < phase; i++) {
+    const e = HERO_STEPS[i];
+    if (!e?.term) continue;
+    if (e.term.kind === "cmd") {
+      lines.push(
+        <div className="t-line" key={`l${i}`}>
+          <span className="t-prompt">$</span>
+          <span className="t-cmd">{e.term.text}</span>
+        </div>
+      );
+    } else {
+      lines.push(
+        <div className="t-line" key={`l${i}`}>
+          <span className={`t-out ${e.term.cls || ""}`}>{e.term.text}</span>
+        </div>
+      );
+    }
+  }
   return (
-    <section className="relative flex flex-col items-center justify-center px-4 pt-24 pb-20 sm:pt-32 sm:pb-28 overflow-hidden">
-      {/* background grid */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 50% 30%, var(--accent) 0%, transparent 60%)",
-          opacity: 0.04,
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          opacity: 0.3,
-        }}
-      />
+    <div className="terminal">
+      <div className="terminal-bar">
+        <div className="terminal-dots"><span></span><span></span><span></span></div>
+        <span className="terminal-title">~/work/dev · claude code</span>
+      </div>
+      <div className="terminal-body">
+        {lines}
+        <div className="t-line">
+          <span className="t-prompt">$</span>
+          <span className="t-cursor"></span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="relative z-10 flex flex-col items-center gap-6 text-center"
-      >
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-          aipager
-        </h1>
-        <p className="text-dim text-lg sm:text-xl max-w-md">
-          Telegram remote-control for Claude Code
-        </p>
-      </motion.div>
+function HeroChat({ phase }: { phase: number }) {
+  // Render messages produced up to phase
+  const msgs = [];
+  let permissionResolved = false;
+  for (let i = 0; i < phase; i++) {
+    const e = HERO_STEPS[i];
+    if (!e?.msg) continue;
+    const m = e.msg;
+    // If user has already replied "Allow", swap the permission card for the resolved state
+    if (m.kind === "me" && m.text === "Allow") permissionResolved = true;
+  }
 
-      {/* terminal */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 }}
-        className="relative z-10 mt-10 w-full max-w-xl"
-      >
-        <div className="rounded-lg border border-border bg-terminal-bg overflow-hidden shadow-2xl">
-          {/* title bar */}
-          <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
-            <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-            <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
-            <span className="w-3 h-3 rounded-full bg-[#28c840]" />
-            <span className="ml-3 text-xs text-dim font-mono">terminal</span>
-          </div>
-          {/* body */}
-          <div className="p-4 font-mono text-sm leading-relaxed min-h-[140px]">
-            <div className="text-terminal-fg">
-              <span className="text-success">{PROMPT}</span>
-              <span>{COMMAND.slice(0, charIndex)}</span>
-              {phase === "typing" && (
-                <span className="inline-block w-2 h-4 bg-terminal-fg ml-0.5 animate-pulse align-middle" />
-              )}
-            </div>
-            {OUTPUT_LINES.slice(0, visibleLines).map((line, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.15 }}
-                className={`${line.color} mt-1`}
-              >
-                {line.text}
-              </motion.div>
-            ))}
+  msgs.push(<div className="chat-day" key="day">Today</div>);
+
+  for (let i = 0; i < phase; i++) {
+    const e = HERO_STEPS[i];
+    if (!e?.msg) continue;
+    const m = e.msg;
+    const time = "9:41";
+
+    if (m.kind === "system") {
+      msgs.push(<div className="msg system" key={`m${i}`}>{m.text}</div>);
+    } else if (m.kind === "status") {
+      msgs.push(
+        <div className="msg bot" key={`m${i}`}>
+          <div className="status-line">
+            <span className={`dot ${m.state}`}></span>
+            <span className="mono">{m.text}</span>
           </div>
         </div>
-      </motion.div>
+      );
+    } else if (m.kind === "bot") {
+      msgs.push(
+        <div className="msg bot" key={`m${i}`}>
+          <span>{m.text}</span>
+          <span className="time">{time}</span>
+        </div>
+      );
+    } else if (m.kind === "me") {
+      msgs.push(
+        <div className="msg me" key={`m${i}`}>
+          <span>{m.text}</span>
+          <span className="time">{time}</span>
+        </div>
+      );
+    } else if (m.kind === "permission" && m.show) {
+      msgs.push(
+        <div className="msg bot" key={`m${i}`} style={{ width: "86%" }}>
+          <div className="permission-card">
+            <span className="label">Permission · bash</span>
+            <span className="desc">Claude wants to run a shell command in <strong style={{ color: "var(--fg)" }}>dev</strong>.</span>
+            <div className="cmd-block">pnpm test --filter server</div>
+            <div className="kb-row">
+              <button type="button" className={`kb-btn allow ${permissionResolved ? "" : ""}`} disabled>
+                {permissionResolved ? "✓ Allowed" : "Allow"}
+              </button>
+              <button type="button" className="kb-btn deny" disabled>Deny</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
 
-      {/* install command */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className="relative z-10 mt-8 flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 font-mono text-sm"
-      >
-        <code className="text-accent select-all">{COMMAND}</code>
-        <CopyButton text={COMMAND} />
-      </motion.div>
+  return (
+    <PhoneFrame sessionName="aipager · dev" status="bot · online">
+      <div className="chat-body" style={{ minHeight: 320 }}>
+        {msgs}
+      </div>
+      <div className="reply-bar">
+        <span className="icon"><Icon name="paperclip" size={16} /></span>
+        <div className="reply-input" style={{ color: "var(--fg-4)" }}>Message</div>
+        <span className="icon"><Icon name="mic" size={16} /></span>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+export function Hero() {
+  const phase = useLoopedStory(HERO_STEPS, 11000);
+  return (
+    <section className="hero">
+      <div className="hero-grid"></div>
+      <div className="wrap">
+        <div className="hero-inner">
+          <div className="hero-copy">
+            <span className="hero-tag">
+              <span className="hero-tag-pill">v0.4.4</span>
+              Telegram remote-control for Claude Code
+            </span>
+            <h1 className="h1">
+              Page Claude Code<br />
+              from <span className="accent">anywhere</span>.
+            </h1>
+            <p className="lead">
+              Every state change, every permission prompt, every completion — mirrored to Telegram in real time. Reply to inject prompts. Approve commands without touching your laptop.
+            </p>
+            <div className="hero-install">
+              <span className="dollar">$</span>
+              <span className="cmd">curl -fsSL aipager.run/install | sh</span>
+              <CopyButton text="curl -fsSL aipager.run/install | sh" className="copy" />
+            </div>
+            <div className="hero-actions">
+              <a href="#demo" className="btn btn-primary">
+                Try the demo
+                <span className="btn-arrow"><Icon name="arrow" size={14} /></span>
+              </a>
+              <a href="https://github.com/dev-aly3n/aipager" className="btn btn-ghost">
+                <Icon name="github" size={14} />
+                Source
+              </a>
+            </div>
+            <div className="hero-meta">
+              <span>MIT licensed</span>
+              <span className="dot"></span>
+              <span>Python · pipx · brew</span>
+              <span className="dot"></span>
+              <span className="live">Stays on your machine</span>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 0.95fr)", gap: 18, alignItems: "stretch" }}>
+              <HeroTerminal phase={phase} />
+              <HeroChat phase={phase} />
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
