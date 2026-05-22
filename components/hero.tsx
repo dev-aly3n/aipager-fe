@@ -32,6 +32,7 @@ function HeroChat() {
 
   const [cc, setCc] = useState<CCLine[]>([]);
   const mounted = useRef(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
   // Refs for the two per-turn intervals (elapsed/verb) so step 7 can clear
   // just those without killing the scheduled story steps.
   const elapsedIv = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -180,7 +181,13 @@ function HeroChat() {
         addCC({ id: "note-approved", kind: "note", text: "✓ Approved via Telegram", tone: "key" });
         addCC({ id: "tool-bash", kind: "tool", name: "Bash", args: "pnpm test --filter server" });
         addCC({ id: "spin2", kind: "spinner", verb: "Running tests", elapsed: 0 });
-        patchTurn({ emoji: "gear", verb: "Running tests", spinner: true });
+        patchTurn({
+          emoji: "gear",
+          verb: "Running tests",
+          spinner: true,
+          hasKeyboard: false,
+          permissionCmd: undefined,
+        });
       }, 5800);
       // 9 — test result
       schedule(() => {
@@ -220,6 +227,12 @@ function HeroChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the chat pinned to the newest message (it scrolls inside a fixed
+  // height — the phone never grows).
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages.length]);
+
   return (
     <div
       style={{
@@ -231,7 +244,7 @@ function HeroChat() {
     >
       <ClaudeTerminal title="~/work/dev — claude" lines={cc} />
       <PhoneFrame sessionName="aipager · dev" status="bot · online">
-        <div className="chat-body" style={{ minHeight: 320 }}>
+        <div className="chat-body" style={{ flex: "0 0 auto", height: 340, overflowY: "auto" }} ref={scrollRef}>
           <div className="chat-day">Today</div>
           {messages.map((m) => (
             <ChatMessageView key={m.id} msg={m} />

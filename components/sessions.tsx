@@ -2,7 +2,7 @@
 
 // Multi-session orchestration section
 import { useEffect, useState } from "react";
-import { PhoneFrame, PersistentKeyboard, ChatMessageView, type ChatMsg, type StatusMsg } from "@/components/landing/ui";
+import { PhoneFrame, PersistentKeyboard, TapPing, ChatMessageView, type ChatMsg, type StatusMsg } from "@/components/landing/ui";
 
 type SessionStatus = "busy" | "idle" | "live";
 
@@ -98,12 +98,17 @@ const SESSION_CHAT_FRAMES: { pick: string; msgs: ChatMsg[] }[] = [
 
 export function Sessions() {
   const [pick, setPick] = useState(0);
+  // Bumped on every switch (auto or tap) to replay the tap-feedback ping.
+  const [tapKey, setTapKey] = useState(0);
 
   // Auto-rotate the active session unless user interacts
   const [userPicked, setUserPicked] = useState(false);
   useEffect(() => {
     if (userPicked) return;
-    const id = setInterval(() => setPick((p) => (p + 1) % SESSION_CHAT_FRAMES.length), 3200);
+    const id = setInterval(() => {
+      setPick((p) => (p + 1) % SESSION_CHAT_FRAMES.length);
+      setTapKey((k) => k + 1);
+    }, 3200);
     return () => clearInterval(id);
   }, [userPicked]);
 
@@ -133,6 +138,7 @@ export function Sessions() {
                     setUserPicked(true);
                     const idx = SESSION_CHAT_FRAMES.findIndex((f) => f.pick === s.name);
                     if (idx >= 0) setPick(idx);
+                    setTapKey((k) => k + 1);
                   }}
                   style={{ textAlign: "left", cursor: "pointer" }}
                 >
@@ -144,6 +150,7 @@ export function Sessions() {
                   <span className={`pill ${s.status}`} style={{ width: "max-content" }}>{s.statusLabel}</span>
                   <span className="activity">{s.activity}</span>
                   <span className="model">{s.ctx}</span>
+                  {activeName === s.name && tapKey > 0 && <TapPing key={tapKey} />}
                 </button>
               ))}
             </div>
@@ -166,7 +173,7 @@ export function Sessions() {
                 <ChatMessageView key={m.id} msg={m} />
               ))}
             </div>
-            <PersistentKeyboard activeName={activeName} />
+            <PersistentKeyboard activeName={activeName} tapTrigger={tapKey} />
           </PhoneFrame>
         </div>
       </div>

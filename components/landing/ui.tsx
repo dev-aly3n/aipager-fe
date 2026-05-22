@@ -181,7 +181,18 @@ export function PhoneFrame({
   );
 }
 
-export function PersistentKeyboard({ activeName = "jim" }: { activeName?: string }) {
+/** A quick expanding ring; mount it (key it to replay) inside a position:relative element. */
+export function TapPing() {
+  return <span className="tap-ping" aria-hidden="true" />;
+}
+
+export function PersistentKeyboard({
+  activeName = "jim",
+  tapTrigger = 0,
+}: {
+  activeName?: string;
+  tapTrigger?: number;
+}) {
   const sessions: { name: string; status: "busy" | "idle" | "live" }[] = [
     { name: "jim", status: "busy" },
     { name: "john", status: "idle" },
@@ -201,6 +212,7 @@ export function PersistentKeyboard({ activeName = "jim" }: { activeName?: string
         >
           <span className={`pip ${s.status}`} />
           {s.name}
+          {s.name === activeName && tapTrigger > 0 && <TapPing key={tapTrigger} />}
         </div>
       ))}
       <div className="k">⏹ stop</div>
@@ -472,19 +484,21 @@ export function StatusBubble({ msg }: { msg: StatusMsg }) {
             <div className="kb-row">
               <button
                 type="button"
-                className="kb-btn allow"
+                className={`kb-btn allow ${msg.resolved === "allow" ? "tapped" : ""}`}
                 onClick={msg.onAllow}
                 disabled={!!msg.resolved || !msg.onAllow}
               >
                 {msg.resolved === "allow" ? "✓ Allowed" : "Allow"}
+                {msg.resolved === "allow" && <TapPing key="allow" />}
               </button>
               <button
                 type="button"
-                className="kb-btn deny"
+                className={`kb-btn deny ${msg.resolved === "deny" ? "tapped" : ""}`}
                 onClick={msg.onDeny}
                 disabled={!!msg.resolved || !msg.onDeny}
               >
                 {msg.resolved === "deny" ? "✗ Denied" : "Deny"}
+                {msg.resolved === "deny" && <TapPing key="deny" />}
               </button>
             </div>
           )}

@@ -682,6 +682,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .kb-btn.allow:hover { background: var(--live-soft); }
 .kb-btn.deny { color: var(--deny); border-color: oklch(0.68 0.2 25 / 0.45); }
 .kb-btn.deny:hover { background: var(--deny-soft); }
+.kb-btn { position: relative; overflow: hidden; }
+.kb-btn.tapped.allow { background: var(--live-soft); border-color: var(--live); }
+.kb-btn.tapped.deny { background: var(--deny-soft); border-color: var(--deny); }
 
 .reply-bar {
   display: flex;
@@ -716,7 +719,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--bg);
   font-size: 14px;
   font-weight: 700;
+  position: relative;
+  overflow: hidden;
 }
+
+/* tap feedback — a quick expanding ring shown wherever a Telegram touch fires */
+.tap-ping {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 20px; height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: oklch(1 0 0 / 0.5);
+  pointer-events: none;
+  z-index: 6;
+  animation: tap-ping .5s ease-out forwards;
+}
+@keyframes tap-ping {
+  from { opacity: .55; transform: scale(.35); }
+  to { opacity: 0; transform: scale(2.6); }
+}
+.session-tile { overflow: hidden; }
 
 .persistent-kb {
   display: grid;
@@ -738,6 +761,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   justify-content: center;
   gap: 6px;
   font-family: var(--font-sans);
+  position: relative;
+  overflow: hidden;
 }
 .persistent-kb .k.col-3 { grid-column: span 3; }
 .persistent-kb .k .pip {
@@ -1262,7 +1287,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   justify-content: flex-end;
   gap: 2px;
   padding: 14px 16px 10px;
-  min-height: 300px;
+  height: 300px;
   font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.5;

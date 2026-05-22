@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Icon,
   PhoneFrame,
+  TapPing,
   useChatEngine,
   ChatMessageView,
   ClaudeTerminal,
@@ -46,6 +47,7 @@ export function Demo() {
   const [scenario, setScenario] = useState<ScenarioKey>("permission");
   const [cc, setCc] = useState<CCLine[]>([]);
   const [typed, setTyped] = useState("");
+  const [sendPing, setSendPing] = useState(0);
 
   const engine = useChatEngine();
   const { messages, addMessage, updateMessage, removeMessage, resetChat, schedule, scheduleInterval, clearAllTimers } = engine;
@@ -142,13 +144,20 @@ export function Demo() {
     const cur = messages.find((m) => m.id === "turn") as StatusMsg | undefined;
     if (cur?.resolved) return;
     endThinking();
+    // Show the tap feedback first; the buttons + command card clear shortly after.
     setTurn({ resolved: "allow" });
-    removeCC("perm");
-    addCC({ id: "p-approved", kind: "note", tone: "key", text: "✓ Approved via Telegram" });
-    addCC({ id: "p-bash", kind: "tool", name: "Bash", args: "prisma migrate dev --name add_users" });
     schedule(() => {
-      setTurn({ emoji: "gear", verb: "Applying migration", spinner: true });
-    }, 400);
+      removeCC("perm");
+      addCC({ id: "p-approved", kind: "note", tone: "key", text: "✓ Approved via Telegram" });
+      addCC({ id: "p-bash", kind: "tool", name: "Bash", args: "prisma migrate dev --name add_users" });
+      setTurn({
+        emoji: "gear",
+        verb: "Applying migration",
+        spinner: true,
+        hasKeyboard: false,
+        permissionCmd: undefined,
+      });
+    }, 520);
     schedule(() => addCC({ id: "p-applying", kind: "result", text: "Applying migration 20260522_add_users" }), 900);
     schedule(() => addCC({ id: "p-synced", kind: "result", text: "Database is in sync (684ms)" }), 2600);
     schedule(() => {
@@ -166,15 +175,19 @@ export function Demo() {
     const cur = messages.find((m) => m.id === "turn") as StatusMsg | undefined;
     if (cur?.resolved) return;
     endThinking();
-    setTurn({
-      resolved: "deny",
-      emoji: "warn",
-      verb: "Denied via telegram",
-      spinner: false,
-    });
-    removeCC("perm");
-    addCC({ id: "p-denied", kind: "note", tone: "warn", text: "✗ Denied via Telegram" });
-    addCC({ id: "p-deny-msg", kind: "assistant", text: "Understood — I won't run that." });
+    setTurn({ resolved: "deny" });
+    schedule(() => {
+      setTurn({
+        emoji: "warn",
+        verb: "Denied via telegram",
+        spinner: false,
+        hasKeyboard: false,
+        permissionCmd: undefined,
+      });
+      removeCC("perm");
+      addCC({ id: "p-denied", kind: "note", tone: "warn", text: "✗ Denied via Telegram" });
+      addCC({ id: "p-deny-msg", kind: "assistant", text: "Understood — I won't run that." });
+    }, 520);
   };
 
   // --- scenario scripts ------------------------------------------------------
@@ -434,7 +447,7 @@ export function Demo() {
             <PhoneFrame sessionName="aipager · dev" status="bot · online">
               <div
                 className="chat-body"
-                style={{ minHeight: 300, maxHeight: 400, overflowY: "auto" }}
+                style={{ flex: "0 0 auto", height: 360, overflowY: "auto" }}
                 ref={scrollRef}
               >
                 <div className="chat-day">Today</div>
@@ -446,7 +459,10 @@ export function Demo() {
                 className="reply-bar"
                 onSubmit={(ev) => {
                   ev.preventDefault();
-                  if (typed && typed.trim()) handleTyped(typed.trim());
+                  if (typed && typed.trim()) {
+                    handleTyped(typed.trim());
+                    setSendPing((k) => k + 1);
+                  }
                 }}
               >
                 <span className="icon"><Icon name="paperclip" size={16} /></span>
@@ -458,6 +474,7 @@ export function Demo() {
                 />
                 <button type="submit" className="reply-send" aria-label="send">
                   <Icon name="send" size={14} />
+                  {sendPing > 0 && <TapPing key={sendPing} />}
                 </button>
               </form>
             </PhoneFrame>
