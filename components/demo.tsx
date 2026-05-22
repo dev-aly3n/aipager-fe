@@ -194,8 +194,11 @@ export function Demo() {
 
   // --- scenario scripts ------------------------------------------------------
   const runPermission = () => {
+    const prompt = "add a users table migration";
     addCC({ id: "p-welcome", kind: "welcome", text: "Welcome to Claude Code" });
-    addCC({ id: "p-user", kind: "user", text: "add a users table migration" });
+    addCC({ id: "p-user", kind: "user", text: prompt });
+    // Mirror the prompt to Telegram at the same instant it hits the terminal.
+    addMessage({ id: "p-user-msg", kind: "user", text: prompt });
     schedule(() => addCC({ id: "p-asst", kind: "assistant", text: "I'll create the migration and apply it." }), 400);
     schedule(() => {
       startThinking();

@@ -69,22 +69,21 @@ function HeroChat() {
     const runStory = () => {
       if (!mounted.current) return;
 
-      // 1 — welcome + the user prompt
+      // 1 — prompt sent: appears on Telegram (your message) and mirrors into
+      //     the terminal at the same moment.
       schedule(() => {
         addCC({ id: "welcome", kind: "welcome", text: "Welcome to Claude Code" });
         addCC({ id: "prompt", kind: "user", text: "harden the auth middleware" });
+        addMessage({ id: "u-prompt", kind: "user", text: "harden the auth middleware" });
       }, 0);
-      // 2 — assistant prose
+      // 2 — agent starts working: assistant prose + the single status bubble +
+      //     the matching ✻ terminal spinner, all in lockstep.
       schedule(() => {
         addCC({
           id: "asst-plan",
           kind: "assistant",
           text: "I'll review the handlers, then run the tests.",
         });
-      }, 600);
-      // 3 — the single status message for this turn + the two intervals;
-      //     terminal gets the matching ✻ spinner.
-      schedule(() => {
         addMessage({
           id: "turn",
           kind: "status",
@@ -110,7 +109,7 @@ function HeroChat() {
           vi = (vi + 1) % THINKING_VERBS.length;
           patchTurn({ verb: THINKING_VERBS[vi] });
         }, 1500);
-      }, 1700);
+      }, 600);
       // 4 — Read tool, grow the tool list in place
       schedule(() => {
         addCC({ id: "tool-read", kind: "tool", name: "Read", args: "src/server/handlers.ts" });
