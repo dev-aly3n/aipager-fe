@@ -1,124 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Icon, CopyButton, PhoneFrame } from "@/components/landing/ui";
+import { useEffect, useRef, useState } from "react";
+import {
+  Icon,
+  CopyButton,
+  PhoneFrame,
+  useChatEngine,
+  ChatMessageView,
+  THINKING_VERBS,
+  type StatusMsg,
+} from "@/components/landing/ui";
 
-// Hero — synced terminal + telegram pair with a looping micro-story
+// Hero — synced terminal + telegram pair with a looping micro-story.
+// The Telegram side mirrors the real bot: ONE status message per turn, edited
+// in place (rotating verb + ticking elapsed + a growing tool list inside the
+// same bubble) that transforms into permission / finished. The terminal panel
+// stays append-only.
 
-interface HeroTerm {
+interface TermLine {
   kind: "cmd" | "out";
   text: string;
   cls?: string;
 }
 
-interface HeroMsg {
-  kind: "system" | "status" | "bot" | "me" | "permission";
-  text?: string;
-  state?: string;
-  cmd?: string;
-  show?: boolean;
-}
-
-interface HeroStep {
-  t: number;
-  term: HeroTerm | null;
-  msg: HeroMsg | null;
-}
-
-// One looping story step: a terminal event and the matching telegram message it produces.
-const HERO_STEPS: HeroStep[] = [
-  {
-    t: 600,
-    term: { kind: "cmd", text: "claude --resume dev" },
-    msg: null,
-  },
-  {
-    t: 1100,
-    term: { kind: "out", text: "● Loading session dev (sonnet 4.5)…" },
-    msg: null,
-  },
-  {
-    t: 1700,
-    term: { kind: "out", text: "✓ Hooks attached. Session live.", cls: "t-ok" },
-    msg: { kind: "system", text: "dev — session started · sonnet" },
-  },
-  {
-    t: 2400,
-    term: { kind: "out", text: "› Reading src/server/handlers.ts", cls: "t-dim" },
-    msg: { kind: "status", state: "busy", text: "reading handlers.ts" },
-  },
-  {
-    t: 3100,
-    term: { kind: "out", text: "› Editing src/server/handlers.ts:142", cls: "t-dim" },
-    msg: null,
-  },
-  {
-    t: 3900,
-    term: { kind: "out", text: "⚠ Permission required: Bash", cls: "t-warn" },
-    msg: { kind: "permission", cmd: "pnpm test --filter server", show: true },
-  },
-  {
-    t: 5200,
-    term: null,
-    msg: { kind: "me", text: "Allow" },
-  },
-  {
-    t: 5800,
-    term: { kind: "out", text: "› Bash: pnpm test --filter server", cls: "t-key" },
-    msg: { kind: "status", state: "busy", text: "running pnpm test" },
-  },
-  {
-    t: 7000,
-    term: { kind: "out", text: "✓ 142 passed · 0 failed · 8.3s", cls: "t-ok" },
-    msg: { kind: "bot", text: "✓ tests passed · 142/142 · 8.3s" },
-  },
-  {
-    t: 7800,
-    term: { kind: "out", text: "● Idle. Context 32% · $0.18 · 412 lines", cls: "t-dim" },
-    msg: { kind: "status", state: "idle", text: "idle · ctx 32% · $0.18" },
-  },
-];
-
-function useLoopedStory(steps: HeroStep[], totalCycle = 11000): number {
-  const [phase, setPhase] = useState(0);
-  useEffect(() => {
-    let raf: number;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = (now - start) % totalCycle;
-      let p = 0;
-      for (let i = 0; i < steps.length; i++) {
-        if (t >= steps[i].t) p = i + 1;
-      }
-      setPhase(p);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [steps, totalCycle]);
-  return phase;
-}
-
-function HeroTerminal({ phase }: { phase: number }) {
-  const lines = [];
-  for (let i = 0; i < phase; i++) {
-    const e = HERO_STEPS[i];
-    if (!e?.term) continue;
-    if (e.term.kind === "cmd") {
-      lines.push(
-        <div className="t-line" key={`l${i}`}>
-          <span className="t-prompt">$</span>
-          <span className="t-cmd">{e.term.text}</span>
-        </div>
-      );
-    } else {
-      lines.push(
-        <div className="t-line" key={`l${i}`}>
-          <span className={`t-out ${e.term.cls || ""}`}>{e.term.text}</span>
-        </div>
-      );
-    }
-  }
+function HeroTerminal({ lines }: { lines: TermLine[] }) {
   return (
     <div className="terminal">
       <div className="terminal-bar">
@@ -126,7 +31,18 @@ function HeroTerminal({ phase }: { phase: number }) {
         <span className="terminal-title">~/work/dev · claude code</span>
       </div>
       <div className="terminal-body">
-        {lines}
+        {lines.map((l, i) =>
+          l.kind === "cmd" ? (
+            <div className="t-line" key={`l${i}`}>
+              <span className="t-prompt">$</span>
+              <span className="t-cmd">{l.text}</span>
+            </div>
+          ) : (
+            <div className="t-line" key={`l${i}`}>
+              <span className={`t-out ${l.cls || ""}`}>{l.text}</span>
+            </div>
+          )
+        )}
         <div className="t-line">
           <span className="t-prompt">$</span>
           <span className="t-cursor"></span>
@@ -136,86 +52,195 @@ function HeroTerminal({ phase }: { phase: number }) {
   );
 }
 
-function HeroChat({ phase }: { phase: number }) {
-  // Render messages produced up to phase
-  const msgs = [];
-  let permissionResolved = false;
-  for (let i = 0; i < phase; i++) {
-    const e = HERO_STEPS[i];
-    if (!e?.msg) continue;
-    const m = e.msg;
-    // If user has already replied "Allow", swap the permission card for the resolved state
-    if (m.kind === "me" && m.text === "Allow") permissionResolved = true;
-  }
+function HeroChat() {
+  const {
+    messages,
+    addMessage,
+    updateMessage,
+    resetChat,
+    schedule,
+    scheduleInterval,
+    clearAllTimers,
+  } = useChatEngine();
 
-  msgs.push(<div className="chat-day" key="day">Today</div>);
+  const [termLines, setTermLines] = useState<TermLine[]>([]);
+  const mounted = useRef(true);
+  // Refs for the two per-turn intervals (elapsed/verb) so step 7 can clear
+  // just those without killing the scheduled story steps.
+  const elapsedIv = useRef<ReturnType<typeof setInterval> | null>(null);
+  const verbIv = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  for (let i = 0; i < phase; i++) {
-    const e = HERO_STEPS[i];
-    if (!e?.msg) continue;
-    const m = e.msg;
-    const time = "9:41";
+  useEffect(() => {
+    mounted.current = true;
 
-    if (m.kind === "system") {
-      msgs.push(<div className="msg system" key={`m${i}`}>{m.text}</div>);
-    } else if (m.kind === "status") {
-      msgs.push(
-        <div className="msg bot" key={`m${i}`}>
-          <div className="status-line">
-            <span className={`dot ${m.state}`}></span>
-            <span className="mono">{m.text}</span>
-          </div>
-        </div>
+    const addTerm = (line: TermLine) => {
+      if (!mounted.current) return;
+      setTermLines((prev) => [...prev, line]);
+    };
+
+    const patchTurn = (patch: Partial<StatusMsg>) =>
+      updateMessage("turn", (m) => ({ ...(m as StatusMsg), ...patch }));
+
+    const stopTurnIntervals = () => {
+      if (elapsedIv.current) clearInterval(elapsedIv.current);
+      if (verbIv.current) clearInterval(verbIv.current);
+      elapsedIv.current = null;
+      verbIv.current = null;
+    };
+
+    const runStory = () => {
+      if (!mounted.current) return;
+
+      // 1
+      schedule(() => addTerm({ kind: "cmd", text: "claude --resume dev" }), 0);
+      // 2
+      schedule(
+        () => addTerm({ kind: "out", text: "● Loading session dev (sonnet 4.5)…", cls: "t-dim" }),
+        600
       );
-    } else if (m.kind === "bot") {
-      msgs.push(
-        <div className="msg bot" key={`m${i}`}>
-          <span>{m.text}</span>
-          <span className="time">{time}</span>
-        </div>
+      // 3
+      schedule(() => {
+        addTerm({ kind: "out", text: "✓ Hooks attached. Session live.", cls: "t-ok" });
+        addMessage({ id: "sys", kind: "system", text: "dev — session started · sonnet" });
+      }, 1200);
+      // 4 — the single status message for this turn + the two intervals
+      schedule(() => {
+        addMessage({
+          id: "turn",
+          kind: "status",
+          emoji: "gear",
+          session: "dev",
+          verb: THINKING_VERBS[0],
+          spinner: true,
+          elapsed: 0,
+          tools: [],
+        });
+        let elapsed = 0;
+        let vi = 0;
+        elapsedIv.current = scheduleInterval(() => {
+          elapsed += 1;
+          patchTurn({ elapsed });
+        }, 1000);
+        verbIv.current = scheduleInterval(() => {
+          vi = (vi + 1) % THINKING_VERBS.length;
+          patchTurn({ verb: THINKING_VERBS[vi] });
+        }, 1500);
+      }, 1700);
+      // 5 — grow the tool list in place
+      schedule(() => {
+        addTerm({ kind: "out", text: "› Reading src/server/handlers.ts", cls: "t-dim" });
+        updateMessage("turn", (m) => {
+          const s = m as StatusMsg;
+          return {
+            ...s,
+            tools: [
+              ...(s.tools ?? []),
+              { status: "done", verb: "Read", target: "src/server/handlers.ts" },
+            ],
+          };
+        });
+      }, 2200);
+      // 6
+      schedule(() => {
+        addTerm({ kind: "out", text: "› Editing src/server/handlers.ts:142", cls: "t-dim" });
+        updateMessage("turn", (m) => {
+          const s = m as StatusMsg;
+          return {
+            ...s,
+            tools: [
+              ...(s.tools ?? []),
+              { status: "pending", verb: "Edit", target: "src/server/handlers.ts:142" },
+            ],
+          };
+        });
+      }, 3000);
+      // 7 — transform into permission; stop just the per-turn intervals
+      schedule(() => {
+        addTerm({ kind: "out", text: "⚠ Permission required: Bash", cls: "t-warn" });
+        stopTurnIntervals();
+        patchTurn({
+          emoji: "lock",
+          verb: "Permission needed",
+          spinner: false,
+          permissionCmd: "pnpm test --filter server",
+          hasKeyboard: true,
+        });
+      }, 3900);
+      // 8 — user replies "Allow", turn resolves, reaction lands
+      schedule(() => {
+        addMessage({ id: "u-allow", kind: "user", text: "Allow", time: "9:41" });
+        patchTurn({ resolved: "allow" });
+      }, 5200);
+      schedule(() => {
+        updateMessage("u-allow", (m) => ({ ...m, reaction: "👀" }));
+      }, 5700);
+      // 9 — run tests, status back to busy
+      schedule(() => {
+        addTerm({ kind: "out", text: "› Bash: pnpm test --filter server", cls: "t-key" });
+        patchTurn({ emoji: "gear", verb: "Running tests", spinner: true });
+      }, 5800);
+      // 10
+      schedule(
+        () => addTerm({ kind: "out", text: "✓ 142 passed · 0 failed · 8.3s", cls: "t-ok" }),
+        7000
       );
-    } else if (m.kind === "me") {
-      msgs.push(
-        <div className="msg me" key={`m${i}`}>
-          <span>{m.text}</span>
-          <span className="time">{time}</span>
-        </div>
-      );
-    } else if (m.kind === "permission" && m.show) {
-      msgs.push(
-        <div className="msg bot" key={`m${i}`} style={{ width: "86%" }}>
-          <div className="permission-card">
-            <span className="label">Permission · bash</span>
-            <span className="desc">Claude wants to run a shell command in <strong style={{ color: "var(--fg)" }}>dev</strong>.</span>
-            <div className="cmd-block">pnpm test --filter server</div>
-            <div className="kb-row">
-              <button type="button" className={`kb-btn allow ${permissionResolved ? "" : ""}`} disabled>
-                {permissionResolved ? "✓ Allowed" : "Allow"}
-              </button>
-              <button type="button" className="kb-btn deny" disabled>Deny</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-  }
+      // 11 — finished
+      schedule(() => {
+        patchTurn({
+          emoji: "check",
+          verb: "Finished (8.3s · 142/142)",
+          spinner: false,
+          summary: "All tests green.\nctx 32% · $0.18 · 412 lines",
+        });
+        addTerm({ kind: "out", text: "● Idle. Context 32% · $0.18 · 412 lines", cls: "t-dim" });
+      }, 7600);
+      // 12 — reset and loop
+      schedule(() => {
+        stopTurnIntervals();
+        resetChat();
+        setTermLines([]);
+        schedule(runStory, 800);
+      }, 10300);
+    };
+
+    runStory();
+
+    return () => {
+      mounted.current = false;
+      stopTurnIntervals();
+      clearAllTimers();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <PhoneFrame sessionName="aipager · dev" status="bot · online">
-      <div className="chat-body" style={{ minHeight: 320 }}>
-        {msgs}
-      </div>
-      <div className="reply-bar">
-        <span className="icon"><Icon name="paperclip" size={16} /></span>
-        <div className="reply-input" style={{ color: "var(--fg-4)" }}>Message</div>
-        <span className="icon"><Icon name="mic" size={16} /></span>
-      </div>
-    </PhoneFrame>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 0.95fr)",
+        gap: 18,
+        alignItems: "stretch",
+      }}
+    >
+      <HeroTerminal lines={termLines} />
+      <PhoneFrame sessionName="aipager · dev" status="bot · online">
+        <div className="chat-body" style={{ minHeight: 320 }}>
+          <div className="chat-day">Today</div>
+          {messages.map((m) => (
+            <ChatMessageView key={m.id} msg={m} />
+          ))}
+        </div>
+        <div className="reply-bar">
+          <span className="icon"><Icon name="paperclip" size={16} /></span>
+          <div className="reply-input" style={{ color: "var(--fg-4)" }}>Message</div>
+          <span className="icon"><Icon name="mic" size={16} /></span>
+        </div>
+      </PhoneFrame>
+    </div>
   );
 }
 
 export function Hero() {
-  const phase = useLoopedStory(HERO_STEPS, 11000);
   return (
     <section className="hero">
       <div className="hero-grid"></div>
@@ -257,10 +282,7 @@ export function Hero() {
             </div>
           </div>
           <div className="hero-visual">
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 0.95fr)", gap: 18, alignItems: "stretch" }}>
-              <HeroTerminal phase={phase} />
-              <HeroChat phase={phase} />
-            </div>
+            <HeroChat />
           </div>
         </div>
       </div>

@@ -1254,6 +1254,76 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================
+   Status bubble (single in-place message)
+   =========================== */
+.msg .status-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--fg);
+}
+.msg .status-head .label-emoji { font-size: 13px; }
+.msg .status-head .pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.msg .tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+.msg .tool-entry {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--fg-2);
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  opacity: 0;
+  animation: tool-in .2s ease forwards;
+}
+.msg .tool-entry .ic { flex-shrink: 0; }
+.msg .tool-entry .ic.pending { color: var(--warn); }
+.msg .tool-entry .ic.done { color: var(--live); }
+.msg .tool-entry .v { color: var(--fg-4); }
+.msg .tool-entry .tgt { color: var(--fg-2); word-break: break-all; }
+@keyframes tool-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg .summary {
+  margin-top: 7px;
+  padding: 6px 9px;
+  border-left: 2px solid var(--line);
+  border-radius: 4px;
+  background: oklch(1 0 0 / 0.04);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fg-2);
+  white-space: pre-line;
+}
+.msg .reaction {
+  position: absolute;
+  bottom: -9px;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-tint);
+  border: 1px solid var(--line-2);
+}
+.msg.me .reaction { right: 10px; }
+.msg.bot .reaction { left: 10px; }
+
+/* ===========================
    Anchors
    =========================== */
 [id] { scroll-margin-top: 80px; }

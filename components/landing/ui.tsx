@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 export function Logo({ size = 22 }: { size?: number }) {
   return (
@@ -212,4 +212,218 @@ export function PersistentKeyboard({ activeName = "jim" }: { activeName?: string
       </div>
     </div>
   );
+}
+
+/* ===========================================================================
+   Chat engine — models the REAL aipager behavior: one status message per turn,
+   edited in place (rotating verb + elapsed + a growing tool list), that
+   transforms into finished / permission / compacted. NOT a bubble per tool.
+   =========================================================================== */
+
+export const THINKING_VERBS = ["Thinking", "Reasoning", "Analyzing", "Pondering"] as const;
+
+export type StatusEmoji = "gear" | "check" | "lock" | "refresh" | "package" | "warn";
+
+export function statusEmojiStr(e: StatusEmoji): string {
+  switch (e) {
+    case "gear": return "⚙️";
+    case "check": return "✅";
+    case "lock": return "🔐";
+    case "refresh": return "🔄";
+    case "package": return "📦";
+    case "warn": return "⚠️";
+  }
+}
+
+export interface ToolEntry {
+  status: "done" | "pending";
+  verb: string;
+  target: string;
+}
+
+export interface StatusMsg {
+  id: string;
+  kind: "status";
+  emoji: StatusEmoji;
+  session: string;
+  verb: string;
+  /** show pulsing dot + ellipsis (active thinking) */
+  spinner?: boolean;
+  /** elapsed seconds; rendered as "… Ns" once >= 2 */
+  elapsed?: number;
+  tools?: ToolEntry[];
+  summary?: string;
+  permissionCmd?: string;
+  hasKeyboard?: boolean;
+  /** interactive demo: which button resolved the permission */
+  resolved?: "allow" | "deny";
+  onAllow?: () => void;
+  onDeny?: () => void;
+}
+
+export interface UserMsg {
+  id: string;
+  kind: "user";
+  text: string;
+  reaction?: string;
+  time?: string;
+}
+
+export interface SystemMsg {
+  id: string;
+  kind: "system";
+  text: string;
+}
+
+export interface BotTextMsg {
+  id: string;
+  kind: "bot";
+  text: string;
+  time?: string;
+}
+
+export type ChatMsg = StatusMsg | UserMsg | SystemMsg | BotTextMsg;
+
+export function StatusBubble({ msg }: { msg: StatusMsg }) {
+  const showElapsed = msg.elapsed !== undefined && msg.elapsed >= 2;
+  return (
+    <div className="msg bot" style={{ width: "86%", maxWidth: 320 }}>
+      <div className="status-head">
+        <span className="label-emoji">{statusEmojiStr(msg.emoji)}</span>
+        <span>
+          {msg.session} · {msg.verb}
+          {showElapsed ? `… ${msg.elapsed}s` : msg.spinner ? "…" : ""}
+        </span>
+        {msg.spinner && <span className="pip" />}
+      </div>
+
+      {msg.tools && msg.tools.length > 0 && (
+        <div className="tool-list">
+          {msg.tools.map((t, i) => (
+            <div className="tool-entry" key={`${t.verb}-${t.target}-${i}`}>
+              <span className={`ic ${t.status}`}>{t.status === "done" ? "✓" : "◌"}</span>
+              <span className="v">{t.verb}:</span>
+              <span className="tgt">{t.target}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {msg.summary && <div className="summary">{msg.summary}</div>}
+
+      {msg.permissionCmd && (
+        <div className="permission-card" style={{ marginTop: 8 }}>
+          <div className="cmd-block">{msg.permissionCmd}</div>
+          {msg.hasKeyboard && (
+            <div className="kb-row">
+              <button
+                type="button"
+                className="kb-btn allow"
+                onClick={msg.onAllow}
+                disabled={!!msg.resolved || !msg.onAllow}
+              >
+                {msg.resolved === "allow" ? "✓ Allowed" : "Allow"}
+              </button>
+              <button
+                type="button"
+                className="kb-btn deny"
+                onClick={msg.onDeny}
+                disabled={!!msg.resolved || !msg.onDeny}
+              >
+                {msg.resolved === "deny" ? "✗ Denied" : "Deny"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ChatMessageView({ msg }: { msg: ChatMsg }) {
+  if (msg.kind === "status") return <StatusBubble msg={msg} />;
+  if (msg.kind === "system") return <div className="msg system">{msg.text}</div>;
+  if (msg.kind === "user") {
+    return (
+      <div className="msg me">
+        <span>{msg.text}</span>
+        <span className="time">{msg.time ?? "9:41"}</span>
+        {msg.reaction && <span className="reaction">{msg.reaction}</span>}
+      </div>
+    );
+  }
+  // bot plain text
+  return (
+    <div className="msg bot">
+      <span>{msg.text}</span>
+      <span className="time">{msg.time ?? "9:41"}</span>
+    </div>
+  );
+}
+
+/**
+ * useChatEngine — message list + timer-driven mutation helpers, ported from the
+ * old (correct) demo components. Mutate ONE status message in place via
+ * updateMessage; never push a new bubble per tool call.
+ */
+export function useChatEngine() {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const timers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const intervals = useRef<Set<ReturnType<typeof setInterval>>>(new Set());
+
+  const schedule = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      timers.current.delete(id);
+      fn();
+    }, ms);
+    timers.current.add(id);
+    return id;
+  }, []);
+
+  const scheduleInterval = useCallback((fn: () => void, ms: number) => {
+    const id = setInterval(fn, ms);
+    intervals.current.add(id);
+    return id;
+  }, []);
+
+  const clearAllTimers = useCallback(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current.clear();
+    intervals.current.forEach(clearInterval);
+    intervals.current.clear();
+  }, []);
+
+  const addMessage = useCallback((msg: ChatMsg) => {
+    setMessages((prev) => [...prev, msg]);
+  }, []);
+
+  const updateMessage = useCallback(
+    (id: string, updater: (m: ChatMsg) => ChatMsg) => {
+      setMessages((prev) => prev.map((m) => (m.id === id ? updater(m) : m)));
+    },
+    [],
+  );
+
+  const removeMessage = useCallback((id: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+
+  const resetChat = useCallback(() => {
+    clearAllTimers();
+    setMessages([]);
+  }, [clearAllTimers]);
+
+  useEffect(() => clearAllTimers, [clearAllTimers]);
+
+  return {
+    messages,
+    setMessages,
+    addMessage,
+    updateMessage,
+    removeMessage,
+    resetChat,
+    schedule,
+    scheduleInterval,
+    clearAllTimers,
+  };
 }

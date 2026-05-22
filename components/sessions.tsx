@@ -2,7 +2,7 @@
 
 // Multi-session orchestration section
 import { useEffect, useState } from "react";
-import { PhoneFrame, PersistentKeyboard } from "@/components/landing/ui";
+import { PhoneFrame, PersistentKeyboard, ChatMessageView, type ChatMsg, type StatusMsg } from "@/components/landing/ui";
 
 type SessionStatus = "busy" | "idle" | "live";
 
@@ -13,11 +13,6 @@ type SessionTile = {
   model: string;
   activity: string;
   ctx: string;
-};
-
-type SessionChatFrame = {
-  pick: string;
-  items: { kind: string; text: string }[];
 };
 
 const SESSION_TILES: SessionTile[] = [
@@ -47,31 +42,56 @@ const SESSION_TILES: SessionTile[] = [
   },
 ];
 
-const SESSION_CHAT_FRAMES: SessionChatFrame[] = [
-  // Each "frame" is what the chat shows after tapping a session pill
+// One dashboard-style status bubble per session (matches real aipager:
+// one rich status message per session, not stacked plain bot bubbles).
+const SESSION_CHAT_FRAMES: { pick: string; msgs: ChatMsg[] }[] = [
   {
     pick: "jim",
-    items: [
-      { kind: "system", text: "switched → jim" },
-      { kind: "bot", text: "● jim — busy · sonnet 4.5" },
-      { kind: "bot", text: "› Editing src/server/handlers.ts:142" },
-      { kind: "bot", text: "› Editing src/server/handlers.ts:201" },
+    msgs: [
+      { id: "jim-sys", kind: "system", text: "switched → jim" },
+      {
+        id: "jim-st",
+        kind: "status",
+        emoji: "gear",
+        session: "jim",
+        verb: "busy · sonnet 4.5",
+        spinner: true,
+        tools: [
+          { status: "done", verb: "Edit", target: "src/server/handlers.ts:142" },
+          { status: "pending", verb: "Edit", target: "src/server/handlers.ts:201" },
+        ],
+      } satisfies StatusMsg,
     ],
   },
   {
     pick: "john",
-    items: [
-      { kind: "system", text: "switched → john" },
-      { kind: "bot", text: "● john — idle · opus 4.5" },
-      { kind: "bot", text: "ctx 12% · $0.04 · 88 lines" },
+    msgs: [
+      { id: "john-sys", kind: "system", text: "switched → john" },
+      {
+        id: "john-st",
+        kind: "status",
+        emoji: "check",
+        session: "john",
+        verb: "idle · opus 4.5",
+        spinner: false,
+        summary: "ctx 12% · $0.04 · 88 lines\nwaiting for next prompt",
+      } satisfies StatusMsg,
     ],
   },
   {
     pick: "tim",
-    items: [
-      { kind: "system", text: "switched → tim" },
-      { kind: "bot", text: "● tim — needs you · haiku 4.5" },
-      { kind: "bot", text: "⚠ Permission: bash · rm -rf node_modules" },
+    msgs: [
+      { id: "tim-sys", kind: "system", text: "switched → tim" },
+      {
+        id: "tim-st",
+        kind: "status",
+        emoji: "lock",
+        session: "tim",
+        verb: "needs you · haiku 4.5",
+        spinner: false,
+        permissionCmd: "rm -rf node_modules",
+        hasKeyboard: true,
+      } satisfies StatusMsg,
     ],
   },
 ];
@@ -142,15 +162,9 @@ export function Sessions() {
           <PhoneFrame sessionName={`aipager · ${activeName}`} status={`${SESSION_TILES.find((t) => t.name === activeName)?.statusLabel}`}>
             <div className="chat-body" style={{ minHeight: 280, paddingBottom: 6 }}>
               <div className="chat-day">Today</div>
-              {frame.items.map((m, i) => {
-                if (m.kind === "system") return <div className="msg system" key={i}>{m.text}</div>;
-                return (
-                  <div className="msg bot" key={i}>
-                    <span>{m.text}</span>
-                    <span className="time">9:41</span>
-                  </div>
-                );
-              })}
+              {frame.msgs.map((m) => (
+                <ChatMessageView key={m.id} msg={m} />
+              ))}
             </div>
             <PersistentKeyboard activeName={activeName} />
           </PhoneFrame>
