@@ -310,53 +310,64 @@ export function Demo() {
   };
 
   const runWarn = () => {
+    // The terminal shows the refactor running — but the CHAT only ever gets
+    // the bot's notifications (the context warning, then compacting, then the
+    // result). Real aipager doesn't surface the per-tool thinking bubble in
+    // the warn flow; that lives in the terminal.
     addCC({ id: "w-welcome", kind: "welcome", text: "Welcome to Claude Code" });
     addCC({ id: "w-asst", kind: "assistant", text: "Continuing the refactor across the module." });
     schedule(() => {
-      startThinking("Refactoring");
-      addCC({ id: "spin", kind: "spinner", verb: "Refactoring", elapsed: 0, tokens: "4.1k" });
+      addCC({ id: "spin", kind: "spinner", verb: "Refactoring", elapsed: 4, tokens: "4.1k" });
       addCC({ id: "w-read", kind: "tool", name: "Read", args: "14 files" });
       addCC({ id: "w-read-res", kind: "result", text: "Read 1,840 lines" });
-      addTool({ status: "done", verb: "Read", target: "14 files" });
     }, 200);
+    // 1) Context warning lands in chat as a standalone notification.
     schedule(() => {
+      removeCC("spin");
       addCC({ id: "w-ctxlow", kind: "note", tone: "warn", text: "⚠ Context low — 85% used" });
-      endThinking();
-      setTurn({
-        emoji: "warn",
-        verb: "Context 85%",
-        spinner: false,
-        summary: "risk of truncation — reply /compact to free space",
+      addMessage({
+        id: "w-warn",
+        kind: "bot",
+        text: "⚠️ dev — Context at 85%. Tap Compact below to free space.",
       });
     }, 1600);
-    // The human reacts to the warning by tapping the persistent keyboard's
-    // Compact button (no typing — this is how aipager's reply keyboard works).
+    // 2) Tap-feedback on the persistent keyboard's Compact button.
     schedule(() => {
-      setKbCompactTap((k) => k + 1); // tap-feedback on the Compact key
+      setKbCompactTap((k) => k + 1);
     }, 2800);
+    // 3) The tap sends "Compact" as the user's message; the warning is
+    //    cleared (it's done its job).
     schedule(() => {
-      // Telegram custom reply keyboards send the button label as a message,
-      // so "Compact" lands as the user's message; the daemon maps it to
-      // /compact and injects it into the session.
+      removeMessage("w-warn");
       addMessage({ id: "u-compact", kind: "user", text: "Compact" });
       addCC({ id: "w-user", kind: "user", text: "/compact" });
       addCC({ id: "w-compact-cmd", kind: "note", tone: "key", text: "› /compact" });
     }, 3100);
+    // 4) A NEW Compacting bubble appears at the bottom (not a transform of
+    //    the warning) and animates dots while compaction runs.
     schedule(() => {
-      setTurn({ emoji: "refresh", verb: "Compacting", spinner: true });
+      addMessage({
+        id: "compacting",
+        kind: "status",
+        emoji: "refresh",
+        session: "dev",
+        verb: "Compacting",
+        spinner: true,
+      });
       const frames = ["Compacting", "Compacting.", "Compacting..", "Compacting..."];
       let di = 0;
       dotsRef.current = scheduleInterval(() => {
         di = (di + 1) % frames.length;
-        updateMessage("turn", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
+        updateMessage("compacting", (m) => ({ ...(m as StatusMsg), verb: frames[di] }));
       }, 500);
-      updateCC("spin", { verb: "Compacting" });
+      addCC({ id: "spin2", kind: "spinner", verb: "Compacting", elapsed: 0 });
       addCC({ id: "w-summarizing", kind: "note", tone: "dim", text: "Summarizing prior turns…" });
     }, 3300);
+    // 5) Done — remove the compacting bubble, post the result as a fresh
+    //    "you're done" message.
     schedule(() => {
       stopDotsInterval();
-      // Done: drop the thinking bubble, post the result as a fresh message.
-      removeMessage("turn");
+      removeMessage("compacting");
       addMessage({
         id: "w-result",
         kind: "result",
@@ -365,7 +376,7 @@ export function Demo() {
         headline: "Compacted (85% → 22% · 9 turns kept)",
         text: "Context compacted — resuming the refactor.",
       });
-      removeCC("spin");
+      removeCC("spin2");
       addCC({ id: "w-compacted", kind: "note", tone: "ok", text: "✓ Compacted: 85% → 22% · 9 turns kept" });
       addCC({ id: "w-resume", kind: "assistant", text: "Context freed — resuming the refactor." });
     }, 5300);
