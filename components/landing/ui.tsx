@@ -488,7 +488,7 @@ export interface ResultMsg {
   kind: "result";
   emoji?: string;
   session: string;
-  stats?: string;
+  headline: string; // e.g. "Finished (8.3s · 142/142)"
   text: string;
   time?: string;
 }
@@ -558,13 +558,14 @@ export function ChatMessageView({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "system") return <div className="msg system">{msg.text}</div>;
   if (msg.kind === "result") {
     return (
-      <div className="msg bot">
-        <span className="label" style={{ color: "var(--live)" }}>
-          {msg.emoji ?? "✅"} {msg.session}
-          {msg.stats ? ` · ${msg.stats}` : ""}
-        </span>
-        <div className="result-body">{msg.text}</div>
-        <span className="time">{msg.time ?? "9:41"}</span>
+      <div className="msg bot" style={{ width: "86%", maxWidth: 320 }}>
+        <div className="status-head">
+          <span className="label-emoji">{msg.emoji ?? "✅"}</span>
+          <span>
+            {msg.session} · {msg.headline}
+          </span>
+        </div>
+        <div className="summary">{msg.text}</div>
       </div>
     );
   }

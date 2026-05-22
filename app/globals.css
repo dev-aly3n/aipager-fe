@@ -1424,12 +1424,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.msg .result-body {
-  font-size: 13.5px;
-  line-height: 1.4;
-  color: var(--fg);
-  white-space: pre-line;
-}
 .msg .summary {
   margin-top: 7px;
   padding: 6px 9px;

@@ -173,7 +173,7 @@ export function Demo() {
         id: "p-result",
         kind: "result",
         session: "dev",
-        stats: "684ms",
+        headline: "Finished (684ms)",
         text: "Migration applied — database in sync.",
       });
       addCC({ id: "p-done", kind: "assistant", text: "Migration applied." });
@@ -296,7 +296,7 @@ export function Demo() {
             id: "i-result",
             kind: "result",
             session: "dev",
-            stats: "2 files · +38 −4",
+            headline: "Finished (2 files · +38 −4)",
             text: "Shipped the feature flag toggle and added a changelog entry.",
           });
           removeCC("spin");
@@ -352,7 +352,7 @@ export function Demo() {
             kind: "result",
             emoji: "📦",
             session: "dev",
-            stats: "85% → 22% · 9 turns kept",
+            headline: "Compacted (85% → 22% · 9 turns kept)",
             text: "Context compacted — resuming the refactor.",
           });
           removeCC("spin");

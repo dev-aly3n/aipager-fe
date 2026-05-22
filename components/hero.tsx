@@ -193,7 +193,7 @@ function HeroChat() {
           id: "result",
           kind: "result",
           session: "dev",
-          stats: "8.3s · 142/142",
+          headline: "Finished (8.3s · 142/142)",
           text: "All green — auth middleware hardened.",
         });
         addCC({
