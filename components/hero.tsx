@@ -244,14 +244,7 @@ function HeroChat() {
   }, [messages]);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 0.95fr)",
-        gap: 18,
-        alignItems: "stretch",
-      }}
-    >
+    <div className="split-stage">
       <ClaudeTerminal title="~/work/dev — claude" lines={cc} />
       <PhoneFrame sessionName="aipager · dev" status="bot · online">
         <div className="chat-body" style={{ flex: "0 0 auto", height: 340, overflowY: "auto" }} ref={scrollRef}>

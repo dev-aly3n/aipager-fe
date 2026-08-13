@@ -13,6 +13,16 @@ export function DocsContent({ source }: { source: string }) {
           // react-markdown passes a `node` prop (the rehype AST node) to
           // every component — destructure it out so it doesn't leak as a
           // DOM attribute. Intercept mermaid code blocks here too.
+          // Reference tables (hook payloads, command lists) are wider than a
+          // phone. Give each its own scroll container so the page itself
+          // never scrolls sideways.
+          table({ node: _n, children, ...rest }) {
+            return (
+              <div className="overflow-x-auto">
+                <table {...rest}>{children}</table>
+              </div>
+            );
+          },
           code({ node: _n, className, children, ...rest }) {
             const match = /language-(\w+)/.exec(className || "");
             if (match && match[1] === "mermaid") {

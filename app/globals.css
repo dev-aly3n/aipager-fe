@@ -122,6 +122,24 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 0 var(--gutter);
 }
 
+/* Grid items default to `min-width: auto`, i.e. they refuse to shrink below
+   their min-content width and blow out of their track instead. One nowrap
+   install command was enough to force the hero column to 377px on a 320px
+   screen and push every section off-screen. Opt every page-level grid child
+   out of that automatic minimum; the shrinkable pieces inside (see
+   `.hero-install .cmd`) then handle their own overflow. */
+.hero-inner > *,
+.split-stage > *,
+.demo-grid > *,
+.demo-stage > *,
+.sessions-grid > *,
+.how-grid > *,
+.install-body > *,
+.install-next > *,
+.cards > * {
+  min-width: 0;
+}
+
 .section {
   position: relative;
   padding: clamp(72px, 10vw, 140px) 0;
@@ -208,6 +226,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   align-items: center;
   gap: 28px;
 }
+/* Mobile menu trigger — hidden until the links collapse (see Responsive). */
+.nav-toggle {
+  display: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-elev);
+  color: var(--fg-2);
+  transition: border-color .15s ease, color .15s ease;
+}
+.nav-toggle:hover { border-color: var(--fg-4); color: var(--fg); }
 .nav-links a {
   font-size: 13.5px;
   color: var(--fg-3);
@@ -231,10 +262,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-4);
-}
-
-@media (max-width: 720px) {
-  .nav-links a:not(.nav-cta):not(.nav-gh) { display: none; }
 }
 
 /* ===========================
@@ -333,6 +360,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 12.5px;
   color: var(--fg-3);
   width: max-content;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 .hero-tag-pill {
   font-family: var(--font-mono);
@@ -372,9 +401,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   width: max-content;
   max-width: 100%;
 }
-.hero-install .dollar { color: var(--fg-4); user-select: none; }
-.hero-install .cmd { color: var(--fg); white-space: nowrap; }
+.hero-install .dollar { color: var(--fg-4); user-select: none; flex-shrink: 0; }
+/* The command stays on one line; when the viewport can't fit it the pill
+   scrolls internally instead of pushing the Copy button off-screen. */
+.hero-install .cmd {
+  color: var(--fg);
+  white-space: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.hero-install .cmd::-webkit-scrollbar { display: none; }
 .hero-install .copy {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -393,7 +432,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .hero-meta {
   display: flex;
   align-items: center;
-  gap: 22px;
+  flex-wrap: wrap;
+  gap: 10px 22px;
   font-size: 12.5px;
   color: var(--fg-4);
   font-family: var(--font-mono);
@@ -417,6 +457,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .hero-visual {
   position: relative;
   min-height: 520px;
+}
+
+/* Terminal + phone pair (hero). Kept as a class rather than an inline grid so
+   it can collapse to a stack before either panel gets too narrow to read. */
+.split-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 18px;
+  align-items: stretch;
 }
 
 /* ===========================
@@ -789,9 +838,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ===========================
    Card grid
    =========================== */
+/* Stays a 3-up grid at desktop (auto-fit would drift to 4 columns on a wide
+   screen); steps 3 → 2 → 1 explicitly in the Responsive section. */
 .cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 .card {
@@ -927,7 +978,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .session-cluster {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   z-index: 2;
 }
@@ -945,13 +996,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+/* The model pill is pushed right with `margin-left: auto`; without wrapping it
+   overflows the tile (which clips) as soon as the 3-up grid narrows — this was
+   cutting the pill off even at 1024px and 1440px. */
 .session-tile .name {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--fg);
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px 8px;
 }
 .session-tile .pill {
   font-family: var(--font-mono);
@@ -973,6 +1028,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--fg-3);
   line-height: 1.45;
   min-height: 2.4em;
+  /* Paths like `src/server/handlers.ts` have no break opportunity, so they
+     overflowed the tile (which clips) even in the 3-up desktop grid. */
+  overflow-wrap: anywhere;
 }
 .session-tile .model {
   font-family: var(--font-mono);
@@ -1106,8 +1164,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative;
 }
 .install-cmd-block .line { display: flex; align-items: baseline; gap: 10px; }
-.install-cmd-block .line .p { color: var(--fg-4); }
-.install-cmd-block .line .c { color: var(--fg); }
+.install-cmd-block .line .p { color: var(--fg-4); flex-shrink: 0; }
+/* Long install commands (docker, git clone) must wrap inside the block rather
+   than widen it — `anywhere` also breaks unbroken paths/URLs. */
+.install-cmd-block .line .c { color: var(--fg); min-width: 0; overflow-wrap: anywhere; }
 .install-cmd-block .copy {
   position: absolute;
   top: 14px;
@@ -1271,25 +1331,146 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-family: var(--font-mono);
   color: var(--fg-4);
 }
-.footer-inner .left { display: inline-flex; align-items: center; gap: 12px; }
+.footer-inner .left { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-links { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px 22px; }
 .footer-inner a { color: var(--fg-3); transition: color .15s ease; }
 .footer-inner a:hover { color: var(--fg); }
 
 /* ===========================
    Responsive
+
+   Breakpoint ladder:
+     ≤1180  small laptop — the hero stacks so its terminal/phone pair keeps room
+     ≤1080  laptop  — tighten the nav so the links can't collide with the brand
+     ≤980   tablet  — two-column page grids stack; panels get centred + capped
+     ≤900   mobile nav — links collapse behind the hamburger
+     ≤700   phone   — the terminal/phone pair stacks; chrome shrinks
+     ≤560   small phone — type scale steps down, fixed chrome goes fluid
    =========================== */
-@media (max-width: 980px) {
-  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+@media (max-width: 1080px) {
+  .nav-links { gap: 20px; }
+  .nav-links a { font-size: 13px; }
+}
+
+/* The hero puts a terminal + phone pair inside its right-hand column, so that
+   column is only ~half the content width. Below ~1180px each panel drops under
+   ~230px and starts wrapping its own chrome (terminal title, chat header,
+   reply bar). Stack the hero first: the pair then gets the full width and both
+   panels stay legible. */
+@media (max-width: 1180px) {
+  .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 48px; }
   .hero-visual { min-height: auto; }
-  .demo-grid { grid-template-columns: 1fr; }
-  .sessions-grid { grid-template-columns: 1fr; }
-  .cards { grid-template-columns: 1fr; }
-  .how-grid { grid-template-columns: 1fr; }
+}
+
+/* Stacked tracks are `minmax(0, 1fr)` rather than a bare `1fr` so the track
+   itself also refuses to inflate past the container — the companion to the
+   `min-width: 0` rule on grid items above. */
+@media (max-width: 980px) {
+  .demo-grid { grid-template-columns: minmax(0, 1fr); }
+  .sessions-grid { grid-template-columns: minmax(0, 1fr); }
+  .how-grid { grid-template-columns: minmax(0, 1fr); }
   .how-step + .how-step { border-left: 0; border-top: 1px solid var(--line-2); }
-  .install-body { grid-template-columns: 1fr; }
-  .install-next { grid-template-columns: 1fr; }
+  .install-body { grid-template-columns: minmax(0, 1fr); }
+  .install-next { grid-template-columns: minmax(0, 1fr); }
   .install-next .step + .step { border-left: 0; border-top: 1px solid var(--line-2); }
-  .session-cluster { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Once a grid stacks, its panels would otherwise stretch to the full
+     content width — a 900px-wide "phone" reads as a bug. Cap and centre.
+     `justify-self` rather than `margin-inline: auto`: auto margins on a grid
+     item switch off the default stretch, which collapses the panel to its
+     fit-content width instead of filling the column. */
+  .phone { width: 100%; max-width: 420px; justify-self: center; }
+  .terminal { width: 100%; max-width: 560px; justify-self: center; }
+  .sessions-stage { min-height: 0; }
+}
+
+/* Mobile nav — the links move into a dropdown panel under the bar. Before
+   this they were simply `display: none` below 720px, which left the site with
+   no navigation at all on a phone. */
+@media (max-width: 900px) {
+  .nav-toggle { display: inline-grid; }
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px var(--gutter) 14px;
+    /* Opaque, not the nav's translucent fill: the hero headline sits directly
+       under the panel and reads straight through a semi-transparent one. */
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-2);
+    box-shadow: 0 18px 40px -20px oklch(0 0 0 / 0.8);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a {
+    font-size: 15px;
+    padding: 13px 2px;
+    color: var(--fg-2);
+    border-bottom: 1px solid var(--line-2);
+  }
+  .nav-links .nav-cta {
+    justify-content: center;
+    margin-top: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 700px) {
+  .split-stage { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .demo-stage { gap: 14px; }
+  .sessions-stage { padding: 20px 16px; }
+  .session-flow { margin-top: 20px; gap: 10px; }
+  .how-step { padding: 24px 20px 26px; }
+  .session-cluster { grid-template-columns: minmax(0, 1fr); }
+  .install-body { padding: 20px 18px 18px; }
+  .install-next .step { padding: 20px 18px; }
+  .demo-controls { padding: 16px; }
+}
+
+@media (max-width: 560px) {
+  .section { padding: clamp(56px, 12vw, 88px) 0; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .h1 { font-size: clamp(30px, 8.6vw, 42px); }
+  .h2 { font-size: clamp(25px, 6.6vw, 34px); }
+  .lead { font-size: 15.5px; }
+  .section-head { gap: 14px; margin-bottom: 34px; }
+
+  .hero-copy { gap: 22px; }
+  .hero-install, .cta-install { width: 100%; padding-left: 12px; font-size: 12.5px; }
+  .hero-meta { gap: 8px 14px; font-size: 11.5px; }
+  .btn { height: 44px; }
+  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* The absolutely-positioned Copy button overlaps the first command line
+     once the block gets narrow — drop it into flow instead. */
+  .install-cmd-block { padding: 14px; }
+  .install-cmd-block .copy {
+    position: static;
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .install-tab { padding: 12px 14px; }
+
+  .faq-q { font-size: 16px; gap: 12px; padding: 18px 2px; }
+  .faq-a-inner { padding: 0 2px 20px; font-size: 14.5px; }
+  /* A 320px cap clips longer answers once the column narrows. */
+  .faq-item.open .faq-a { max-height: 720px; }
+
+  .terminal, .cc-body { font-size: 11.5px; }
+  .cc-body { padding: 12px 12px 8px; }
+  .phone { border-radius: 20px; }
+
+  .footer-inner { gap: 14px; font-size: 12px; }
 }
 
 /* ===========================
@@ -1332,7 +1513,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cc-note.dim { color: var(--fg-4); }
 .cc-note.key { color: var(--accent); }
 
-.cc-spin { display: flex; gap: 8px; align-items: baseline; }
+.cc-spin { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
 .cc-spin .glyph { color: var(--accent); flex-shrink: 0; }
 .cc-spin .verb { color: var(--fg-2); }
 .cc-spin .meta { color: var(--fg-4); }

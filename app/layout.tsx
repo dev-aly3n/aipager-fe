@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -31,6 +31,14 @@ export const metadata: Metadata = {
       "Mirror Claude Code sessions to Telegram. See status, reply to inject prompts, approve permissions — all from your phone.",
   },
   metadataBase: new URL("https://aipager.run"),
+};
+
+// Explicit rather than relying on Next's default, and `maximumScale` is left
+// unset on purpose so the page stays pinch-zoomable.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

@@ -25,7 +25,7 @@ export async function Footer() {
           <span style={{ color: "var(--fg-4)" }}>·</span>
           <a href="https://github.com/dev-aly3n/aipager/blob/main/LICENSE">MIT</a>
         </div>
-        <div style={{ display: "inline-flex", gap: 22 }}>
+        <div className="footer-links">
           <a href="https://github.com/dev-aly3n/aipager">GitHub</a>
           <a href="/docs">Docs</a>
           <a href="https://github.com/dev-aly3n/aipager/issues">Issues</a>
