@@ -1,6 +1,7 @@
 import { Logo, GitHubIcon } from "@/components/landing/icons";
 
 const LINKS: { href: string; label: string; homeOnly?: boolean }[] = [
+  { href: "/#features", label: "Features", homeOnly: true },
   { href: "/#how", label: "How it works", homeOnly: true },
   { href: "/#install", label: "Install", homeOnly: true },
   { href: "/#faq", label: "FAQ", homeOnly: true },

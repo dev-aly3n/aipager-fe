@@ -50,10 +50,10 @@ export function HowItWorks() {
           ))}
         </div>
         <p className="mt-8 text-sm text-dim">
-          Also in the box: team mode with roles, a Mini App dashboard, voice
-          prompts, file uploads, per-session git diffs —{" "}
+          Want the deep dive? Architecture, the full hook reference, and the
+          security model are{" "}
           <a href="/docs" className="text-accent hover:underline">
-            it&apos;s all in the docs →
+            in the docs →
           </a>
         </p>
       </div>

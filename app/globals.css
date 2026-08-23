@@ -241,3 +241,49 @@ body {
     animation: none;
   }
 }
+
+/* ===========================
+   "Tap to answer" vignette — one 10s CSS cycle, no JS
+   =========================== */
+.v-early { animation: v-early 10s ease-in-out infinite; }
+.v-out { animation: v-out 10s ease-in-out infinite; }
+.v-late { animation: v-late 10s ease-in-out infinite; }
+.v-later { animation: v-later 10s ease-in-out infinite; }
+.v-ring { animation: v-ring 10s ease-out infinite; opacity: 0; }
+.v-tapbtn { animation: v-tap 10s ease-in-out infinite; }
+
+@keyframes v-early {
+  0%, 3% { opacity: 0; transform: translateY(8px); }
+  6%, 90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+@keyframes v-out {
+  0%, 4% { opacity: 0; transform: translateY(8px); }
+  8%, 38% { opacity: 1; transform: none; }
+  43%, 100% { opacity: 0; transform: none; }
+}
+@keyframes v-late {
+  0%, 41% { opacity: 0; transform: translateY(6px) scale(0.95); }
+  46%, 90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+@keyframes v-later {
+  0%, 56% { opacity: 0; transform: translateY(8px); }
+  62%, 90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+@keyframes v-ring {
+  0%, 28% { opacity: 0; transform: scale(0.75); }
+  31% { opacity: 0.9; transform: scale(1); }
+  38%, 100% { opacity: 0; transform: scale(1.35); }
+}
+@keyframes v-tap {
+  0%, 29%, 39%, 100% { background-color: var(--surface); }
+  32%, 36% { background-color: color-mix(in oklch, var(--accent) 22%, var(--surface)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-early, .v-late, .v-later, .v-tapbtn { animation: none; }
+  .v-out { animation: none; opacity: 0; }
+  .v-ring { animation: none; opacity: 0; }
+}

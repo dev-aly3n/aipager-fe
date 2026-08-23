@@ -1,5 +1,9 @@
 import { Nav } from "@/components/nav";
 import { Hero } from "@/components/landing/hero";
+import { Answer } from "@/components/landing/answer";
+import { Modes } from "@/components/landing/modes";
+import { Fleet } from "@/components/landing/fleet";
+import { Bento } from "@/components/landing/bento";
 import { HowItWorks } from "@/components/landing/how";
 import { Install } from "@/components/landing/install";
 import { Faq } from "@/components/landing/faq";
@@ -12,6 +16,10 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <Answer />
+        <Modes />
+        <Fleet />
+        <Bento />
         <HowItWorks />
         <Install />
         <Faq />
