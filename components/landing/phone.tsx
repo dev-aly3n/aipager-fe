@@ -286,11 +286,6 @@ export function Phone({
           <StatusBubble status={phone.status} v={v} holding={holding} onAllow={onAllow} />
         )}
 
-        {phone.audit && (
-          <div className="msg-in max-w-[92%] self-start rounded-xl bg-[var(--tg-in)] px-2.5 py-1 text-[10.5px] text-[var(--tg-dim)]">
-            ✅ {SESSION} · {phone.audit}
-          </div>
-        )}
 
         {phone.result && (
           <div className="msg-in max-w-[92%] self-start rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">

@@ -38,7 +38,6 @@ export type PhoneState = {
   typed: string;
   user?: { text: string; reaction?: "sent" | "picked" };
   status?: PhoneStatus;
-  audit?: string;
   result?: { headline: string; text: string };
 };
 
@@ -61,7 +60,6 @@ export type Step = { at: number } & (
   | { do: "tool"; icon: "done" | "run"; label: string }
   | { do: "perm"; tool: string; cmd: string; desc: string; hold: number }
   | { do: "resolved" }
-  | { do: "audit"; text: string }
   | { do: "finish"; headline: string; text: string }
   | { do: "fade" }
 );
@@ -134,7 +132,6 @@ export const SCENARIO: Step[] = [
     hold: 3500,
   },
   { at: 9360, do: "resolved" },
-  { at: 9700, do: "audit", text: `Allowed · Bash: ${TEST_CMD}` },
   { at: 9900, do: "term-rm", id: "perm" },
   {
     at: 9900,
@@ -147,6 +144,7 @@ export const SCENARIO: Step[] = [
     line: { id: "spin2", kind: "spinner", verb: "Testing", sinceMs: 9900 },
   },
   { at: 9960, do: "verb", verb: "Running tests" },
+  { at: 9960, do: "tool", icon: "run", label: `Bash ${TEST_CMD}` },
   { at: 11900, do: "term-result", id: "bash1", result: "42 passed · 0 failed (6.8s)" },
   { at: 12600, do: "term-rm", id: "spin2" },
   {
@@ -266,9 +264,6 @@ export function stateAt(v: number): MirrorState {
         if (phone.status) {
           phone = { ...phone, status: { ...phone.status, resolved: "allow" } };
         }
-        break;
-      case "audit":
-        phone = { ...phone, audit: step.text };
         break;
       case "finish":
         phone = {
