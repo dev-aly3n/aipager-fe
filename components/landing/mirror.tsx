@@ -16,8 +16,12 @@ export function Mirror() {
       className={`flex items-stretch justify-center gap-5 transition-opacity duration-500 ${
         state.fading ? "opacity-0" : "opacity-100"
       }`}
+      // Pinned to the phone's natural height (256px wide at the S25's 9:19.5
+      // ratio). Without this, items-stretch lets the terminal's CONTENT set
+      // the row height, so both panels ballooned whenever the story grew
+      // (permission box in) and shrank back after — visible layout shift.
+      style={{ height: "calc(256px * 19.5 / 9)" }}
     >
-      {/* No explicit height: items-stretch matches it to the phone's. */}
       <div className="hidden max-w-[520px] flex-1 md:flex">
         <Terminal lines={state.term} v={v} />
       </div>
