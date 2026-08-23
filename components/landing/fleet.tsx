@@ -2,25 +2,33 @@
 // mirrors what `/app` actually serves (session list, per-session actions,
 // diff viewer, settings) and the chat column mirrors the `/new` wizard.
 
+import { ChatCard } from "./chat-card";
+
 function ChatWay() {
   return (
-    <div className="flex flex-col gap-2 text-[13px]">
-      <div className="self-end rounded-2xl rounded-br-md bg-accent/20 px-3.5 py-2">
-        /new api
-      </div>
-      <div className="max-w-[90%] self-start rounded-2xl rounded-bl-md border border-border bg-surface px-3.5 py-2.5">
-        <div className="font-semibold">New session — pick a mode:</div>
-        <div className="mt-2 grid grid-cols-2 gap-1 text-center text-xs">
-          <span className="rounded-md bg-background px-2 py-1.5 ring-1 ring-accent/60">🔐 Ask</span>
-          <span className="rounded-md bg-background px-2 py-1.5">⚡ Auto</span>
+    <div>
+      <ChatCard>
+        <div className="flex flex-col gap-1.5 text-[13px]">
+          <div className="self-end rounded-2xl rounded-br-md bg-[var(--tg-out)] px-3 py-1.5 text-[var(--tg-fg)]">
+            /new api
+          </div>
+          <div className="max-w-[90%] self-start rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">
+            <div className="font-semibold text-[var(--tg-fg)]">New session — pick a mode:</div>
+            <div className="mt-1 text-[11px] text-[var(--tg-dim)]">
+              then model → folder, two taps more
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-[3px]">
+            <span className="tg-btn ring-1 ring-[var(--tg-accent)]/60">🔐 Ask</span>
+            <span className="tg-btn">⚡ Auto</span>
+          </div>
+          <div className="max-w-[90%] self-start rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2 text-[var(--tg-fg)]">
+            ✅ <span className="font-semibold">api</span> created ·{" "}
+            <span className="text-[var(--tg-dim)]">sonnet · ~/work/api</span>
+          </div>
         </div>
-        <div className="mt-1 text-[11px] text-dim">then model → folder, two taps more</div>
-      </div>
-      <div className="max-w-[90%] self-start rounded-2xl rounded-bl-md border border-border bg-surface px-3.5 py-2">
-        ✅ <span className="font-semibold">api</span> created ·{" "}
-        <span className="text-dim">sonnet · ~/work/api</span>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      </ChatCard>
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {["/status", "/resume", "/rename", "/diff", "/kill"].map((c) => (
           <code key={c} className="rounded-md border border-border px-2 py-0.5 font-mono text-[11px] text-dim">
             {c}

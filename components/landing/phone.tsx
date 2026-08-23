@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { PhoneState, PhoneStatus } from "./scenario";
 import { SESSION } from "./scenario";
 
@@ -89,97 +90,47 @@ function Ticks() {
   );
 }
 
-// ---------- message pieces ----------
+// ---------- the reusable S25 Ultra + Telegram shell ----------
 
-function StatusBubble({
-  status,
-  v,
-  holding,
-  onAllow,
-}: {
-  status: PhoneStatus;
-  v: number;
-  holding: boolean;
-  onAllow: () => void;
-}) {
-  const isPerm = status.kind === "perm";
+export function TgReplyBar({ typed }: { typed?: string }) {
   return (
-    <div className="msg-in max-w-[92%] self-start">
-      <div className="rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">
-        <div className="text-[12px] font-semibold text-[var(--tg-fg)]">
-          {isPerm ? "🔐" : "⚙️"} {SESSION}
-        </div>
-        {isPerm ? (
-          <>
-            <div className="mt-0.5 text-[11px] text-[var(--tg-dim)]">
-              {status.permDesc}
-            </div>
-            <div className="mt-1 rounded-md bg-black/30 px-2 py-1 font-mono text-[10.5px] text-[var(--tg-accent)]">
-              {status.permCmd}
-            </div>
-          </>
+    <div className="flex items-center gap-2 bg-[var(--tg-panel)] px-3 py-2">
+      <span className="text-[var(--tg-dim)]">
+        <ClipIcon />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-[12px]">
+        {typed ? (
+          <span className="text-[var(--tg-fg)]">
+            {typed}
+            <span className="type-caret" />
+          </span>
         ) : (
-          <div className="mt-0.5 text-[11px] italic text-[var(--tg-dim)]">
-            {status.verb}… · {secs(v, status.sinceMs)}s
-          </div>
+          <span className="text-[var(--tg-dim)]">Message</span>
         )}
-        {status.tools.length > 0 && (
-          <div className="mt-1.5 space-y-0.5">
-            {status.tools.map((t) => (
-              <div key={t.label} className="msg-in text-[11px] text-[var(--tg-dim)]">
-                {t.icon === "done" ? (
-                  <span className="text-[var(--tg-ok)]">✓ </span>
-                ) : (
-                  <span className="text-[var(--tg-accent)]">● </span>
-                )}
-                {t.label}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {isPerm && (
-        <div className="mt-[3px] grid grid-cols-2 gap-[3px]">
-          <button
-            type="button"
-            onClick={onAllow}
-            className={`tg-btn ${holding ? "tg-btn-hint" : ""} ${
-              status.resolved === "allow" ? "tg-btn-pressed" : ""
-            }`}
-          >
-            ✅ Allow
-          </button>
-          <button type="button" className="tg-btn" tabIndex={-1}>
-            ❌ Deny
-          </button>
-          <button type="button" className="tg-btn" tabIndex={-1}>
-            🟢 Allow always
-          </button>
-          <button type="button" className="tg-btn" tabIndex={-1}>
-            ⏹ Stop
-          </button>
-        </div>
-      )}
+      </span>
+      <span className={typed ? "text-[var(--tg-accent)]" : "text-[var(--tg-dim)]"}>
+        {typed ? <SendIcon /> : <MicIcon />}
+      </span>
     </div>
   );
 }
 
-// ---------- the phone ----------
-
-export function Phone({
-  phone,
-  v,
-  holding,
-  onAllow,
+export function PhoneShell({
+  width,
+  label,
+  children,
 }: {
-  phone: PhoneState;
-  v: number;
-  holding: boolean;
-  onAllow: () => void;
+  width?: number;
+  label: string;
+  children: ReactNode;
 }) {
   return (
-    <div className="s25 shrink-0" aria-label="Telegram on an Android phone, mirroring the Claude Code session">
-      <div className="s25-screen flex flex-col">
+    <div
+      className="s25 shrink-0"
+      style={width ? ({ "--s25-w": `${width}px` } as React.CSSProperties) : undefined}
+      aria-label={label}
+    >
+      <div className="s25-screen tg flex flex-col">
         <div className="s25-punch" aria-hidden />
 
         {/* Android status bar */}
@@ -207,71 +158,7 @@ export function Phone({
           </span>
         </div>
 
-        {/* chat — bottom-anchored, older messages clip at the top */}
-        <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-2.5 pb-2 pt-1 text-[12px]">
-          <div className="self-center rounded-full bg-black/25 px-2.5 py-0.5 text-[10px] font-medium text-[var(--tg-dim)]">
-            Today
-          </div>
-
-          {phone.user && (
-            <div className="msg-in max-w-[85%] self-end rounded-2xl rounded-br-md bg-[var(--tg-out)] px-2.5 py-1.5 text-[var(--tg-fg)]">
-              {phone.user.text}
-              <span className="ml-2 inline-flex items-center gap-1 align-bottom text-[9.5px] text-white/60">
-                21:07 <Ticks />
-              </span>
-              {phone.user.reaction && (
-                <div
-                  key={phone.user.reaction}
-                  className="react-pop mt-1 inline-flex w-fit items-center rounded-full bg-white/12 px-1.5 py-0.5 text-[11px]"
-                >
-                  {phone.user.reaction === "sent" ? "👀" : "👍"}
-                </div>
-              )}
-            </div>
-          )}
-
-          {phone.status && (
-            <StatusBubble status={phone.status} v={v} holding={holding} onAllow={onAllow} />
-          )}
-
-          {phone.audit && (
-            <div className="msg-in max-w-[92%] self-start rounded-xl bg-[var(--tg-in)] px-2.5 py-1 text-[10.5px] text-[var(--tg-dim)]">
-              ✅ {SESSION} · {phone.audit}
-            </div>
-          )}
-
-          {phone.result && (
-            <div className="msg-in max-w-[92%] self-start rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">
-              <div className="text-[12px] font-semibold text-[var(--tg-fg)]">
-                ✅ {SESSION} — {phone.result.headline}
-              </div>
-              <div className="mt-0.5 text-[11.5px] text-[var(--tg-fg)]/90">
-                {phone.result.text}
-              </div>
-              <div className="mt-0.5 text-right text-[9.5px] text-[var(--tg-dim)]">21:08</div>
-            </div>
-          )}
-        </div>
-
-        {/* reply bar */}
-        <div className="flex items-center gap-2 bg-[var(--tg-panel)] px-3 py-2">
-          <span className="text-[var(--tg-dim)]">
-            <ClipIcon />
-          </span>
-          <span className="min-w-0 flex-1 truncate text-[12px]">
-            {phone.typed ? (
-              <span className="text-[var(--tg-fg)]">
-                {phone.typed}
-                <span className="type-caret" />
-              </span>
-            ) : (
-              <span className="text-[var(--tg-dim)]">Message</span>
-            )}
-          </span>
-          <span className={phone.typed ? "text-[var(--tg-accent)]" : "text-[var(--tg-dim)]"}>
-            {phone.typed ? <SendIcon /> : <MicIcon />}
-          </span>
-        </div>
+        {children}
 
         {/* Android gesture pill */}
         <div className="flex justify-center bg-[var(--tg-panel)] pb-1.5">
@@ -279,5 +166,146 @@ export function Phone({
         </div>
       </div>
     </div>
+  );
+}
+
+// ---------- hero-mirror message pieces ----------
+
+function StatusBubble({
+  status,
+  v,
+  holding,
+  onAllow,
+}: {
+  status: PhoneStatus;
+  v: number;
+  holding: boolean;
+  onAllow: () => void;
+}) {
+  const isPerm = status.kind === "perm";
+  return (
+    <div className="msg-in max-w-[92%] self-start">
+      <div className="rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">
+        <div className="text-[12px] font-semibold text-[var(--tg-fg)]">
+          {isPerm ? "🔐" : "⚙️"} {SESSION}
+        </div>
+        {isPerm ? (
+          <div className="msg-in">
+            <div className="mt-0.5 text-[11px] text-[var(--tg-dim)]">
+              {status.permDesc}
+            </div>
+            <div className="mt-1 rounded-md bg-black/30 px-2 py-1 font-mono text-[10.5px] text-[var(--tg-accent)]">
+              {status.permCmd}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-0.5 text-[11px] italic text-[var(--tg-dim)]">
+            {status.verb}… · {secs(v, status.sinceMs)}s
+          </div>
+        )}
+        {status.tools.length > 0 && (
+          <div className="mt-1.5 space-y-0.5">
+            {status.tools.map((t) => (
+              <div key={t.label} className="msg-in text-[11px] text-[var(--tg-dim)]">
+                {t.icon === "done" ? (
+                  <span className="text-[var(--tg-ok)]">✓ </span>
+                ) : (
+                  <span className="text-[var(--tg-accent)]">● </span>
+                )}
+                {t.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {isPerm && (
+        <div className="msg-in mt-[3px] grid grid-cols-2 gap-[3px]">
+          <button
+            type="button"
+            onClick={onAllow}
+            className={`tg-btn ${holding ? "tg-btn-hint" : ""} ${
+              status.resolved === "allow" ? "tg-btn-pressed" : ""
+            }`}
+          >
+            ✅ Allow
+          </button>
+          <button type="button" className="tg-btn" tabIndex={-1}>
+            ❌ Deny
+          </button>
+          <button type="button" className="tg-btn" tabIndex={-1}>
+            🟢 Allow always
+          </button>
+          <button type="button" className="tg-btn" tabIndex={-1}>
+            ⏹ Stop
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- the hero-mirror phone ----------
+
+export function Phone({
+  phone,
+  v,
+  holding,
+  onAllow,
+}: {
+  phone: PhoneState;
+  v: number;
+  holding: boolean;
+  onAllow: () => void;
+}) {
+  return (
+    <PhoneShell width={256} label="Telegram on an Android phone, mirroring the Claude Code session">
+      {/* chat — bottom-anchored, older messages clip at the top */}
+      <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-2.5 pb-2 pt-1 text-[12px]">
+        <div className="self-center rounded-full bg-black/25 px-2.5 py-0.5 text-[10px] font-medium text-[var(--tg-dim)]">
+          Today
+        </div>
+
+        {phone.user && (
+          <div className="msg-in max-w-[85%] self-end rounded-2xl rounded-br-md bg-[var(--tg-out)] px-2.5 py-1.5 text-[var(--tg-fg)]">
+            {phone.user.text}
+            <span className="ml-2 inline-flex items-center gap-1 align-bottom text-[9.5px] text-white/60">
+              21:07 <Ticks />
+            </span>
+            {phone.user.reaction && (
+              <div
+                key={phone.user.reaction}
+                className="react-pop mt-1 inline-flex w-fit items-center rounded-full bg-white/12 px-1.5 py-0.5 text-[11px]"
+              >
+                {phone.user.reaction === "sent" ? "👀" : "👍"}
+              </div>
+            )}
+          </div>
+        )}
+
+        {phone.status && (
+          <StatusBubble status={phone.status} v={v} holding={holding} onAllow={onAllow} />
+        )}
+
+        {phone.audit && (
+          <div className="msg-in max-w-[92%] self-start rounded-xl bg-[var(--tg-in)] px-2.5 py-1 text-[10.5px] text-[var(--tg-dim)]">
+            ✅ {SESSION} · {phone.audit}
+          </div>
+        )}
+
+        {phone.result && (
+          <div className="msg-in max-w-[92%] self-start rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3 py-2">
+            <div className="text-[12px] font-semibold text-[var(--tg-fg)]">
+              ✅ {SESSION} — {phone.result.headline}
+            </div>
+            <div className="mt-0.5 text-[11.5px] text-[var(--tg-fg)]/90">
+              {phone.result.text}
+            </div>
+            <div className="mt-0.5 text-right text-[9.5px] text-[var(--tg-dim)]">21:08</div>
+          </div>
+        )}
+      </div>
+
+      <TgReplyBar typed={phone.typed} />
+    </PhoneShell>
   );
 }

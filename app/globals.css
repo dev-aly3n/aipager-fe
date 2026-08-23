@@ -126,7 +126,7 @@ body {
 /* Galaxy S25 Ultra: flat sides, tight corners, thin even bezel,
    centered punch-hole camera. */
 .s25 {
-  width: 280px;
+  width: var(--s25-w, 280px);
   aspect-ratio: 9 / 19.5;
   padding: 3px;
   border-radius: 22px;
@@ -135,13 +135,9 @@ body {
     0 0 0 1px rgba(0, 0, 0, 0.6),
     0 24px 60px rgba(0, 0, 0, 0.45);
 }
-.s25-screen {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 19px;
-  background: var(--tg-bg);
+/* Telegram dark palette — any element styled as a piece of Telegram UI
+   (full phone screen or a slim chat card) gets this class. */
+.tg {
   --tg-bg: #0e1621;
   --tg-panel: #17212b;
   --tg-in: #182533;
@@ -150,6 +146,15 @@ body {
   --tg-dim: #7d8e9f;
   --tg-accent: #64b5f6;
   --tg-ok: #6ec26e;
+}
+
+.s25-screen {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 19px;
+  background: var(--tg-bg);
 }
 .s25-punch {
   position: absolute;
@@ -190,13 +195,14 @@ body {
   50% { box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.35); }
 }
 
-/* message entrance */
+/* message entrance — animates max-height too, so an arriving bubble or
+   keyboard pushes the chat up smoothly instead of snapping the layout. */
 .msg-in {
-  animation: msg-in 0.22s ease-out;
+  animation: msg-in 0.32s cubic-bezier(0.25, 1, 0.5, 1);
 }
 @keyframes msg-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.97); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(6px) scale(0.97); max-height: 0; overflow: hidden; }
+  to { opacity: 1; transform: none; max-height: 280px; overflow: hidden; }
 }
 
 /* reaction pop (👀 → 👍) */
@@ -204,8 +210,8 @@ body {
   animation: react-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes react-pop {
-  from { transform: scale(0.3); }
-  to { transform: scale(1); }
+  from { transform: scale(0.3); max-height: 0; overflow: hidden; }
+  to { transform: scale(1); max-height: 30px; overflow: hidden; }
 }
 
 /* typing caret in the Telegram reply bar */

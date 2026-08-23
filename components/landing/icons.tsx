@@ -28,7 +28,7 @@ export function CopyButton({
     <button
       type="button"
       aria-label="Copy command"
-      className={`inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs transition-colors hover:border-accent hover:text-accent ${
+      className={`inline-flex min-w-[76px] items-center justify-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:border-accent hover:text-accent ${
         copied ? "border-success text-success" : "text-dim"
       } ${className}`}
       onClick={() => {

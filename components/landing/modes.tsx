@@ -1,11 +1,14 @@
 "use client";
 
 // Ask vs Auto permission modes as a flippable switch. It flips itself every
-// few seconds until the visitor touches it, then it's theirs.
+// few seconds until the visitor touches it, then it's theirs. Both states
+// stay mounted in one grid cell (the inactive one visibility-hidden), so
+// flipping never changes the section's height — no layout shift.
 
 import { useEffect, useState } from "react";
+import { ChatCard } from "./chat-card";
 
-const CAPTION: Record<"ask", string> & Record<"auto", string> = {
+const CAPTION: Record<"ask" | "auto", string> = {
   ask: "Every risky tool call waits for your tap — nothing runs behind your back.",
   auto: "Trust the session? Let it run and watch the tools stream past.",
 };
@@ -24,6 +27,11 @@ export function Modes() {
     setTouched(true);
     setMode(m);
   };
+
+  const layer = (active: boolean) =>
+    `col-start-1 row-start-1 transition-opacity duration-300 ${
+      active ? "visible opacity-100" : "invisible opacity-0"
+    }`;
 
   return (
     <section className="border-y border-border/60 bg-surface/40 py-16 lg:py-24">
@@ -64,37 +72,58 @@ export function Modes() {
           </button>
         </div>
 
-        {/* the consequence */}
+        {/* the consequence — both states overlaid so height never changes */}
         <div className="mt-8 w-full max-w-md text-left text-[13px]">
-          {mode === "ask" ? (
-            <div key="ask" className="msg-in rounded-2xl border border-border bg-background px-4 py-3 shadow-xl">
-              <div className="font-semibold">🔐 api — Bash</div>
-              <div className="mt-1.5 rounded-md bg-terminal-bg px-2.5 py-1.5 font-mono text-xs text-accent">
-                pnpm prisma migrate dev --name add_users
+          <ChatCard>
+            <div className="grid">
+              <div className={layer(mode === "ask")} aria-hidden={mode !== "ask"}>
+                <div className="max-w-full rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3.5 py-2.5">
+                  <div className="font-semibold text-[var(--tg-fg)]">🔐 api — Bash</div>
+                  <div className="mt-1.5 rounded-md bg-black/30 px-2.5 py-1.5 font-mono text-xs text-[var(--tg-accent)]">
+                    pnpm prisma migrate dev --name add_users
+                  </div>
+                </div>
+                <div className="mt-[3px] grid grid-cols-2 gap-[3px]">
+                  <span className="tg-btn">✅ Allow</span>
+                  <span className="tg-btn">❌ Deny</span>
+                  <span className="tg-btn">🟢 Allow always</span>
+                  <span className="tg-btn">⏹ Stop</span>
+                </div>
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-1">
-                <span className="rounded-md bg-surface px-2 py-1.5 text-center">✅ Allow</span>
-                <span className="rounded-md bg-surface px-2 py-1.5 text-center">❌ Deny</span>
-                <span className="rounded-md bg-surface px-2 py-1.5 text-center">🟢 Allow always</span>
-                <span className="rounded-md bg-surface px-2 py-1.5 text-center">⏹ Stop</span>
+              <div className={layer(mode === "auto")} aria-hidden={mode !== "auto"}>
+                <div className="max-w-full rounded-2xl rounded-bl-md bg-[var(--tg-in)] px-3.5 py-2.5">
+                  <div className="font-semibold text-[var(--tg-fg)]">⚙️ api · Working… · 41s</div>
+                  <div className="mt-2 space-y-1 font-mono text-xs">
+                    <div>
+                      <span className="text-warning">⚡</span>{" "}
+                      <span className="text-[var(--tg-fg)]">Bash</span>{" "}
+                      <span className="text-[var(--tg-dim)]">pnpm test — auto-approved</span>
+                    </div>
+                    <div>
+                      <span className="text-warning">⚡</span>{" "}
+                      <span className="text-[var(--tg-fg)]">Edit</span>{" "}
+                      <span className="text-[var(--tg-dim)]">src/db/schema.ts — auto-approved</span>
+                    </div>
+                    <div>
+                      <span className="text-warning">⚡</span>{" "}
+                      <span className="text-[var(--tg-fg)]">Write</span>{" "}
+                      <span className="text-[var(--tg-dim)]">migrations/0012.sql — auto-approved</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          ) : (
-            <div key="auto" className="msg-in rounded-2xl border border-border bg-background px-4 py-3 shadow-xl">
-              <div className="font-semibold">⚙️ api · Working… · 41s</div>
-              <div className="mt-2 space-y-1 font-mono text-xs">
-                <div><span className="text-warning">⚡</span> Bash <span className="text-dim">pnpm test — auto-approved</span></div>
-                <div><span className="text-warning">⚡</span> Edit <span className="text-dim">src/db/schema.ts — auto-approved</span></div>
-                <div><span className="text-warning">⚡</span> Write <span className="text-dim">migrations/0012_add_users.sql — auto-approved</span></div>
-              </div>
-            </div>
-          )}
+          </ChatCard>
         </div>
 
-        <p className="mt-5 max-w-md text-sm text-dim">{CAPTION[mode]}</p>
-        <p className="mt-2 text-xs text-dim">
-          Switch per session, any time — <code className="rounded bg-surface px-1.5 py-0.5 font-mono">/perms</code> in
-          chat or one tap in the Mini App.
+        {/* fixed-height caption block, so swapping text can't shift the page */}
+        <div className="mt-5 flex min-h-[3.5rem] max-w-md flex-col justify-start">
+          <p className="text-sm text-dim">{CAPTION[mode]}</p>
+        </div>
+        <p className="text-xs text-dim">
+          Switch per session, any time —{" "}
+          <code className="rounded bg-surface px-1.5 py-0.5 font-mono">/perms</code> in chat or
+          one tap in the Mini App.
         </p>
       </div>
     </section>
