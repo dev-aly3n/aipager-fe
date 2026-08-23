@@ -24,7 +24,7 @@ flowchart LR
 
   subgraph Host["Local host"]
     direction TB
-    Sock["/tmp/aipager.sock<br>(unix datagram)"]
+    Sock["$XDG_RUNTIME_DIR/aipager.sock<br>(unix datagram)"]
     Dtach["dtach session<br>claude-NAME"]
     Claude["claude code CLI"]
     Hooks["~/.claude/<br>settings.json"]
@@ -52,15 +52,15 @@ the network surface.
 
 ## Process model
 
-One `asyncio.run` invocation in `aipager/cli.py:206` runs the whole
-show. Inside that:
+One `asyncio.run` invocation in `aipager/cli/daemon.py` runs the
+whole show. Inside that:
 
-- **`TelegramBot`** (`aipager/telegram_bot.py`) — owns a
+- **`TelegramBot`** (`aipager/bot/`) — owns a
   `python-telegram-bot` `Application`. Polls for updates, dispatches
   to message / callback / voice handlers, emits message edits for
   busy-state animations.
-- **`HookReceiver`** (`aipager/hook_receiver.py`) — opens a unix
-  datagram socket at `/tmp/aipager.sock`, decodes JSON payloads from
+- **`HookReceiver`** (`aipager/dtach/hook_receiver.py`) — opens a unix
+  datagram socket at `$XDG_RUNTIME_DIR/aipager.sock`, decodes JSON payloads from
   the `aipager-hook` helper, dispatches by `"event"` field.
 - **`SessionMonitor`** (`aipager/session_monitor.py`) — wakes every
   2 s to scan `/tmp/claude-dtach-*.sock`, reconcile against the
@@ -70,17 +70,20 @@ show. Inside that:
   `TrackedSession` objects keyed by name. Serializes to
   `~/.claude/aipager-sessions.json` on shutdown and on every state
   transition that matters.
-- **`ObserverBroadcaster`** (optional, `aipager/observer.py`) — if
-  `AIPAGER_OBSERVERS` is set, also forwards messages to read-only
+- **`ObserverBroadcaster`** (optional, `aipager/bot/observer.py`) — if
+  `OBSERVER_BOTS` is set, also forwards messages to read-only
   observer bots.
+- **Mini App server** (`aipager/miniapp/server.py`) — an aiohttp app
+  bound to `127.0.0.1:8765`, published to Telegram through a managed
+  tunnel while enabled (the default). Serves the `/app` dashboard.
 
-All four run as async tasks on the same loop. No threads (except the
+All of these run as async tasks on the same loop. No threads (except the
 faster-whisper executor for voice transcription, which is fire-and-
 forget per call).
 
 ## Boot sequence
 
-From `aipager/cli.py:159-184`:
+From `aipager/cli/daemon.py`:
 
 1. `SessionRegistry.load()` — reads `~/.claude/aipager-sessions.json`,
    rehydrates `TrackedSession` objects, drops stale queue entries
@@ -88,7 +91,7 @@ From `aipager/cli.py:159-184`:
 2. `TelegramBot.__init__` + `bot.start()` — verifies token / chat,
    starts the polling loop.
 3. `ObserverBroadcaster.start()` — only when configured.
-4. `HookReceiver.start()` — unlinks any stale `/tmp/aipager.sock`,
+4. `HookReceiver.start()` — unlinks any stale `$XDG_RUNTIME_DIR/aipager.sock`,
    binds fresh, listens.
 5. `bot.recover_sessions()` — for every `BUSY` session whose
    `busy_msg_id` exists, edit the Telegram message to reflect the
@@ -99,20 +102,19 @@ From `aipager/cli.py:159-184`:
 
 ## Shutdown sequence
 
-From `aipager/cli.py:186-193`:
+From `aipager/cli/daemon.py`:
 
 1. SIGINT or SIGTERM sets the `stop` event.
 2. `registry.save()` — persist state.
 3. `session_monitor.stop()` — cancel the tick task.
 4. `hook_receiver.stop()` — close the datagram transport and
-   `os.unlink(/tmp/aipager.sock)`.
+   `os.unlink(config.SOCKET_PATH)`.
 5. `observers.stop()` if running.
 6. `bot.stop()` — cancel per-session animation tasks, stop the
    `Application` (which flushes pending edits).
 7. Process exits cleanly.
 
-The Telegram-driven self-restart in
-`telegram_bot.py:_restart_daemon` relies on this entire path running
+The Telegram-driven self-restart relies on this entire path running
 to completion before the spawned replacement binds the socket. See
 [bot commands → restart](commands.md#restart) for the user-facing
 behaviour.
@@ -121,18 +123,22 @@ behaviour.
 
 | Path | Purpose | Owner |
 |---|---|---|
-| `/tmp/aipager.sock` | Unix datagram for hook events | aipager daemon (binds) |
+| `$XDG_RUNTIME_DIR/aipager.sock` | Unix datagram for hook events (falls back to `/tmp/aipager.sock`) | aipager daemon (binds) |
 | `/tmp/claude-dtach-<name>.sock` | dtach control socket per session | dtach |
 | `/tmp/claude-status-<name>.json` | Statusline data per session | `aipager-statusline` hook |
+| `/tmp/claude-notes-<name>/` | One permission note per not-yet-picked-up Telegram message | aipager daemon (written), `aipager-hook` (consumed) |
+| `/tmp/claude-policy-<name>.json` | Canonical permission snapshot for the running turn | `aipager-hook` (written at pick-up), read by the `PreToolUse` check |
 | `~/.claude/aipager-sessions.json` | Durable registry state | aipager daemon |
 | `~/.claude/aipager-audit.jsonl` | Allow / Deny / answer log | aipager daemon (append-only) |
 | `~/.claude/settings.json` | Claude Code hook config | written by `aipager config` |
 | `~/.claude/settings.json.bak.*` | Backups before each rewrite | `aipager config` |
-| `~/.config/aipager/config.env` | Bot token, chat ID, observer bots | `aipager config` (mode 600) |
+| `~/.config/aipager/aipager.yaml` | Bot token, chats, members + roles, Mini App settings | `aipager config` (mode 600) |
+| `~/.config/aipager/policy.yaml` | Per-role rules + safety overrides | user (checked via `aipager policy validate`) |
+| `~/.config/aipager/daemon.env` | Claude credential for launched sessions | user / `aipager doctor --fix` (mode 600) |
 | `~/.config/aipager/keyboard.json` | Optional keyboard overrides | user |
 
 The daemon writes nothing outside `~/.config/aipager`, `~/.claude/`,
-and `/tmp/aipager.sock`. It never elevates — see
+and its control socket. It never elevates — see
 [security](security.md#privilege-boundary).
 
 ## Why dtach
@@ -150,7 +156,7 @@ on each 2 s monitor tick.
 
 ## See also
 
-- [Hook events](hooks.md) — what flows in over `/tmp/aipager.sock`.
+- [Hook events](hooks.md) — what flows in over the control socket.
 - [Bot commands](commands.md) — what flows in from Telegram.
 - [Security model](security.md) — privilege boundary, secrets, audit.
 - [Troubleshooting](troubleshooting.md) — `aipager doctor` reference.

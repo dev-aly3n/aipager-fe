@@ -19,6 +19,7 @@ const SIDEBAR_ORDER = [
   "architecture",
   "hooks",
   "commands",
+  "groups",
   "troubleshooting",
   "security",
 ] as const;
