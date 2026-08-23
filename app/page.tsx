@@ -1,21 +1,17 @@
 import { Nav } from "@/components/nav";
-import { Hero } from "@/components/hero";
-import { Demo } from "@/components/demo";
-import { Sessions } from "@/components/sessions";
-import { HowItWorks } from "@/components/how";
-import { Install } from "@/components/install";
-import { Faq } from "@/components/faq";
-import { FinalCta } from "@/components/final-cta";
+import { Hero } from "@/components/landing/hero";
+import { HowItWorks } from "@/components/landing/how";
+import { Install } from "@/components/landing/install";
+import { Faq } from "@/components/landing/faq";
+import { FinalCta } from "@/components/landing/cta";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
   return (
     <>
       <Nav />
-      <main id="top">
+      <main>
         <Hero />
-        <Demo />
-        <Sessions />
         <HowItWorks />
         <Install />
         <Faq />

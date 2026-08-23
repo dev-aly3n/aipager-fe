@@ -1,73 +1,44 @@
-"use client";
+import { Logo, GitHubIcon } from "@/components/landing/icons";
 
-import { useEffect, useState } from "react";
-import { Logo, Icon } from "@/components/landing/ui";
-
-const LINKS: { href: string; label: string }[] = [
-  { href: "/#demo", label: "Demo" },
-  { href: "/#sessions", label: "Sessions" },
-  { href: "/#how", label: "How it works" },
-  { href: "/#install", label: "Install" },
-  { href: "/#faq", label: "FAQ" },
+const LINKS: { href: string; label: string; homeOnly?: boolean }[] = [
+  { href: "/#how", label: "How it works", homeOnly: true },
+  { href: "/#install", label: "Install", homeOnly: true },
+  { href: "/#faq", label: "FAQ", homeOnly: true },
   { href: "/docs", label: "Docs" },
 ];
 
+// No hamburger on purpose: on small screens the section links drop away and
+// the bar keeps just brand + Docs + GitHub, so there is no menu state to get
+// stuck. Shared by the landing page and the docs layout.
 export function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  // Below 900px the links live in a dropdown behind the hamburger.
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Reopening at desktop width would leave `.open` set on a menu that's no
-  // longer a dropdown; close it as soon as the breakpoint is crossed.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const mq = window.matchMedia("(min-width: 901px)");
-    const onChange = () => { if (mq.matches) setMenuOpen(false); };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [menuOpen]);
-
   return (
-    <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-      <div className="wrap nav-inner">
-        <a href="/" className="nav-brand" onClick={() => setMenuOpen(false)}>
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <div className="wrap flex h-14 items-center gap-6">
+        <a href="/" className="flex items-center gap-2 font-semibold">
           <Logo size={22} />
           <span>aipager</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-4)", marginLeft: 4 }}>v0.4.4</span>
         </a>
-        {/* Tapping any entry closes the panel — the anchors are same-page, so
-            without this the menu would stay open over the target section. */}
-        <div
-          className={`nav-links ${menuOpen ? "open" : ""}`}
-          id="nav-links"
-          onClick={() => setMenuOpen(false)}
-        >
+        <div className="ml-auto flex items-center gap-5 text-sm text-dim">
           {LINKS.map((link) => (
-            <a key={link.href} href={link.href}>{link.label}</a>
+            <a
+              key={link.href}
+              href={link.href}
+              className={`transition-colors hover:text-foreground ${
+                link.homeOnly ? "hidden sm:inline" : ""
+              }`}
+            >
+              {link.label}
+            </a>
           ))}
-          <a href="https://github.com/dev-aly3n/aipager" className="nav-gh nav-cta" aria-label="github">
-            <Icon name="github" size={14} />
-            <span>GitHub</span>
-            <span className="badge">★</span>
+          <a
+            href="https://github.com/dev-aly3n/aipager"
+            aria-label="aipager on GitHub"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-foreground transition-colors hover:border-accent"
+          >
+            <GitHubIcon size={14} />
+            <span className="hidden sm:inline">GitHub</span>
           </a>
         </div>
-        <button
-          type="button"
-          className="nav-toggle"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          aria-controls="nav-links"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <Icon name="menu" size={18} />
-        </button>
       </div>
     </nav>
   );

@@ -26,43 +26,22 @@
   /* surfaces */
   --bg: oklch(0.145 0.008 250);
   --bg-elev: oklch(0.175 0.009 250);
-  --bg-card: oklch(0.195 0.01 250);
-  --bg-tint: oklch(0.225 0.012 250);
 
   /* ink */
   --fg: oklch(0.97 0.005 250);
   --fg-2: oklch(0.82 0.008 250);
-  --fg-3: oklch(0.62 0.012 250);
   --fg-4: oklch(0.46 0.014 250);
 
   /* lines */
-  --line: oklch(0.275 0.014 250);
   --line-2: oklch(0.235 0.012 250);
-  --line-soft: oklch(1 0 0 / 0.06);
 
   /* accent — electric signal blue */
   --accent: oklch(0.72 0.17 232);
-  --accent-2: oklch(0.62 0.18 232);
-  --accent-soft: oklch(0.72 0.17 232 / 0.14);
-  --accent-glow: oklch(0.72 0.17 232 / 0.28);
 
-  /* live — signal green */
+  /* live / warning / deny */
   --live: oklch(0.78 0.18 148);
-  --live-soft: oklch(0.78 0.18 148 / 0.16);
-
-  /* warning / deny */
   --warn: oklch(0.78 0.16 65);
-  --warn-soft: oklch(0.78 0.16 65 / 0.14);
   --deny: oklch(0.68 0.2 25);
-  --deny-soft: oklch(0.68 0.2 25 / 0.14);
-
-  /* scale */
-  --max: 1200px;
-  --gutter: clamp(20px, 4vw, 56px);
-  --radius: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-  --radius-sm: 8px;
 
   /* ---- bridge tokens (consumed by docs / shared chrome via @theme) ---- */
   --background: var(--bg);
@@ -70,7 +49,7 @@
   --success: var(--live);
   --warning: var(--warn);
   --danger: var(--deny);
-  --dim: var(--fg-4);
+  --dim: oklch(0.62 0.012 250);
   --surface: var(--bg-elev);
   --border-color: var(--line-2);
   --terminal-bg: oklch(0.135 0.008 250);
@@ -93,221 +72,41 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* { box-sizing: border-box; }
-html { background: var(--bg); color-scheme: dark; scroll-behavior: smooth; }
+html {
+  background: var(--bg);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-sans);
   font-feature-settings: "ss01", "ss02", "cv11";
-  -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  line-height: 1.5;
   letter-spacing: -0.005em;
   overflow-x: hidden;
 }
-
-::selection { background: var(--accent); color: var(--bg); }
-
-a { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
-
-/* ===========================
-   Layout primitives
-   =========================== */
-.wrap {
-  width: 100%;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-/* Grid items default to `min-width: auto`, i.e. they refuse to shrink below
-   their min-content width and blow out of their track instead. One nowrap
-   install command was enough to force the hero column to 377px on a 320px
-   screen and push every section off-screen. Opt every page-level grid child
-   out of that automatic minimum; the shrinkable pieces inside (see
-   `.hero-install .cmd`) then handle their own overflow. */
-.hero-inner > *,
-.split-stage > *,
-.demo-grid > *,
-.demo-stage > *,
-.sessions-grid > *,
-.how-grid > *,
-.install-body > *,
-.install-next > *,
-.cards > * {
-  min-width: 0;
-}
-
-.section {
-  position: relative;
-  padding: clamp(72px, 10vw, 140px) 0;
-}
-
-.section + .section { border-top: 1px solid var(--line-2); }
-
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--fg-4);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.eyebrow::before {
-  content: "";
-  width: 14px;
-  height: 1px;
-  background: var(--fg-4);
-}
-
-.h1, .h2, .h3 {
-  font-family: var(--font-sans);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 1.04;
-  color: var(--fg);
-  margin: 0;
-}
-.h1 { font-size: clamp(44px, 6.2vw, 84px); }
-.h2 { font-size: clamp(34px, 4.2vw, 52px); letter-spacing: -0.028em; }
-.h3 { font-size: clamp(22px, 2.2vw, 28px); letter-spacing: -0.02em; line-height: 1.18; }
-
-.lead {
-  font-size: clamp(17px, 1.4vw, 19px);
-  line-height: 1.55;
-  color: var(--fg-3);
-  max-width: 56ch;
-  margin: 0;
-}
-
-.section-head {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  max-width: 720px;
-  margin-bottom: clamp(48px, 6vw, 72px);
-}
-
-/* ===========================
-   Nav
-   =========================== */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 60;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  background: color-mix(in oklab, var(--bg) 78%, transparent);
-  border-bottom: 1px solid transparent;
-  transition: border-color .2s ease, background .2s ease;
-}
-.nav.scrolled { border-bottom-color: var(--line-2); }
-.nav-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 58px;
-}
-.nav-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  font-size: 15px;
-}
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-/* Mobile menu trigger — hidden until the links collapse (see Responsive). */
-.nav-toggle {
-  display: none;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--bg-elev);
-  color: var(--fg-2);
-  transition: border-color .15s ease, color .15s ease;
-}
-.nav-toggle:hover { border-color: var(--fg-4); color: var(--fg); }
-.nav-links a {
-  font-size: 13.5px;
-  color: var(--fg-3);
-  transition: color .15s ease;
-}
-.nav-links a:hover { color: var(--fg); }
-.nav-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 12px 7px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--bg-elev);
-  font-size: 13px;
-  color: var(--fg-2);
-  transition: border-color .15s ease, color .15s ease, background .15s ease;
-}
-.nav-cta:hover { border-color: var(--fg-4); color: var(--fg); }
-.nav-cta .badge {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-4);
-}
-
-/* ===========================
-   Buttons
-   =========================== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
-  transition: transform .12s ease, background .15s ease, border-color .15s ease, color .15s ease;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-.btn-primary {
-  background: var(--fg);
+::selection {
+  background: var(--accent);
   color: var(--bg);
 }
-.btn-primary:hover { background: oklch(0.93 0.005 250); }
-.btn-ghost {
-  background: transparent;
-  color: var(--fg-2);
-  border-color: var(--line);
-}
-.btn-ghost:hover { color: var(--fg); border-color: var(--fg-4); }
-.btn-arrow {
-  display: inline-block;
-  transition: transform .15s ease;
-}
-.btn:hover .btn-arrow { transform: translateX(2px); }
 
-/* ===========================
-   Logo mark
-   =========================== */
+/* content column shared by every landing section and the nav */
+.wrap {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4vw, 40px);
+}
+
+/* brand mark (shared with docs chrome) */
 .logo-mark {
+  display: inline-block;
   width: 22px;
   height: 22px;
   border-radius: 6px;
   background: linear-gradient(160deg, var(--accent) 0%, oklch(0.55 0.18 268) 100%);
   position: relative;
-  box-shadow: 0 0 0 1px var(--line);
+  box-shadow: 0 0 0 1px var(--line-2);
 }
 .logo-mark::after {
   content: "";
@@ -321,1343 +120,124 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ===========================
-   Hero
+   Hero mirror — phone + chrome
    =========================== */
-.hero {
-  position: relative;
-  padding-top: clamp(60px, 8vw, 96px);
-  padding-bottom: clamp(60px, 8vw, 96px);
-  overflow: hidden;
-}
-.hero-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 0%, var(--accent-glow), transparent 55%),
-    radial-gradient(circle at 80% 30%, oklch(0.55 0.18 268 / 0.18), transparent 50%),
-    linear-gradient(to right, var(--line-soft) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 56px 56px, 56px 56px;
-  mask-image: radial-gradient(ellipse at center top, black 30%, transparent 75%);
-  pointer-events: none;
-}
-.hero-inner {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: clamp(40px, 6vw, 80px);
-  align-items: center;
-}
-.hero-copy { display: flex; flex-direction: column; gap: 26px; }
-.hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px 6px 8px;
-  border: 1px solid var(--line);
-  background: var(--bg-elev);
-  border-radius: 999px;
-  font-size: 12.5px;
-  color: var(--fg-3);
-  width: max-content;
-  max-width: 100%;
-  flex-wrap: wrap;
-}
-.hero-tag-pill {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.hero h1 .accent {
-  background: linear-gradient(95deg, var(--fg) 30%, var(--accent) 70%, var(--fg) 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 6s ease-in-out infinite;
-}
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-.hero-install {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px 8px 16px;
-  border: 1px solid var(--line);
-  background: var(--bg-elev);
-  border-radius: 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--fg-2);
-  width: max-content;
-  max-width: 100%;
-}
-.hero-install .dollar { color: var(--fg-4); user-select: none; flex-shrink: 0; }
-/* The command stays on one line; when the viewport can't fit it the pill
-   scrolls internally instead of pushing the Copy button off-screen. */
-.hero-install .cmd {
-  color: var(--fg);
-  white-space: nowrap;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.hero-install .cmd::-webkit-scrollbar { display: none; }
-.hero-install .copy {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--fg-3);
-  border-radius: 7px;
-  background: var(--bg-tint);
-  border: 1px solid var(--line-2);
-  transition: color .15s ease, background .15s ease;
-}
-.hero-install .copy:hover { color: var(--fg); }
-.hero-install .copy.copied { color: var(--live); }
-
-.hero-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  font-size: 12.5px;
-  color: var(--fg-4);
-  font-family: var(--font-mono);
-}
-.hero-meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--fg-4); }
-.hero-meta .live { color: var(--live); display: inline-flex; align-items: center; gap: 6px; }
-.hero-meta .live::before {
-  content: "";
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--live);
-  box-shadow: 0 0 0 4px var(--live-soft);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .55; transform: scale(0.92); }
-}
-
-/* hero visual */
-.hero-visual {
-  position: relative;
-  min-height: 520px;
-}
-
-/* Terminal + phone pair (hero). Kept as a class rather than an inline grid so
-   it can collapse to a stack before either panel gets too narrow to read. */
-.split-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 18px;
-  align-items: stretch;
-}
-
-/* ===========================
-   Terminal panel
-   =========================== */
-.terminal {
-  background: oklch(0.135 0.008 250);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+/* Galaxy S25 Ultra: flat sides, tight corners, thin even bezel,
+   centered punch-hole camera. */
+.s25 {
+  width: 280px;
+  aspect-ratio: 9 / 19.5;
+  padding: 3px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #3a3f46, #23262b 30%, #23262b 70%, #3a3f46);
   box-shadow:
-    0 1px 0 0 oklch(1 0 0 / 0.04) inset,
-    0 24px 60px -20px oklch(0 0 0 / 0.6),
-    0 8px 24px -10px oklch(0 0 0 / 0.4);
-  overflow: hidden;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.55;
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 24px 60px rgba(0, 0, 0, 0.45);
 }
-.terminal-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: oklch(0.165 0.008 250);
-  border-bottom: 1px solid var(--line-2);
-}
-.terminal-dots { display: flex; gap: 6px; }
-.terminal-dots span {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: oklch(0.34 0.012 250);
-}
-.terminal-title {
-  margin-left: 6px;
-  font-size: 11.5px;
-  color: var(--fg-4);
-  letter-spacing: 0.02em;
-}
-.terminal-body {
-  padding: 14px 16px 16px;
-  color: var(--fg-2);
-  max-height: 360px;
-  overflow: hidden;
+.s25-screen {
   position: relative;
-}
-.terminal-body::after {
-  content: "";
-  position: absolute;
-  bottom: 0; left: 0; right: 0; height: 40px;
-  background: linear-gradient(to bottom, transparent, oklch(0.135 0.008 250));
-  pointer-events: none;
-}
-.t-line { display: flex; gap: 10px; align-items: baseline; min-height: 1.55em; }
-.t-prompt { color: var(--fg-4); user-select: none; }
-.t-cmd { color: var(--fg); }
-.t-out { color: var(--fg-3); }
-.t-dim { color: var(--fg-4); }
-.t-key { color: var(--accent); }
-.t-warn { color: var(--warn); }
-.t-ok { color: var(--live); }
-.t-cursor {
-  display: inline-block;
-  width: 7px;
-  height: 1em;
-  background: var(--fg);
-  vertical-align: -2px;
-  margin-left: 2px;
-  animation: blink 1s steps(2) infinite;
-}
-@keyframes blink { 50% { opacity: 0; } }
-
-/* ===========================
-   Telegram chat panel
-   =========================== */
-.phone {
-  background: oklch(0.18 0.008 250);
-  border: 1px solid var(--line);
-  border-radius: 26px;
-  overflow: hidden;
-  box-shadow:
-    0 1px 0 0 oklch(1 0 0 / 0.05) inset,
-    0 30px 80px -30px oklch(0 0 0 / 0.7),
-    0 10px 30px -10px oklch(0 0 0 / 0.4);
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-}
-.phone-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 18px 6px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--fg-2);
-  letter-spacing: 0.01em;
-}
-.phone-bar-right { display: inline-flex; gap: 6px; align-items: center; color: var(--fg-3); }
-.phone-bar-icons { display: inline-flex; gap: 4px; }
-.phone-bar-icons span {
-  display: inline-block;
-  width: 4px; height: 4px;
-  background: var(--fg-3);
-  border-radius: 1px;
-}
-
-.chat-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px 12px;
-  border-bottom: 1px solid var(--line-2);
-  background: oklch(0.205 0.008 250);
-}
-.chat-header .avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(160deg, var(--accent), oklch(0.55 0.18 268));
-  display: grid; place-items: center;
-  font-weight: 600; font-size: 14px; color: white;
-  letter-spacing: -0.02em;
-}
-.chat-header .meta { display: flex; flex-direction: column; line-height: 1.2; }
-.chat-header .name { font-size: 14px; font-weight: 500; color: var(--fg); }
-.chat-header .sub {
-  font-size: 11.5px;
-  color: var(--live);
-  font-family: var(--font-mono);
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-.chat-header .sub::before {
-  content: "";
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--live);
-  box-shadow: 0 0 0 3px var(--live-soft);
-}
-
-.chat-body {
-  flex: 1;
-  padding: 16px 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background:
-    radial-gradient(circle at 30% 20%, oklch(0.22 0.01 250 / 0.6), transparent 60%),
-    oklch(0.155 0.008 250);
-  overflow: hidden;
-  /* Telegram has no visible scrollbar — hide it but keep scrolling. */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.chat-body::-webkit-scrollbar { display: none; }
-
-.chat-day {
-  text-align: center;
-  font-size: 10.5px;
-  font-family: var(--font-mono);
-  color: var(--fg-4);
-  padding: 3px 10px;
-  background: oklch(0.205 0.008 250);
-  border-radius: 999px;
-  align-self: center;
-  margin: 4px auto 8px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.msg {
-  max-width: 86%;
-  padding: 9px 12px 8px;
-  border-radius: 14px;
-  font-size: 13.5px;
-  line-height: 1.4;
-  position: relative;
-  word-wrap: break-word;
-}
-.msg.bot {
-  align-self: flex-start;
-  background: oklch(0.22 0.009 250);
-  color: var(--fg);
-  border-bottom-left-radius: 6px;
-}
-.msg.me {
-  align-self: flex-end;
-  background: var(--accent);
-  color: oklch(0.16 0.01 250);
-  border-bottom-right-radius: 6px;
-  font-weight: 500;
-}
-.msg.system {
-  align-self: center;
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--fg-4);
-  padding: 2px 8px;
-}
-.msg .time {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--fg-4);
-  margin-left: 8px;
-  display: inline-block;
-  vertical-align: 1px;
-}
-.msg.me .time { color: oklch(0.16 0.01 250 / 0.55); }
-.msg .mono { font-family: var(--font-mono); font-size: 12px; }
-.msg .label {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--fg-4);
-  margin-bottom: 4px;
-}
-.msg.bot .status-line {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); font-size: 12px;
-}
-.msg.bot .status-line .dot { width: 8px; height: 8px; border-radius: 50%; }
-.msg.bot .status-line .dot.busy { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
-.msg.bot .status-line .dot.idle { background: var(--fg-4); }
-.msg.bot .status-line .dot.live { background: var(--live); box-shadow: 0 0 0 3px var(--live-soft); }
-
-.permission-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  height: 100%;
   width: 100%;
-  max-width: 320px;
+  overflow: hidden;
+  border-radius: 19px;
+  background: var(--tg-bg);
+  --tg-bg: #0e1621;
+  --tg-panel: #17212b;
+  --tg-in: #182533;
+  --tg-out: #2b5278;
+  --tg-fg: #f1f5f9;
+  --tg-dim: #7d8e9f;
+  --tg-accent: #64b5f6;
+  --tg-ok: #6ec26e;
 }
-.permission-card .desc { color: var(--fg-2); }
-.permission-card .cmd-block {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: oklch(0.14 0.008 250);
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: var(--fg);
-  border: 1px solid var(--line-2);
-  white-space: pre-wrap;
-  word-break: break-all;
+.s25-punch {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #000;
+  box-shadow: inset 0 0 2px 1px rgba(255, 255, 255, 0.08);
+  z-index: 10;
 }
-.kb-row { display: flex; gap: 6px; }
-.kb-btn {
-  flex: 1;
-  background: oklch(0.18 0.008 250);
-  border: 1px solid var(--line);
-  color: var(--fg);
-  padding: 9px 10px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background .15s ease, border-color .15s ease, transform .08s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.kb-btn:hover { background: oklch(0.22 0.008 250); border-color: var(--fg-4); }
-.kb-btn:active { transform: scale(0.985); }
-.kb-btn.allow { color: var(--live); border-color: oklch(0.78 0.18 148 / 0.45); }
-.kb-btn.allow:hover { background: var(--live-soft); }
-.kb-btn.deny { color: var(--deny); border-color: oklch(0.68 0.2 25 / 0.45); }
-.kb-btn.deny:hover { background: var(--deny-soft); }
-.kb-btn { position: relative; overflow: hidden; }
-.kb-btn.tapped.allow { background: var(--live-soft); border-color: var(--live); }
-.kb-btn.tapped.deny { background: var(--deny-soft); border-color: var(--deny); }
 
-.reply-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--line-2);
-  background: oklch(0.18 0.008 250);
+/* Telegram inline-keyboard button */
+.tg-btn {
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--tg-fg);
+  transition: background 0.15s ease;
 }
-.reply-bar .icon {
-  width: 22px; height: 22px;
-  display: grid; place-items: center;
-  color: var(--fg-4);
+.tg-btn-hint {
+  animation: tg-hint 1.2s ease-in-out infinite;
+  cursor: pointer;
 }
-.reply-input {
-  flex: 1;
-  background: oklch(0.225 0.008 250);
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13.5px;
-  color: var(--fg);
-  outline: none;
+.tg-btn-hint:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
-.reply-input::placeholder { color: var(--fg-4); }
-.reply-input:focus { border-color: var(--accent); }
+.tg-btn-pressed {
+  background: rgba(255, 255, 255, 0.28);
+  animation: none;
+}
+@keyframes tg-hint {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.35); }
+}
+
+/* message entrance */
+.msg-in {
+  animation: msg-in 0.22s ease-out;
+}
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* reaction pop (👀 → 👍) */
+.react-pop {
+  animation: react-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes react-pop {
+  from { transform: scale(0.3); }
+  to { transform: scale(1); }
+}
+
+/* typing caret in the Telegram reply bar */
 .type-caret {
   display: inline-block;
   width: 1.5px;
-  height: 14px;
-  background: var(--accent);
+  height: 0.95em;
   margin-left: 1px;
-  vertical-align: -2px;
-  animation: blink 1s steps(2) infinite;
+  vertical-align: text-bottom;
+  background: var(--tg-accent, var(--accent));
+  animation: caret-blink 1s steps(1) infinite;
 }
-.reply-send {
-  width: 32px; height: 32px;
-  display: grid; place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 14px;
-  font-weight: 700;
-  position: relative;
-  overflow: hidden;
+@keyframes caret-blink {
+  50% { opacity: 0; }
 }
 
-/* tap feedback — a quick expanding ring shown wherever a Telegram touch fires */
-.tap-ping {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 20px; height: 20px;
-  margin: -10px 0 0 -10px;
-  border-radius: 50%;
-  background: oklch(1 0 0 / 0.5);
-  pointer-events: none;
-  z-index: 6;
-  animation: tap-ping .5s ease-out forwards;
+/* Claude Code spinner glyph */
+.term-spin {
+  display: inline-block;
+  animation: term-spin 1.6s ease-in-out infinite;
 }
-@keyframes tap-ping {
-  from { opacity: .55; transform: scale(.35); }
-  to { opacity: 0; transform: scale(2.6); }
-}
-.session-tile { overflow: hidden; }
-
-.persistent-kb {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  padding: 8px 10px;
-  background: oklch(0.165 0.008 250);
-  border-top: 1px solid var(--line-2);
-}
-.persistent-kb .k {
-  background: oklch(0.205 0.008 250);
-  border: 1px solid var(--line-2);
-  border-radius: 9px;
-  padding: 8px 10px;
-  font-size: 12.5px;
-  color: var(--fg);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-family: var(--font-sans);
-  position: relative;
-  overflow: hidden;
-}
-.persistent-kb .k.col-2 { grid-column: span 2; }
-.persistent-kb .k.col-3 { grid-column: span 3; }
-.persistent-kb .k .pip {
-  width: 6px; height: 6px; border-radius: 50%;
-}
-.persistent-kb .k .pip.busy { background: var(--warn); }
-.persistent-kb .k .pip.idle { background: var(--fg-4); }
-.persistent-kb .k .pip.live { background: var(--live); }
-
-/* ===========================
-   Card grid
-   =========================== */
-/* Stays a 3-up grid at desktop (auto-fit would drift to 4 columns on a wide
-   screen); steps 3 → 2 → 1 explicitly in the Responsive section. */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-.card {
-  background: var(--bg-elev);
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  padding: 22px 22px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color .15s ease, transform .15s ease;
-}
-.card:hover { border-color: var(--line); }
-.card .icon-box {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  background: var(--bg-tint);
-  border: 1px solid var(--line-2);
-  display: grid;
-  place-items: center;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
-.card h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--fg);
-}
-.card p {
-  margin: 0;
-  color: var(--fg-3);
-  font-size: 14px;
-  line-height: 1.55;
+@keyframes term-spin {
+  0%, 100% { opacity: 1; transform: none; }
+  50% { opacity: 0.35; transform: rotate(180deg); }
 }
 
-/* ===========================
-   Demo section
-   =========================== */
-.demo-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 32px;
-  align-items: stretch;
-}
-.demo-controls {
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  background: var(--bg-elev);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.demo-controls h4 {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--fg-4);
-  margin: 0 0 4px;
-  font-weight: 500;
-}
-.scenario-btn {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  text-align: left;
-  padding: 12px 14px;
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
-  background: var(--bg);
-  color: var(--fg);
-  transition: border-color .15s ease, background .15s ease;
-}
-.scenario-btn:hover { border-color: var(--fg-4); }
-.scenario-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-.scenario-btn .num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-4);
-  margin-top: 2px;
-  min-width: 18px;
-}
-.scenario-btn .meta { display: flex; flex-direction: column; gap: 2px; }
-.scenario-btn .title { font-size: 14px; font-weight: 500; }
-.scenario-btn .sub { font-size: 12.5px; color: var(--fg-3); }
-
-.demo-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-
-/* ===========================
-   Sessions section
-   =========================== */
-.sessions-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 32px;
-  align-items: stretch;
-}
-.sessions-stage {
-  position: relative;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(circle at 20% 10%, oklch(0.72 0.17 232 / 0.07), transparent 60%),
-    var(--bg-elev);
-  padding: 28px;
-  min-height: 460px;
-  overflow: hidden;
-}
-.sessions-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, var(--line-soft) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  opacity: 0.6;
-}
-.session-cluster {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  z-index: 2;
-}
-.session-tile {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-}
-.session-tile.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-/* The model pill is pushed right with `margin-left: auto`; without wrapping it
-   overflows the tile (which clips) as soon as the 3-up grid narrows — this was
-   cutting the pill off even at 1024px and 1440px. */
-.session-tile .name {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--fg);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-}
-.session-tile .pill {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--bg-tint);
-  color: var(--fg-3);
-  border: 1px solid var(--line-2);
-}
-.session-tile .pill.busy { color: var(--warn); background: var(--warn-soft); border-color: oklch(0.78 0.16 65 / 0.3); }
-.session-tile .pill.idle { color: var(--fg-3); }
-.session-tile .pill.live { color: var(--live); background: var(--live-soft); border-color: oklch(0.78 0.18 148 / 0.3); }
-.session-tile .activity {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--fg-3);
-  line-height: 1.45;
-  min-height: 2.4em;
-  /* Paths like `src/server/handlers.ts` have no break opportunity, so they
-     overflowed the tile (which clips) even in the 3-up desktop grid. */
-  overflow-wrap: anywhere;
-}
-.session-tile .model {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--fg-4);
-  display: inline-flex;
-  gap: 6px;
-}
-
-.session-flow {
-  margin-top: 28px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--fg-3);
-  position: relative;
-  z-index: 2;
-}
-.flow-chip {
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  color: var(--fg-2);
-}
-.flow-arrow { color: var(--fg-4); }
-
-/* ===========================
-   How it works
-   =========================== */
-.how-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  background: var(--bg-elev);
-  overflow: hidden;
-}
-.how-step {
-  padding: 28px 26px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: relative;
-}
-.how-step + .how-step { border-left: 1px solid var(--line-2); }
-.how-step .num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-4);
-  letter-spacing: 0.1em;
-}
-.how-step h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-.how-step p {
-  margin: 0;
-  color: var(--fg-3);
-  font-size: 14px;
-}
-.how-diagram {
-  margin-top: 8px;
-  padding: 12px 14px;
-  background: var(--bg);
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--fg-2);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.how-diagram .pair { display: flex; justify-content: space-between; }
-.how-diagram .k { color: var(--fg-4); }
-.how-diagram .v { color: var(--accent); }
-
-/* ===========================
-   Install
-   =========================== */
-.install-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--bg-elev);
-  overflow: hidden;
-}
-.install-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--line-2);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.install-tabs::-webkit-scrollbar { display: none; }
-.install-tab {
-  padding: 14px 20px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--fg-3);
-  border-bottom: 1px solid transparent;
-  white-space: nowrap;
-  margin-bottom: -1px;
-  transition: color .15s ease, border-color .15s ease;
-}
-.install-tab:hover { color: var(--fg); }
-.install-tab.active { color: var(--fg); border-bottom-color: var(--accent); }
-
-.install-body {
-  padding: 26px 26px 22px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 24px;
-}
-.install-cmd-block {
-  background: oklch(0.135 0.008 250);
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  padding: 18px 18px 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--fg);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-}
-.install-cmd-block .line { display: flex; align-items: baseline; gap: 10px; }
-.install-cmd-block .line .p { color: var(--fg-4); flex-shrink: 0; }
-/* Long install commands (docker, git clone) must wrap inside the block rather
-   than widen it — `anywhere` also breaks unbroken paths/URLs. */
-.install-cmd-block .line .c { color: var(--fg); min-width: 0; overflow-wrap: anywhere; }
-.install-cmd-block .copy {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  font-family: var(--font-sans);
-  font-size: 11.5px;
-  color: var(--fg-4);
-  padding: 4px 8px;
-  border: 1px solid var(--line-2);
-  border-radius: 7px;
-  background: var(--bg);
-  transition: color .15s ease;
-}
-.install-cmd-block .copy:hover { color: var(--fg); }
-.install-cmd-block .copy.copied { color: var(--live); border-color: oklch(0.78 0.18 148 / 0.4); }
-
-.install-notes { display: flex; flex-direction: column; gap: 14px; }
-.install-notes .note { font-size: 13.5px; color: var(--fg-3); line-height: 1.5; }
-.install-notes .note strong { color: var(--fg); font-weight: 500; }
-.install-notes .note code {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--fg-2);
-  background: var(--bg);
-  padding: 1px 6px;
-  border-radius: 5px;
-  border: 1px solid var(--line-2);
-}
-
-.install-next {
-  margin-top: 28px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--bg-elev);
-}
-.install-next .step {
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.install-next .step + .step { border-left: 1px solid var(--line-2); }
-.install-next .step .num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-4);
-}
-.install-next .step .cmd {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--fg);
-  background: var(--bg);
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--line-2);
-  width: max-content;
-  max-width: 100%;
-  overflow-x: auto;
-}
-.install-next .step p { margin: 0; font-size: 13px; color: var(--fg-3); }
-
-/* ===========================
-   FAQ
-   =========================== */
-.faq-list {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--line-2);
-}
-.faq-item { border-bottom: 1px solid var(--line-2); }
-.faq-q {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 22px 6px;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  text-align: left;
-  color: var(--fg);
-  cursor: pointer;
-}
-.faq-q .plus {
-  width: 24px; height: 24px;
-  position: relative;
-  flex-shrink: 0;
-}
-.faq-q .plus::before, .faq-q .plus::after {
-  content: ""; position: absolute; left: 50%; top: 50%;
-  background: var(--fg-3);
-  transition: transform .25s ease, background .15s ease;
-}
-.faq-q .plus::before { width: 12px; height: 1.5px; transform: translate(-50%, -50%); }
-.faq-q .plus::after { width: 1.5px; height: 12px; transform: translate(-50%, -50%); }
-.faq-item.open .faq-q .plus::after { transform: translate(-50%, -50%) rotate(90deg); }
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .35s ease;
-}
-.faq-item.open .faq-a { max-height: 320px; }
-.faq-a-inner {
-  padding: 0 6px 24px;
-  color: var(--fg-3);
-  font-size: 15px;
-  line-height: 1.6;
-  max-width: 68ch;
-}
-.faq-a-inner code {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--fg-2);
-  background: var(--bg-elev);
-  padding: 1px 6px;
-  border-radius: 5px;
-  border: 1px solid var(--line-2);
-}
-
-/* ===========================
-   CTA + Footer
-   =========================== */
-.cta {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: clamp(72px, 10vw, 140px) 0;
-  border-top: 1px solid var(--line-2);
-  position: relative;
-  overflow: hidden;
-}
-.cta::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 50%);
-  pointer-events: none;
-}
-.cta .h2 { position: relative; }
-.cta-install { position: relative; }
-
-.footer {
-  border-top: 1px solid var(--line-2);
-  padding: 24px 0 32px;
-}
-.footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  font-size: 12.5px;
-  font-family: var(--font-mono);
-  color: var(--fg-4);
-}
-.footer-inner .left { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-.footer-links { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px 22px; }
-.footer-inner a { color: var(--fg-3); transition: color .15s ease; }
-.footer-inner a:hover { color: var(--fg); }
-
-/* ===========================
-   Responsive
-
-   Breakpoint ladder:
-     ≤1180  small laptop — the hero stacks so its terminal/phone pair keeps room
-     ≤1080  laptop  — tighten the nav so the links can't collide with the brand
-     ≤980   tablet  — two-column page grids stack; panels get centred + capped
-     ≤900   mobile nav — links collapse behind the hamburger
-     ≤700   phone   — the terminal/phone pair stacks; chrome shrinks
-     ≤560   small phone — type scale steps down, fixed chrome goes fluid
-   =========================== */
-@media (max-width: 1080px) {
-  .nav-links { gap: 20px; }
-  .nav-links a { font-size: 13px; }
-}
-
-/* The hero puts a terminal + phone pair inside its right-hand column, so that
-   column is only ~half the content width. Below ~1180px each panel drops under
-   ~230px and starts wrapping its own chrome (terminal title, chat header,
-   reply bar). Stack the hero first: the pair then gets the full width and both
-   panels stay legible. */
-@media (max-width: 1180px) {
-  .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 48px; }
-  .hero-visual { min-height: auto; }
-}
-
-/* Stacked tracks are `minmax(0, 1fr)` rather than a bare `1fr` so the track
-   itself also refuses to inflate past the container — the companion to the
-   `min-width: 0` rule on grid items above. */
-@media (max-width: 980px) {
-  .demo-grid { grid-template-columns: minmax(0, 1fr); }
-  .sessions-grid { grid-template-columns: minmax(0, 1fr); }
-  .how-grid { grid-template-columns: minmax(0, 1fr); }
-  .how-step + .how-step { border-left: 0; border-top: 1px solid var(--line-2); }
-  .install-body { grid-template-columns: minmax(0, 1fr); }
-  .install-next { grid-template-columns: minmax(0, 1fr); }
-  .install-next .step + .step { border-left: 0; border-top: 1px solid var(--line-2); }
-  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-  /* Once a grid stacks, its panels would otherwise stretch to the full
-     content width — a 900px-wide "phone" reads as a bug. Cap and centre.
-     `justify-self` rather than `margin-inline: auto`: auto margins on a grid
-     item switch off the default stretch, which collapses the panel to its
-     fit-content width instead of filling the column. */
-  .phone { width: 100%; max-width: 420px; justify-self: center; }
-  .terminal { width: 100%; max-width: 560px; justify-self: center; }
-  .sessions-stage { min-height: 0; }
-}
-
-/* Mobile nav — the links move into a dropdown panel under the bar. Before
-   this they were simply `display: none` below 720px, which left the site with
-   no navigation at all on a phone. */
-@media (max-width: 900px) {
-  .nav-toggle { display: inline-grid; }
-  .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    padding: 6px var(--gutter) 14px;
-    /* Opaque, not the nav's translucent fill: the hero headline sits directly
-       under the panel and reads straight through a semi-transparent one. */
-    background: var(--bg);
-    border-bottom: 1px solid var(--line-2);
-    box-shadow: 0 18px 40px -20px oklch(0 0 0 / 0.8);
-  }
-  .nav-links.open { display: flex; }
-  .nav-links a {
-    font-size: 15px;
-    padding: 13px 2px;
-    color: var(--fg-2);
-    border-bottom: 1px solid var(--line-2);
-  }
-  .nav-links .nav-cta {
-    justify-content: center;
-    margin-top: 12px;
-    padding: 11px 14px;
-    border-radius: 10px;
-    border-bottom: 1px solid var(--line);
+@media (prefers-reduced-motion: reduce) {
+  .msg-in,
+  .react-pop,
+  .term-spin,
+  .tg-btn-hint,
+  .type-caret {
+    animation: none;
   }
 }
-
-@media (max-width: 700px) {
-  .split-stage { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .demo-stage { gap: 14px; }
-  .sessions-stage { padding: 20px 16px; }
-  .session-flow { margin-top: 20px; gap: 10px; }
-  .how-step { padding: 24px 20px 26px; }
-  .session-cluster { grid-template-columns: minmax(0, 1fr); }
-  .install-body { padding: 20px 18px 18px; }
-  .install-next .step { padding: 20px 18px; }
-  .demo-controls { padding: 16px; }
-}
-
-@media (max-width: 560px) {
-  .section { padding: clamp(56px, 12vw, 88px) 0; }
-  .cards { grid-template-columns: minmax(0, 1fr); }
-  .h1 { font-size: clamp(30px, 8.6vw, 42px); }
-  .h2 { font-size: clamp(25px, 6.6vw, 34px); }
-  .lead { font-size: 15.5px; }
-  .section-head { gap: 14px; margin-bottom: 34px; }
-
-  .hero-copy { gap: 22px; }
-  .hero-install, .cta-install { width: 100%; padding-left: 12px; font-size: 12.5px; }
-  .hero-meta { gap: 8px 14px; font-size: 11.5px; }
-  .btn { height: 44px; }
-  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
-
-  /* The absolutely-positioned Copy button overlaps the first command line
-     once the block gets narrow — drop it into flow instead. */
-  .install-cmd-block { padding: 14px; }
-  .install-cmd-block .copy {
-    position: static;
-    align-self: flex-end;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-  .install-tab { padding: 12px 14px; }
-
-  .faq-q { font-size: 16px; gap: 12px; padding: 18px 2px; }
-  .faq-a-inner { padding: 0 2px 20px; font-size: 14.5px; }
-  /* A 320px cap clips longer answers once the column narrows. */
-  .faq-item.open .faq-a { max-height: 720px; }
-
-  .terminal, .cc-body { font-size: 11.5px; }
-  .cc-body { padding: 12px 12px 8px; }
-  .phone { border-radius: 20px; }
-
-  .footer-inner { gap: 14px; font-size: 12px; }
-}
-
-/* ===========================
-   Claude Code terminal (TUI shape)
-   =========================== */
-.cc-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 2px;
-  padding: 14px 16px 10px;
-  height: 300px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--fg-2);
-  overflow: hidden;
-}
-.cc-row { display: flex; gap: 8px; align-items: baseline; }
-.cc-row .ind { width: 1ch; flex-shrink: 0; }
-
-.cc-welcome { color: var(--fg-3); display: flex; gap: 8px; align-items: baseline; }
-.cc-welcome .star { color: var(--accent); }
-
-.cc-user { color: var(--fg); }
-.cc-user .caret { color: var(--accent); margin-right: 8px; }
-
-.cc-dot { flex-shrink: 0; }
-.cc-dot.asst { color: var(--accent); }
-.cc-dot.tool { color: var(--fg-2); }
-.cc-asst { color: var(--fg-2); }
-.cc-tool-name { color: var(--fg); }
-.cc-tool-args { color: var(--fg-3); word-break: break-all; }
-
-.cc-tree { color: var(--fg-4); flex-shrink: 0; }
-.cc-result { color: var(--fg-4); word-break: break-all; }
-
-.cc-note.ok { color: var(--live); }
-.cc-note.warn { color: var(--warn); }
-.cc-note.dim { color: var(--fg-4); }
-.cc-note.key { color: var(--accent); }
-
-.cc-spin { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
-.cc-spin .glyph { color: var(--accent); flex-shrink: 0; }
-.cc-spin .verb { color: var(--fg-2); }
-.cc-spin .meta { color: var(--fg-4); }
-
-/* permission prompt box (claude-style) */
-.cc-box {
-  margin: 6px 0 2px;
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  background: var(--accent-soft);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.cc-box .box-title { color: var(--fg); font-size: 12px; }
-.cc-box .box-cmd { color: var(--accent); font-size: 12px; word-break: break-all; }
-.cc-box .box-desc { color: var(--fg-3); font-size: 11.5px; }
-.cc-box .box-q { color: var(--fg-2); font-size: 12px; margin-top: 2px; }
-.cc-box .box-opt { color: var(--fg-3); font-size: 12px; }
-.cc-box .box-opt.sel { color: var(--fg); }
-.cc-box .box-opt .sel-caret { color: var(--accent); }
-
-/* input prompt box at the bottom */
-.cc-input { padding: 4px 12px 12px; }
-.cc-prompt-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--fg-3);
-}
-.cc-prompt-box .caret { color: var(--accent); }
-.cc-prompt-box .ph { color: var(--fg); }
-.cc-hint {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6px;
-  font-size: 11px;
-  color: var(--fg-4);
-}
-.cc-hint .mode { color: var(--fg-4); }
-
-/* ===========================
-   Status bubble (single in-place message)
-   =========================== */
-.msg .status-head {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.35;
-  color: var(--fg);
-}
-.msg .status-head .label-emoji { font-size: 13px; }
-.msg .status-head .pip {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  animation: pulse 1.4s ease-in-out infinite;
-  flex-shrink: 0;
-}
-.msg .tool-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 6px;
-}
-.msg .tool-entry {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--fg-2);
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  opacity: 0;
-  animation: tool-in .2s ease forwards;
-}
-.msg .tool-entry .ic { flex-shrink: 0; }
-.msg .tool-entry .ic.pending { color: var(--warn); }
-.msg .tool-entry .ic.done { color: var(--live); }
-.msg .tool-entry .v { color: var(--fg-4); }
-.msg .tool-entry .tgt { color: var(--fg-2); word-break: break-all; }
-@keyframes tool-in {
-  from { opacity: 0; transform: translateY(3px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-/* Result message — the "you're done" notification the bot posts after deleting
-   the thinking bubble. Mirrors Telegram's normal sans bot-message look + the
-   blockquoted reply, NOT the mono live-status line. */
-.msg .result-head {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--fg);
-  margin-bottom: 6px;
-}
-.msg .result-head .session { font-weight: 600; }
-.msg .result-head .sep { color: var(--fg-3); }
-.msg .result-head .meta { color: var(--fg-3); }
-.msg .result-body {
-  font-family: var(--font-sans);
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--fg);
-  border-left: 3px solid oklch(1 0 0 / 0.22);
-  padding-left: 8px;
-  margin-left: 1px;
-  white-space: pre-line;
-}
-
-.msg .summary {
-  margin-top: 7px;
-  padding: 6px 9px;
-  border-left: 2px solid var(--line);
-  border-radius: 4px;
-  background: oklch(1 0 0 / 0.04);
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--fg-2);
-  white-space: pre-line;
-}
-.msg .reaction {
-  position: absolute;
-  bottom: -9px;
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--bg-tint);
-  border: 1px solid var(--line-2);
-}
-.msg.me .reaction { right: 10px; }
-.msg.bot .reaction { left: 10px; }
-
-/* ===========================
-   Anchors
-   =========================== */
-[id] { scroll-margin-top: 80px; }

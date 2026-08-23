@@ -1,35 +1,39 @@
-import { Logo } from "@/components/landing/ui";
-
-async function getVersion(): Promise<string> {
-  try {
-    const res = await fetch("https://pypi.org/pypi/aipager/json", {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return "0.3.11";
-    const data: { info: { version: string } } = await res.json();
-    return data.info.version;
-  } catch {
-    return "0.3.11";
-  }
-}
+import { Logo } from "@/components/landing/icons";
+import { getAipagerVersion } from "@/lib/version";
 
 export async function Footer() {
-  const version = await getVersion();
+  const version = await getAipagerVersion();
 
   return (
-    <footer className="footer">
-      <div className="wrap footer-inner">
-        <div className="left">
+    <footer className="border-t border-border py-8">
+      <div className="wrap flex flex-wrap items-center justify-between gap-4 text-sm text-dim">
+        <div className="flex items-center gap-2.5">
           <Logo size={18} />
           <span>aipager · v{version}</span>
-          <span style={{ color: "var(--fg-4)" }}>·</span>
-          <a href="https://github.com/dev-aly3n/aipager/blob/main/LICENSE">MIT</a>
+          <span aria-hidden>·</span>
+          <a
+            href="https://github.com/dev-aly3n/aipager/blob/main/LICENSE"
+            className="hover:text-foreground"
+          >
+            MIT
+          </a>
         </div>
-        <div className="footer-links">
-          <a href="https://github.com/dev-aly3n/aipager">GitHub</a>
-          <a href="/docs">Docs</a>
-          <a href="https://github.com/dev-aly3n/aipager/issues">Issues</a>
-          <span style={{ color: "var(--fg-4)" }}>designed by dev-aly3n</span>
+        <div className="flex flex-wrap items-center gap-4">
+          <a href="https://github.com/dev-aly3n/aipager" className="hover:text-foreground">
+            GitHub
+          </a>
+          <a href="/docs" className="hover:text-foreground">
+            Docs
+          </a>
+          <a href="https://pypi.org/project/aipager/" className="hover:text-foreground">
+            PyPI
+          </a>
+          <a
+            href="https://github.com/dev-aly3n/aipager/issues"
+            className="hover:text-foreground"
+          >
+            Issues
+          </a>
         </div>
       </div>
     </footer>
