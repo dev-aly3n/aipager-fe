@@ -104,17 +104,28 @@ When claude asks to run a tool that needs approval, the busy message
 becomes a permission prompt:
 
 ```
-🔐 [jim] Bash
-  command: ls -la /tmp
+🔐 Bash: List the temp directory
+ls -la /tmp
 
   [✅ Allow]  [❌ Deny]
   [🟢 Allow always]  [⏹ Stop]
 ```
 
+The card shows the real command (or file path) claude is asking to
+run, under its own description of it — approve what you can read.
+
 - **Allow** — approve this one call.
 - **Deny** — refuse it; claude blocks the tool call.
-- **Allow always** — approve and widen the standing rule where claude
-  offers one.
+- **Allow always** — approve and add the standing rule claude offers
+  ("don't ask again for …"). The button appears **only when claude
+  offers such a rule**; for a command it cannot derive one for (most
+  compound commands) the card carries Allow / Deny / Stop instead — as
+  it does for a read-only file access (`Read`, `Grep`, `Glob`) outside
+  the session's working directory.
+  Claude Code 2.1.259+ puts a "switch to auto mode" row in that slot of
+  its own Bash dialog, and a "block reads outside the working
+  directories from now on" row in the outside-read one — aipager never
+  selects either; change modes deliberately with `/perms`.
 - **Stop** — interrupt the turn instead of answering.
 
 Every tap is recorded in `~/.claude/aipager-audit.jsonl` and mirrored
@@ -140,6 +151,17 @@ limit it's sent as a `.txt` attachment with a `📎 Full response
 attached below ↓` footer. Buttons:
 
 - **🔄 Retry** — re-send the last prompt to the same session.
+
+While a session is busy, each background agent Claude launches (via
+`Task`) gets its own line on the busy card: `🤖 <type> · <activity> ·
+<elapsed>`, showing the agent's type and what it's currently doing,
+refreshed as its own tool calls come in. An agent's tool calls are
+folded under that row — they never appear in the parent's timeline or
+its `Bash ×N` tallies. When the agent finishes, its row settles to `✅
+🤖 <type> · N tool calls · <elapsed>` and stays that way. The full
+play-by-play `.txt` attachment above gains an AGENTS section listing
+every agent that ran the turn, its elapsed time, tool count, and the
+tools it called.
 
 ### Kill confirmation
 
@@ -212,6 +234,13 @@ Uploaded files are downloaded into the active session's workspace
 and the path is offered to claude. The 20 MB Telegram bot file
 download cap is enforced up-front; oversized files get a clear
 rejection before any download attempt.
+A download that hits a transient network error is retried up to
+three times with a short backoff before you see an error, and that
+error names the file. An album — several photos or documents sent as
+one message — is handed to claude as a single prompt (the caption,
+then every file path in order) once its last item has landed; if one
+item cannot be downloaded the rest still go out, with one note naming
+the missing one.
 
 ### Voice
 
