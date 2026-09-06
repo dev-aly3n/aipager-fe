@@ -28,7 +28,7 @@ and on every session change.
 | `/diff [label]` | optional | Show the session's working-directory git diff. |
 | `/clearqueue` | — | Drop every not-yet-picked-up message for the active session — both messages aipager is holding and messages already queued inside Claude — without interrupting the running turn. Replies with the count cleared. |
 | `/perms [label]` | optional | Switch a session between Ask and Auto permission modes. On a busy session, offers `Stop task & switch` / `Not now`. |
-| `/settings` | — | Message layout, diff previews (off by default), formatting and language preferences. |
+| `/settings` | — | Message layout, diff previews (off by default), formatting and language preferences. Whatever the layout, every busy card ends with its session's status line (`⏳`/`✅ name · …`) and every answer starts with its result line (`💬 name`, plus `· Finished (…)` when no finished card is left to show the stats); the merged layout stacks the two, each line in its own section. |
 | `/whoami` | — | Show your Telegram id and (in team mode) your role. |
 
 ### Per-session dynamic commands
@@ -134,6 +134,11 @@ Every tap is recorded in `~/.claude/aipager-audit.jsonl` and mirrored
 as a one-line reply threaded under the busy message:
 `✅ [jim] · Allowed · Bash: ls -la /tmp`.
 
+While a prompt — or an AskUserQuestion — waits for you, the session
+shows as waiting, never idle. If Claude Code nudges about idle input
+during that wait, the chat gets `⬆️ jim · still waiting for your answer
+above` as a reply to the prompt, once per wait.
+
 `AskUserQuestion` dialogs render the same way, with one button per
 option (and checkbox-style multi-select where the question allows it).
 
@@ -157,13 +162,27 @@ attached below ↓` footer. Buttons:
 While a session is busy, each background agent Claude launches (via
 `Task`) gets its own line on the busy card: `🤖 <type> · <activity> ·
 <elapsed>`, showing the agent's type and what it's currently doing,
-refreshed as its own tool calls come in. An agent's tool calls are
-folded under that row — they never appear in the parent's timeline or
+refreshed as its own tool calls come in. Once that agent has made three
+or more tool calls, they fold into their own `▸ N tool calls` tap
+directly beneath its row — never appearing in the parent's timeline or
 its `Bash ×N` tallies. When the agent finishes, its row settles to `✅
-🤖 <type> · N tool calls · <elapsed>` and stays that way. The full
+🤖 <type> · N tool calls · <elapsed>` and keeps the same tap. The full
 play-by-play `.txt` attachment above gains an AGENTS section listing
 every agent that ran the turn, its elapsed time, tool count, and the
 tools it called.
+
+Once a turn's timeline grows long, each older run of tool calls (three
+or more in a row, and not the run currently in progress) folds into its
+own `▸ N tool calls` tap right where it happened, instead of piling up
+in full or being cut off by Telegram's own message-length limit — tap
+any one to read it in place. Commentary never folds; the newest activity
+and the status line are always visible without tapping anything. A
+still-running (or just-settled) background agent's own row is never
+folded into a tap itself, only its tool calls, and never while it's the
+one thing standing between the timeline and the ceiling. Only if the
+timeline is so large that even every fold together still can't fit does
+content get genuinely dropped from the card — in that case the `.txt`
+attachment above carries the complete record.
 
 ### Kill confirmation
 
@@ -216,7 +235,29 @@ Send several and they queue inside Claude itself, which picks each up
 at a natural boundary:
 
 - 👀 on your message — sent to the session.
-- 👍 — Claude has picked it up and started on it.
+- 👍 — Claude has taken it in. For a message sent while a turn runs
+  this happens at once: Claude queues it, and only later either folds
+  it into the turn already running or starts a new turn for it.
+
+The busy card and the eventual answer follow whichever message Claude
+actually consumed for a turn — the one it started on if the session
+was idle, or the one it absorbed into the turn already running — never
+simply the last message you sent. Sending a follow-up mid-turn does
+not "jump the reply" to itself: if Claude folds it into the answer
+already forming, the card jumps to it the moment that happens; if
+Claude instead finishes first and then picks it up, the first answer
+stays under the first message and the follow-up gets its own turn,
+with its own card and answer under it.
+
+If Claude Code refuses a message outright — an unknown slash command,
+or a built-in that only opens a dialog in the terminal — no hook fires,
+so nothing would ever end the turn the daemon just announced. After
+8 s without any hook (`PROMPT_HOOK_GRACE_SECONDS`) the busy card
+becomes `⚠️ name · Not taken by Claude Code` with a one-line
+explanation and the session is idle again; the reason is on the
+terminal. Only a message that started a turn is judged this way — one
+queued behind a running turn just keeps its 👀 reaction, which never
+turns into 👍 if Claude did not take it.
 
 Two cases are held back instead of sent, and delivered automatically
 once resolved:
@@ -233,7 +274,18 @@ Held messages are capped at 50 per session and expire after 24 h;
 ### Files
 
 Uploaded files are downloaded into the active session's workspace
-and the path is offered to claude. The 20 MB Telegram bot file
+and the path is offered to claude: with a caption, the prompt is the
+caption followed by the path(s); without one it is just
+`check this: <path>` (or `check these: <paths>` for an album), so
+claude is pointed at the file without being told what to do with it.
+A caption that starts with `/<label>` picks the session, exactly as
+`/<label> <prompt>` does for text, and the label is dropped from the
+prompt: `/api` alone sends `check this: <path>` to `api`, and
+`/api compare these` sends `compare these <paths>` there. Only a
+leading `/<label>` routes; a slash later in the caption is just text.
+A label no session answers to is refused with `⚠️ Unknown session`
+and nothing is sent.
+The 20 MB Telegram bot file
 download cap is enforced up-front; oversized files get a clear
 rejection before any download attempt.
 A download that hits a transient network error is retried up to
