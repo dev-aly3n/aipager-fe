@@ -42,6 +42,43 @@ aipager service start
 4. Bot was never `/start`ed: open the bot in Telegram and tap Start
    once.
 
+## The bot went quiet: flood control
+
+Telegram allows roughly 20 messages a minute into one group. A few
+chatty sessions answering at once in the same chat can exceed that, and
+Telegram then answers every send with `429` and a `retry_after` that can
+run to hours. From the chat it looks like the bot died — prompts still
+reach Claude, sessions keep working, but no reply comes back.
+
+What you see:
+
+- `aipager status` (and the `aipager daemon` row of `aipager doctor`)
+  shows **`Telegram flood-muted until HH:MM (chat …)`**.
+- One line in `aipager logs`: `Telegram flood control — chat … muted
+  for Ns (until HH:MM) …`, then silence for that chat. Later, one
+  `flood mute on chat … lifted` line.
+- A 🚨 reaction on your message when the answer to it was dropped.
+
+The daemon mutes the chat for exactly the time Telegram asked and skips
+every send to it — answers, busy-card edits, attachments, and the replies
+your own commands and button taps would have produced — instead of
+retrying into the ban, because each retry (and each plain-text fallback)
+is a fresh violation that extends it. A command typed during a mute
+therefore answers with nothing at all; a button tap still gets its toast,
+which Telegram meters separately. Answers produced during the mute
+are not queued; ask again once it lifts. Other chats are unaffected.
+
+What NOT to do:
+
+- Don't restart the daemon to "fix" it. The mute self-clears at the
+  time shown; a restart forgets it and sends one more attempt into the
+  ban, which can extend it.
+- Don't lower `TELEGRAM_MAX_RETRY_AFTER` below the default 90 s hoping
+  to retry sooner — everything past that cap is a ban, not a rate limit.
+
+To avoid it: run fewer simultaneous sessions per chat, or give the
+busiest ones a chat of their own (`aipager config`).
+
 ## Session shows GONE in pinned status
 
 The dtach process for that session exited (machine reboot,
@@ -88,6 +125,40 @@ last 500 chars of stderr. Common causes:
 If the bot lost connection mid-install, the install itself usually
 completed on the host — restart the daemon and try a voice message
 again.
+
+## Open App shows "Open this page from the Telegram app to sign in"
+
+The page loaded, but Telegram's Mini App SDK script (the one that
+produces `initData`) did not, so the page has nothing to sign in with
+and makes no API call at all. The message blames you; the cause is a
+network one.
+
+Recent versions of aipager fetch that script themselves and serve it
+from the page's own origin (`/telegram-web-app.js`), so the phone only
+needs to reach the host that delivered the page — not `telegram.org` as
+well. If you see this on an older version, upgrade.
+
+Then, in order:
+
+1. Look at the page source. If its `<script>` tag points at
+   `https://telegram.org/js/telegram-web-app.js`, the daemon has not
+   managed to fetch the script yet and the page is falling back to
+   loading it from Telegram — which is the case that fails on a phone
+   that cannot reach `telegram.org`. The daemon fetches it when the Mini
+   App server starts and retries at most once a day, so restarting the
+   daemon retries immediately; `journalctl --user -u aipager | grep
+   "webapp sdk"` says what went wrong (a blocked or filtered
+   `telegram.org`, usually).
+2. If the tag points at `/telegram-web-app.js`, check the daemon serves
+   it: `curl -sI http://127.0.0.1:8765/telegram-web-app.js` on the
+   daemon host (adjust the port if you changed it) should answer `200`
+   with `Content-Type: application/javascript`. The copy lives under
+   `~/.local/share/aipager/webapp-sdk/`.
+3. You opened the URL in a regular browser rather than from the bot's
+   `/app` button or menu button: that is the expected message. The SDK
+   only produces `initData` inside Telegram.
+4. The page was left open for more than five minutes: `initData`
+   expires and the page asks to be reopened. Tap `/app` again.
 
 ## `pyexpat _XML_SetAllocTrackerActivationThreshold` on brew install
 
