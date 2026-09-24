@@ -184,8 +184,14 @@ So even if you weren't watching live, scrolling back tells you
 exactly who decided what.
 
 **Message states.** 👀 on a message means it was sent to the
-session; 👍 means Claude picked it up. `/whoami` shows your own id
-and role.
+session; 👍 means Claude took it; 🤷 means it was dropped before
+Claude took it. `/whoami` shows your own id and role.
+
+**The pinned status bar.** The group gets its own pinned status bar
+(see [commands → the pinned status bar](commands.md#the-pinned-status-bar))
+listing only this group's sessions, if the bot is an admin allowed to
+pin. Without that right the bar is skipped for the group: the message is
+deleted rather than left unpinned in the history.
 
 **On-disk audit.** `~/.claude/aipager-audit.jsonl` records every
 decision with `user_id`, `username` and scope fields so admins can

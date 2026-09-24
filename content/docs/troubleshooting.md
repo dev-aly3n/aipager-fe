@@ -47,16 +47,16 @@ aipager service start
 Telegram allows roughly one message a second into any one chat (and 20 a
 minute into a group). Every message and every edit counts. The daemon
 gives each chat its own budget of about 1 call a second, with a small
-burst, and the busy cards of that chat **share** it. (The "typing…"
-indicator is *not* in that budget — Telegram does not count chat actions
-with messages, which is measured, not assumed — so a working session
-shows the bubble in your chat list without ever slowing its card. It is
-refreshed on its own schedule, every 4.5 seconds per working session,
-because Telegram clears a typing status after 5; `TYPING_INDICATOR_INTERVAL`
-tunes that, and `0` turns the bubble off.)
+burst, and the busy cards of that chat **share** it. The "typing…"
+indicator is in that budget too, as the **lowest** thing the chat sends
+(see "The typing bubble" below).
 
-So with two sessions working in the same chat, each card refreshes about
-every 2.2 seconds instead of every 1.2; with three, about every 3.3. **A
+The bubble's share is set aside first — one call every 4.5 seconds
+while the chat's oldest working turn is under ten minutes old, less as it
+ages (see "The typing bubble") — and the cards divide what is left.
+So a single card in a DM refreshes about every 4.8 seconds; with two
+sessions working in the same chat, each card about every 9.7 seconds;
+with three, about every 14.5. **A
 slower card is the budget working, not a bug.** Answers, replies and
 button responses are never slowed to make room for a card — they keep a
 reserved token, and a card edit that cannot afford a call is simply
@@ -64,8 +64,10 @@ skipped and retried on the next tick rather than queued in front of your
 answer.
 
 In a **group** the limit is 20 calls a minute however many sessions are
-in it, so a card there refreshes every 3.3 seconds whatever else is going
-on.
+in it, and the bubble alone would use two thirds of that. The group's
+cards together keep one refresh every 10 seconds (11 s for one card), and
+the bubble takes the rest — so in a group it can lapse for a second or
+two now and then.
 
 To speed the cards up: run fewer simultaneous sessions per chat, or give
 the busiest ones a chat of their own (`aipager config`). You can also
@@ -75,13 +77,66 @@ quiet) in your config. Setting either *below* the per-chat floor is
 harmless and changes nothing — the floor wins, which is what keeps the
 chat under Telegram's limit whatever you put in the file.
 
-None of this affects the "typing…" bubble. It has a schedule of its own,
-one refresh every `TYPING_INDICATOR_INTERVAL` seconds (default 4.5) for as
-long as a session is working, however slow that session's card happens to
-be — so a chat with three busy sessions refreshes the bubble exactly as
-often as a chat with one, while its cards refresh every 3.3 seconds.
-Telegram clears a typing status after 5 seconds, which is why the default
-sits just under that; setting it higher leaves gaps between refreshes.
+### A long turn's card refreshes less often
+
+The cadence above is for the first two minutes of a turn. After that the
+card **slows down as the turn gets older**, and its elapsed counter
+switches unit so it never looks frozen:
+
+| turn age | card refreshes at most every | counter reads |
+|---|---|---|
+| 0–2 min | as above (about 4.8 s for one card in a DM) | `45s` |
+| 2–10 min | 10 s | `4m 10s` |
+| 10–60 min | 30 s | `23m` |
+| over 60 min | 60 s | `1h 23m` |
+
+A new tool row or a new sentence waits for the next refresh; a **state
+change** — the session going from working to waiting on a background
+agent, and back — is shown at once, at most once every 10 seconds. The
+live agent rows and the waiting line use the same unit. The finished card
+still shows its duration as it always has.
+
+This is what keeps a four-hour turn from editing one message thousands of
+times: on 2026-09-23 one card did exactly that, and the chat was banned
+for seven hours. To keep the fast cadence for a whole turn, switch off
+**`/settings` → ⏱ Long-turn card updates** (for the chat, or per session
+from the Mini App or `👤 Per-session preferences`).
+
+### The typing bubble
+
+The "typing…" bubble is sent by **one** loop per chat, however many
+sessions are working in it (the bubble is per chat in every Telegram
+client), every `TYPING_INDICATOR_INTERVAL` seconds (default 4.5 —
+Telegram clears a typing status after 5; `0` turns the bubble off). It
+counts in the chat's budget as the lowest thing the chat sends:
+
+- it **slows as the turn gets older**, on the age of the chat's oldest
+  working turn: every 4.5 s for the first ten minutes (a steady bubble),
+  every 15 s after that — Telegram shows it for 5 s, so an older turn's
+  bubble flickers instead of staying lit. At 4.5 s
+  it alone would be 800 calls an hour and the hourly limit (below) would
+  switch it off for long stretches; switching off **⏱ Long-turn card
+  updates** keeps it at 4.5 s;
+- it **shows from the start of every turn**; a young card refreshes
+  slightly slower to make room — the bubble's share of the chat is set
+  aside before the cards divide the rest (above), so the two together
+  never exceed the chat's limits;
+- it never takes a token a card edit needs: a bubble due just after a
+  card edit waits half a second (`TYPING_RETRY_WAKE`) and tries again, so
+  it is at most a second or two late, never missing;
+- it is the first thing dropped when the chat's hourly volume gets high
+  (below);
+- a 429 on the bubble itself blocks only the bubble, for as long as
+  Telegram asked — the cards carry on — but it does start the chat's
+  six-hour warning regime (the rate is capped at 0.5 calls/s, so the
+  cards slow down too);
+- a **ban** on the bubble (a `retry_after` past the cap below) mutes the
+  chat exactly like a ban on any other call: nothing more goes into it,
+  and the turn's answer is held and delivered when the ban lifts.
+
+It used to be free (one loop per working session, outside every budget),
+until on 2026-09-23 two sessions in one DM had sent it ~5,400 times in
+three hours and Telegram rate-limited the bubble itself.
 
 ## The bot slowed down: a rate limit (429)
 
@@ -99,13 +154,43 @@ What you see:
   `flood: chat … 429 retry_after=5s → cadence ×2`.
 - Nothing is muted, and **no answer is lost** — it is deferred, not
   dropped.
-- The chat's **earned send rate halves**, and `aipager status` shows it:
-  `Telegram chat 123: rate 0.25/s, 7/30 in the last minute`.
+- The chat's **earned send rate halves**, and the chat enters a
+  **six-hour warning regime** (`FLOOD_WARNING_HOURS`): its rate may not
+  climb past 0.5 calls/s (`FLOOD_WARNED_CEILING`), and it climbs back
+  slowly. `aipager status` shows it:
+  `Telegram chat 123: rate 0.25/s (ceiling 0.50/s), 212/1200 calls in the
+  last hour (as of 18s ago), 7/30 in the last minute — warning regime,
+  5h 52m left`.
 
-Nothing to do. It clears itself. The rate climbs back by 0.1 calls/s for
-every quiet minute, the backoff line disappears once the chat has been
-quiet for a minute or two, and `aipager doctor` keeps the daemon row
-green throughout: a chat backing off is normal operation.
+Nothing to do. It clears itself. The backoff line disappears once the
+chat has been quiet for a minute or two; the rate climbs back by 0.1
+calls/s per quiet window — a minute normally, 36 minutes during the
+warning regime — and the full ceiling returns when the regime ends.
+`aipager doctor` keeps the daemon row green throughout: a chat backing off
+is normal operation. (A 429 used to be forgiven in about five
+minutes. Telegram's one warning before the 2026-09-23 ban came 3 h 23 min
+earlier, and the chat was back at full speed within minutes of it.)
+
+### The hourly budget
+
+Every chat also has a rolling **hour**: at most `FLOOD_HOURLY_MAX` (1200)
+calls in any 60 minutes — typing bubbles, card edits and answers alike;
+only reactions are exempt. The last 120 (`FLOOD_HOURLY_ESSENTIAL_RESERVE`)
+are kept for answers, replies and prompts:
+
+- at 810 calls in the hour the typing bubble pauses (it comes back under
+  648);
+- at 1080 the chat enters **minimal mode** (below) until the hour frees
+  to 864;
+- answers are never refused by the hour; if they ever go past 1200, the
+  log says so once an hour.
+
+`aipager status` shows the chat's calls in the last hour against its
+budget. The figure comes from the state file, which the daemon rewrites
+at most once a minute while calls flow, so it is labelled with its age.
+Two busy sessions streaming into one DM for hours stay well under the
+budget (the 2026-09-23 incident, replayed: ~900 calls in the busiest
+hour, against a modelled ~3,400 for the same work without it).
 
 ### The earned rate, and why your cards may be slower than they were
 
@@ -117,9 +202,12 @@ ceiling of 1/s, halves it on a 429 and drops it to 0.05 after a ban. A
 bot that has just been banned is therefore paced far more carefully than
 one that has not, and it earns its speed back over the following hours.
 
-If a chat's rate falls below 0.2 calls/s it enters **minimal mode**: busy
-cards stop animating and show one static `⏳ working — updates paused`
-line, the typing bubble stops, and the pinned dashboard stops refreshing.
+If a chat's rate falls below 0.2 calls/s — or its hourly budget's share
+for cards and bubbles is spent — it enters **minimal mode**: busy cards
+stop animating and show one static `⏳ working — updates paused` line,
+the typing bubble stops, and the pinned status bar shows
+`⏸ card updates paused — hourly limit` (or `— rate limit` when the rate
+is what put the chat there) and otherwise stops changing until it lifts.
 **Answers, replies and permission prompts keep flowing** — that is the
 point. The card is about 95 % of what this bot sends and the answer about
 5 %, so under pressure it sheds pixels rather than work. `aipager doctor`
@@ -141,8 +229,10 @@ What you see:
   for Ns (until HH:MM) …`, then silence for that chat. Later, one
   `flood mute on chat … lifted` line.
 - `aipager status` also shows the chat's state in full:
-  `Telegram chat 123: rate 0.05/s — MINIMAL MODE, card updates paused —
-  flood-muted until 09:41 (1 ban(s) in the last 24 h)`.
+  `Telegram chat 123: rate 0.05/s (ceiling 0.50/s), 431/600 calls in the
+  last hour (as of 12s ago) — MINIMAL MODE, card updates paused —
+  flood-muted until 09:41 — warning regime, 5h 59m left (1 ban(s) in the
+  last 7 days)`.
 
 The daemon mutes the chat for exactly the time Telegram asked and makes
 **no call of any kind** to it — answers, busy-card edits, attachments,
@@ -169,15 +259,22 @@ log naming what it was.)
 **A ban makes the chat slower afterwards, not faster.** The moment a ban
 is armed the chat's learned rate drops to the floor and the ban is
 counted; the muted hours earn nothing back, the climb restarts from the
-moment the ban lifts, and for 24 hours after a ban the chat may climb to
-only half its normal ceiling. `aipager status` shows all of it.
+moment the ban lifts, and **for seven days** (`FLOOD_BAN_MEMORY_DAYS`)
+the chat's rate ceiling *and* its hourly budget are divided by one plus
+the number of bans in that week: one ban halves both, two third them.
+`aipager status` shows all of it. (The memory used to be 24 hours
+and only halved the ceiling; a chat banned on 2026-09-19 was back at full
+speed — and banned for seven hours — on 2026-09-23.) Five or more bans in
+a week keep the chat in minimal mode until they age out: answers still
+flow, the cards stay paused.
 
 What NOT to do:
 
 - Don't restart the daemon to "fix" it. The mute self-clears at the time
   shown. Since 0.7.13 a restart no longer forgets the ban — the deadline,
   the chat's earned rate and its ban history are persisted to
-  `~/.claude/aipager-flood-state.json` and restored on start — so
+  `~/.claude/aipager-flood-state.json` and restored on start, and so are
+  the chat's last hour of calls and its warning regime — so
   restarting no longer extends it either. But it will throw away any
   answers still held, and it fixes nothing.
 - Don't lower `TELEGRAM_MAX_RETRY_AFTER` below the default 90 s hoping
@@ -186,7 +283,7 @@ What NOT to do:
 To avoid it: run fewer simultaneous sessions per chat, or give the
 busiest ones a chat of their own (`aipager config`).
 
-## Session shows GONE in pinned status
+## A session dropped off the pinned status bar (it is GONE)
 
 The dtach process for that session exited (machine reboot,
 `pkill claude`, user typed `exit` in the dtach attach session).
@@ -390,6 +487,91 @@ when `$XDG_RUNTIME_DIR` is unset — containers, WSL1, minimal distros).
 Only this one socket moved; per-session dtach sockets
 (`/tmp/claude-dtach-*.sock`) are unaffected. Override with
 `AIPAGER_SOCKET_PATH` if you need a specific location.
+
+## `/update` says the restart would kill sessions (KillMode)
+
+Service units written before this version have no `KillMode=` line, so
+systemd uses `control-group`: stopping or restarting `aipager.service`
+kills every Claude session the daemon launched. `/update` therefore
+installs the new version but does not restart the daemon, and lists the
+sessions a restart would take down. Fix it once:
+
+```
+aipager service install
+```
+
+It rewrites the unit with `KillMode=process`, reloads systemd, and
+restarts the daemon — and that restart already runs under the new
+setting. Check with
+`systemctl --user show -p KillMode aipager.service` (`KillMode=process`).
+With it, systemd logs "left-over process" lines for your sessions on
+every restart; that is expected.
+
+## `aipager update` can't find uv / pipx
+
+`aipager update` finds the installer by absolute path in your `PATH`
+plus `~/.local/bin`, `~/.cargo/bin`, the Homebrew prefixes, `/usr/bin`
+and `/bin`. If it still says it could not find `pipx`, the installer
+that created this aipager is gone or lives elsewhere; reinstall with the
+tool you have (`pipx install --force aipager`,
+`uv tool install --reinstall aipager`).
+
+## Update refused: editable / not your install
+
+`/update` and `aipager update` only upgrade an install owned and
+writable by your own user, through the installer that created it. They
+refuse, and name the reason, for:
+
+- an editable (development) checkout — update it with `git pull`;
+- a Nix, Snap, Docker or OS-package install — use that system's own
+  update;
+- an install owned by another user (for example a root-owned venv under
+  `/opt`) — update it as that user.
+
+## Updated, but the version didn't change
+
+A pipx install made from a local path (`pipx install /path/to/aipager`)
+upgrades from that same path, not from PyPI. `/update` says
+`already at A — this pipx install upgrades from the local path …`. Pull
+or check out the new version there first, or switch to PyPI with
+`pipx install --force aipager`. (The voice extra's install button uses
+`pipx install --force aipager[voice]`, which also switches a local-path
+install to PyPI.)
+
+## The daemon didn't come back after an update
+
+The upgrade checks that the new version imports before any restart, but
+if the new daemon still fails to start, systemd keeps retrying every
+5 s. Look at why:
+
+```
+journalctl --user -u aipager.service -n 50
+```
+
+Reinstall the previous version with the same installer, then restart:
+
+```
+pipx install --force aipager==<previous>        # or:
+uv tool install --force aipager==<previous>     # or:
+<venv>/bin/python -m pip install aipager==<previous>
+systemctl --user restart aipager.service
+```
+
+A local-path pipx install: `pipx install --force /path/to/aipager` at
+the old commit. If a stale announcement is pending, remove it with
+`rm -f ~/.local/share/aipager/update-restart.json` (it is ignored after
+24 h anyway); `~/.local/share/aipager/update.lock` is only a lock file
+and is safe to delete when no update is running.
+
+## "An update was interrupted when aipager shut down"
+
+The daemon stopped (or was restarted) while `/update` was installing, and
+the installer was stopped with it, so the install may be half-written. If
+aipager or Claude Code misbehaves, repair it: for aipager, run the
+reinstall command from the message (for example
+`pipx install --force aipager`) and then
+`systemctl --user restart aipager.service`; for Claude Code, run
+`claude update` again.
 
 ## Still stuck?
 

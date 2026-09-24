@@ -28,8 +28,9 @@ and on every session change.
 | `/diff [label]` | optional | Show the session's working-directory git diff. |
 | `/clearqueue` | — | Drop every not-yet-picked-up message for the active session — both messages aipager is holding and messages already queued inside Claude — without interrupting the running turn. Replies with the count cleared. |
 | `/perms [label]` | optional | Switch a session between Ask and Auto permission modes. On a busy session, offers `Stop task & switch` / `Not now`. |
-| `/settings` | — | Message layout, diff previews (off by default), formatting and language preferences. Whatever the layout, every busy card ends with its session's status line (`⏳`/`✅ name · …`) and every answer starts with its result line (`💬 name`, plus `· Finished (…)` when no finished card is left to show the stats); the merged layout stacks the two, each line in its own section. In the card layout the answer deliberately follows the finished card by a moment, so the card is seen to say Finished before the answer lands under it — tune or disable that head start with `FINISH_CARD_GRACE_SECONDS` (seconds, default 0.8; 0 sends both at once). |
+| `/settings` | — | Message layout, diff previews (off by default), long-turn card updates (on by default: a busy card refreshes every 10 s after 2 minutes of a turn, 30 s after 10, once a minute after an hour, counting in minutes then hours — switch off to keep the first-minutes pace for the whole turn; see [troubleshooting](troubleshooting.md#a-long-turns-card-refreshes-less-often)), formatting and language preferences. Whatever the layout, every busy card ends with its session's status line (`⏳`/`✅ name · …`) and every answer starts with its result line (`💬 name`, plus `· Finished (…)` when no finished card is left to show the stats); the merged layout stacks the two, each line in its own section. In the card layout the answer deliberately follows the finished card by a moment, so the card is seen to say Finished before the answer lands under it — tune or disable that head start with `FINISH_CARD_GRACE_SECONDS` (seconds, default 0.8; 0 sends both at once). A card-layout turn that ran no tools keeps no card: its card would only repeat `✅ name · Done · Ns`, so the answer arrives alone with the stats in its `💬` line (see [Idle responses](#idle-responses)). |
 | `/whoami` | — | Show your Telegram id and (in team mode) your role. |
+| `/update` | — | Admin only. Show the running and latest aipager and Claude Code versions and update either or both — see [Update](#update). |
 
 ### Per-session dynamic commands
 
@@ -55,7 +56,95 @@ verified against Telegram's `initData` signature — see
 [security → Mini App tunnel](security.md#mini-app-tunnel).
 
 Everything in the Mini App is also reachable from chat: the ⋮ menu on
-a session's dashboard carries the same actions.
+a session's dashboard carries the same actions. For the admin,
+**Settings → Updates** mirrors [`/update`](#update).
+
+### Switching a running session's model
+
+A live session's page has a **Model** control showing the model the
+session reports (from Claude Code's statusline) and the same list the
+launch picker and the chat's Models keyboard offer. Picking one types
+exactly `/model <name>` into that session — the same injection the
+chat's Models keyboard uses, with the same rule on who may do it
+(anyone who can prompt the session). The control reads **switching…**
+until the statusline reports a different model, then shows it; if
+nothing changes within 15 seconds it reads **not confirmed — check the
+session**.
+
+- **Only while the session is idle, not while Claude is working or a
+  prompt is open.**
+  Claude Code runs `/model` straight away, even mid-turn, rather than
+  after the turn, so the switch is refused until the turn ends. The chat
+  keyboard refuses in the same states, with the same words.
+- **Claude Code's "Switch model?" question.** Claude Code usually asks
+  this before a switch, because the next reply has to re-read the whole
+  conversation. With Claude Code 2.1.251 or later, aipager's
+  `PreModelSwitch` hook approves the switch aipager just typed, so the
+  question is not asked (see [hooks](hooks.md#premodelswitch)). Every
+  other switch still asks. With an older Claude Code, or on a switch to
+  or from `opusplan`, the question can still appear. The switch then
+  shows as *not confirmed* and the question waits in the terminal.
+  Answer it there before you send the session anything else, or your
+  next message would be typed into it. For the same reason, aipager
+  refuses another switch of that session for a minute after an
+  unconfirmed one, or until the session reports a new model.
+
+## The pinned status bar
+
+Each chat aipager talks in (your DM, and every group scope) gets one
+pinned message: the status bar. Telegram's bar at the top of the chat
+shows the message from its **first line** on, with the lines run
+together, so that line says what most needs you:
+
+| First line | When |
+|---|---|
+| `⏳ jim needs you — Bash: make deploy` | a session is waiting on a permission prompt, a question or an interactive prompt; `(+2 more)` when others are waiting too |
+| `⚙️ jim — working` / `💤 jim — idle` | the chat has one live session and it is working / idle (`🔄 jim — starting` while it starts): this line is the whole bar, apart from a flood line |
+| `⚙️ 2 working · 1 idle` | several sessions, none waiting: how many are in each state (`working`, `idle`, `starting`); `🔄` when none is working and one is starting, `💤` when all are idle |
+| `💤 all idle` | no live session |
+
+Below it, only while it applies, a flood line — `🐢 slow mode after a
+Telegram warning` (the six hours after a 429) or `⏸ card updates paused
+— hourly limit` / `— rate limit` (minimal mode, see
+[troubleshooting](troubleshooting.md#the-hourly-budget)) — and then,
+when the chat has more than one live session, one line per session with
+its state: `working`, `needs you`, `idle` or `starting`. The bar names
+each session once: the waiting session the first line names gets no
+line of its own, and the first line never lists names the lines below
+repeat.
+A session with agents still running in the background says how many on
+its own line (or on the one line, with a single session):
+`💤 jim — idle · ⏳ 1 agent running`. It is a count, never their names,
+so the bar moves only when the count does.
+Tap the bar to jump to the message.
+
+Buttons on the pinned message:
+
+- **Answer &lt;label&gt;** (one per waiting session, three at most) sends
+  that session's prompt again, with its answer buttons, at the bottom of
+  the chat, so you can answer it without scrolling. If it was answered in
+  the meantime you get an "already answered" toast instead, and a copy
+  (or the original prompt) tapped after its prompt was answered elsewhere
+  is refused the same way — it never answers a later prompt. After a
+  daemon restart aipager no longer knows which prompt an old copy showed,
+  so while a prompt is waiting, a tap on anything but its own message is
+  refused with "this prompt has expired". Anyone who
+  may answer the prompt may use it; nobody else.
+- **📱 App** opens the Mini App, in your DM, while the Mini App is up.
+
+The bar carries no clock, cost, context % or model, so it changes only
+when a session's state does. aipager edits it (silently, no
+notification) only when what it shows changed, at most once every 30 s
+per chat (`PINNED_MIN_EDIT_GAP`); a change inside that gap is shown when
+the gap ends, never lost. It is never edited while the chat is
+flood-muted, and catches up when the mute lifts.
+
+In a group the bot needs admin rights to pin. If the pin is refused,
+aipager deletes the status message it just sent (so it never sits
+unpinned in the group's history) and shows no bar in that group until
+the daemon restarts; the same goes for a chat that refuses the bot
+altogether (kicked, blocked). If you delete the pinned message, aipager sends and
+pins a new one, at most once an hour per chat.
 
 ## Persistent keyboard
 
@@ -75,8 +164,16 @@ entry sends a canned prompt or slash command:
   making changes`, `Update CLAUDE.md with what you learned`.
 - **Commands** — slash commands claude code natively handles
   (`/compact`, `/clear`, etc.), injected instantly.
-- **Models** — quick model switches (`/model sonnet`, `/model opus`,
-  `/model haiku`, `/model opusplan`).
+- **Models** — quick model switches for the active session. There
+  are the family aliases (`sonnet`, `opus`, `haiku`, `fable`,
+  `opusplan`), which always mean the latest model in that family, and
+  pinned models (`claude-opus-5-5`, `claude-opus-5-5[1m]` with the 1M
+  context window, `claude-sonnet-5`, `claude-fable-5-1`,
+  `claude-haiku-4-5`). The Mini App's launch and session pickers use
+  the same list. A switch is refused while the session is working or a
+  prompt is open. The `🔄` reply then changes to show the model the
+  session reports, or says the switch was not confirmed (see
+  [Switching a running session's model](#switching-a-running-sessions-model)).
 
 Override the default layout by writing
 `~/.config/aipager/keyboard.json`:
@@ -159,6 +256,29 @@ attached below ↓` footer. Buttons:
 
 - **🔄 Retry** — re-send the last prompt to the same session.
 
+In the card layout the finished card stays above the answer as the
+record of how it was reached — its tool rows, agent rows and what Claude
+said between them. A turn with none of those (no tool call, no agent,
+no commentary besides the answer itself) has nothing to record, and a
+card left behind would say only `✅ name · Done · Ns` right above an
+answer saying the same. Such a turn ends as **one** message instead: the
+answer, opening with `💬 name · Finished (Ns)`, sent as a normal
+(notifying) message threaded to the prompt that started the turn, if
+any; the busy card is deleted once the answer is out. A tool-less turn with no new answer text (none at all,
+or only text already delivered) keeps its card, as the one sign it
+ended. The merged and replace layouts are
+unchanged.
+
+A turn Claude starts **by itself** — a background agent reporting back
+with a `<task-notification>` when no job is open — gets its busy card
+only once it does something: at its first tool call, or after 15 s,
+whichever comes first. Most such wake-ups are a few seconds of "nothing
+new"; those now show just the answer.
+The "typing…" indicator still shows while it runs, and the answer itself
+is always delivered — nothing is filtered as trivial.
+Turns you start, from Telegram or the terminal, still get their card at
+once.
+
 While a session is busy, each background agent Claude launches (via
 `Task`) gets its own line on the busy card: `🤖 <type> · <activity> ·
 <elapsed>`, showing the agent's type and what it's currently doing,
@@ -183,6 +303,59 @@ one thing standing between the timeline and the ceiling. Only if the
 timeline is so large that even every fold together still can't fit does
 content get genuinely dropped from the card — in that case the `.txt`
 attachment above carries the complete record.
+
+#### Agents still running when the answer goes out
+
+Claude Code can run agents in the background, and the turn that launched
+them can end while they work. The answer then ends with one line saying
+so:
+
+```
+⏳ 1 agent still running — pipeline-runner · results will follow here
+⏳ 2 agents still running — pipeline-runner, ship-reviewer · results will follow here
+```
+
+That answer goes out the moment the turn ends, as a normal (notifying)
+message threaded to your prompt — the same text the terminal shows. The
+busy card stays above it as the job's live status, in every layout:
+`🔄 name · 1 agent (general-purpose) still working · 1m 18s`, with its
+**Stop** button. When the agents report back, Claude's answer to that
+arrives as a new message of its own; the earlier answer is never sent
+again, a daemon restart included. A job whose agents report back more
+than once produces one answer per report, each sent as it is written.
+
+Labels are the agents' types, cut at 32 characters, three at most
+(`+N more` for the rest). An agent that stopped while background work of
+its own is still running counts as running, since it resumes later —
+aipager learns this from Claude's `<task-notification>` for it, when that
+notification starts a turn. The line is added in every layout, and on
+the one-message answer of a tool-less turn.
+
+Once every agent a line named has finished, aipager edits that line
+once, silently, to `✅ pipeline-runner — done (6m)` (or `✅ 2 agents done
+(6m)`, with the time since the answer went out); the results themselves
+arrive as their own message. Each answer that carried the line is edited
+this way (up to five pending per session). The edit is a low-priority
+one: it is never made while the chat is flood-muted, is tried once more
+after the mute lifts or the budget refuses it, and is then dropped. It
+is never made into a deleted answer or for a session that has ended or
+been killed.
+
+The line is left as sent, never turned into ✅, when aipager cannot know
+the agents finished:
+
+- an agent aipager hears nothing from for 30 minutes
+  (`AIPAGER_SUBAGENT_SILENCE`) is no longer counted as running, but
+  silence is not completion;
+- a daemon restart forgets which answers are pending.
+
+An answer held back by a flood mute, or delivered as plain text after
+the formatted send failed, goes out without the line, as does a turn
+that ends with no answer text (only a header). If Claude takes
+an agent's notification in the middle of a running turn, aipager does
+not see it; an agent that stopped with work still running can then be
+marked done too early, and the pinned bar shows it running again when it
+resumes.
 
 ### Kill confirmation
 
@@ -214,15 +387,110 @@ success.
 
 ### Restart
 
-`🔄 Restart daemon now` always works:
+`🔄 Restart daemon now`:
 
-- Service-managed daemons: `systemctl --user restart aipager.service`
-  on Linux, `launchctl kickstart -k` on macOS.
-- Foreground / editable daemons: spawn a detached replacement that
-  waits for the parent PID to die, then `exec aipager start`. The
+- A daemon running as the systemd-user service schedules a detached
+  `systemctl --user restart aipager.service` 5 s later, in a transient
+  unit outside the daemon's own cgroup, so it survives the daemon's
+  exit. It refuses while the service unit would kill your sessions
+  (`KillMode` other than `process`), and tells you to run
+  `aipager service install` first.
+- macOS: `launchctl kickstart -k gui/<uid>/com.aipager.daemon`.
+- A daemon you started yourself (`aipager start`), even on a machine
+  that also has the service installed: spawn a detached replacement
+  that waits for the parent PID to die, then `exec aipager start`. The
   current daemon SIGTERMs itself once the spawn is alive.
 
 No SSH required.
+
+## Update
+
+`/update` (admin only; in personal mode, only the operator) replies
+`🔎 Checking versions…` and then edits that message to show:
+
+- **aipager** — the running version, the latest on PyPI, and how it was
+  installed (e.g. `pipx, from PyPI` or `pipx, from local path …`; group
+  chats never show paths);
+- **Claude Code** — the installed version, the latest on its own update
+  channel (`autoUpdatesChannel`: latest, stable or rc), and the install
+  method;
+- **Restart** — `automatic (systemd)`, or `manual` with the reason.
+
+A version that cannot be looked up (network down, 5 s timeout) shows as
+`unknown`.
+
+Buttons: **⬆️ Update Claude Code**, **⬆️ Update aipager**, **Both**,
+**Cancel**. The aipager and Both buttons are missing when this install
+cannot be updated from here (editable, Nix, Snap, a system package, a
+container, or another user's install); the Claude Code buttons are
+missing when `claude` is not found. Every tap re-checks the admin rule.
+
+**Update Claude Code** runs `claude update` (by absolute path, 5 min
+timeout) and reports `Claude Code A → B`, "already up to date", or the
+failure with the tail of its output. Running sessions keep the old
+version until you restart them (`/restart`); the reply lists them. No
+session is restarted for you. New sessions use the new version.
+
+**Update aipager**:
+
+1. On a PyPI install that is already current, it says so and stops.
+2. If the daemon can restart itself, it first **waits until nothing is
+   in flight**: no session running a turn, waiting on a question,
+   running a background agent, showing a live busy card, running a
+   tool, or holding an open permission prompt, and no held answers
+   waiting for a rate limit to lift. The message lists what it is
+   waiting for, with **Restart now** (skip the wait) and **Cancel**.
+   After 10 minutes it asks again: **Wait 10 more min**, **Restart
+   now**, **Cancel**. Unanswered for an hour, it cancels itself.
+3. It upgrades through the installer that owns the running daemon
+   (`pipx upgrade aipager`, `uv tool upgrade aipager --refresh`,
+   `brew upgrade aipager`, or `<venv>/bin/python -m pip install
+   --upgrade aipager`), by absolute path, with a 10 min timeout. There
+   is no Cancel while the installer runs.
+4. It checks the new version imports in a fresh interpreter. A failed,
+   timed-out or unimportable upgrade restarts nothing. A timed-out
+   upgrade was stopped part-way, so the message warns the install may be
+   partial and gives the reinstall command to run before the next
+   restart. Installer output is shown only in a private chat; a group
+   gets "output in the daemon log".
+5. If a turn started during the upgrade, it waits again.
+6. It schedules a detached `systemctl --user restart aipager.service`
+   5 s later: `aipager A → B installed. Restarting in 5 s…`. The new
+   daemon then posts `✅ aipager updated A → B, N sessions re-adopted`
+   (and `⚠️ Not back: …` for any session that did not come back) to the
+   chat that asked.
+
+The daemon restarts itself only when it runs as the systemd-user
+service **and** that unit has `KillMode=process`. Otherwise aipager is
+still upgraded, and the message tells you how to restart: run
+`aipager service install` first (it lists the sessions a restart would
+kill), the `launchctl kickstart` command on macOS, or "restart your
+`aipager start`" for a daemon you started yourself.
+
+Only one update runs at a time, across `/update`, the Mini App's
+**Settings → Updates** block (same data, same buttons, same job) and
+`aipager update` on the command line. That includes the seconds between
+"Restarting in 5 s…" and the restart itself: `/update` answers that
+aipager is about to restart, the Mini App offers no buttons, and the
+voice extra's **Restart daemon now** refuses while an update runs or
+waits to restart. If the daemon is still alive two minutes after
+scheduling its restart, it stops the pending restart timer, frees the
+update lock, and tells you to restart it yourself.
+
+If the daemon shuts down while an installer is running, the installer
+gets 3 s to finish and is then stopped (it would otherwise keep writing
+the install while the next daemon starts). The status message and,
+after the restart, a new message say the install may be partial and how
+to repair it.
+
+Once a shutdown has begun, nothing is restarted and nothing new starts:
+`/update` buttons answer that aipager is shutting down, the Mini App
+answers 503, and no installer or version check is spawned. An installer
+that finishes within its 3 s still counts. The status message says the new
+version is installed and nothing was restarted, and the next start
+announces `aipager updated A → B`. A daemon you stopped with
+`aipager service stop` stays stopped. The update's part of the shutdown
+takes at most 8 s in total.
 
 ## Free messages
 
@@ -234,10 +502,43 @@ even while a turn is running — exactly like typing into the terminal.
 Send several and they queue inside Claude itself, which picks each up
 at a natural boundary:
 
-- 👀 on your message — sent to the session.
-- 👍 — Claude has taken it in. For a message sent while a turn runs
-  this happens at once: Claude queues it, and only later either folds
-  it into the turn already running or starts a new turn for it.
+The reaction on your message follows it, the way Claude Code's own
+queued prompt turns from grey to white:
+
+- 👀 — handed to the session (or held, see below), but Claude has not
+  taken it yet. A message sent while a turn runs stays 👀 while it
+  waits in Claude's queue.
+- 👍 — Claude took it: it started a turn, or Claude folded it into the
+  turn already running, or handed it to a running background agent.
+- 🤷 — it will never be taken: a held message dropped by `/stop`,
+  `/clearqueue` or `/kill`, or one that could not be sent on release; a
+  message or command still waiting when `/stop`, `/clearqueue`, `/kill`
+  or the session ending (not `/clear` or `/resume`) dropped it; or a
+  prompt Claude Code refused (see below). Messages Claude had already
+  queued are only marked while aipager can see that queue — the live
+  transcript scan is running and no background job is waiting; otherwise
+  they keep 👀. Escape in the
+  terminal pulls Claude's queue back into its input box, where it may be
+  sent again, so a message dropped that way keeps 👀 too.
+- 👌 — a Claude Code command that has run (see below), or aipager
+  acknowledging `/stop`.
+
+A reaction only ever moves forward, so a message gets at most three,
+each once. A reaction that falls inside a Telegram rate-limit ban is
+skipped, not replayed later, and one teardown marks at most the ten
+newest messages it drops.
+
+Command buttons (`Compact`, `/model …`): tapped while the session is
+idle, the command is 👌 at once — Claude Code runs it on Enter, and a
+local command such as `/model` fires no hook that could say so later.
+Tapped while a turn runs (not `/model`: it is refused until the turn ends,
+see [switching a running session's model](#switching-a-running-sessions-model)),
+it is 👀 until that turn ends — normally, as
+a background job's interim stop, or on an API error — and then 👌;
+dropped before that by `/stop`, `/clearqueue`, `/kill` or the session
+ending, it never ran: 🤷. When Claude Code queues it as a prompt instead,
+it follows the 👀 → 👍 lifecycle. A voice note gets the same reactions as
+text once its transcript is sent.
 
 The busy card and the eventual answer follow whichever message Claude
 actually consumed for a turn — the one it started on if the session
@@ -255,9 +556,11 @@ so nothing would ever end the turn the daemon just announced. After
 8 s without any hook (`PROMPT_HOOK_GRACE_SECONDS`) the busy card
 becomes `⚠️ name · Not taken by Claude Code` with a one-line
 explanation and the session is idle again; the reason is on the
-terminal. Only a message that started a turn is judged this way — one
-queued behind a running turn just keeps its 👀 reaction, which never
-turns into 👍 if Claude did not take it.
+terminal, and the message gets 🤷 (a slash command gets 👌 instead: a
+built-in that opens a dialog fires no hook either). Only a message that
+started a turn
+is judged this way — one queued behind a running turn keeps its 👀
+until Claude takes it or it is dropped.
 
 Two cases are held back instead of sent, and delivered automatically
 once resolved:
