@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import type { Pane, TDialog, TLine, Tone } from "./script";
+import { fmtElapsed, type Pane, type TDialog, type TLine, type Tone } from "./world";
 
 const TONE: Record<Tone, string> = {
   fg: "text-[#e8ebee]",
@@ -90,7 +90,9 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
         {p.dialog && <Dialog d={p.dialog} />}
         {p.spinner && (
           <div className="mt-1.5 text-[#d97757]">
-            ✻ <span className="text-[#c9ccd1]">{p.spinner}</span>
+            ✻ <span className="text-[#c9ccd1]">
+              {p.spinner}… ({fmtElapsed(p.secs)} · esc to interrupt)
+            </span>
           </div>
         )}
         {p.status || p.input ? (
@@ -118,14 +120,10 @@ export function Terminal({ panes, detached }: { panes: Pane[]; detached: boolean
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#ff5f57]/80" />
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#febc2e]/80" />
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#28c840]/80" />
-        <span className="ml-3 truncate text-[11.5px] text-[#7f8791]">{multi ? "3 sessions · dtach" : "claude-api · dtach"}</span>
-        <span
-          className={`ml-auto shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] transition-opacity duration-500 ${
-            detached ? "border-live/40 text-live opacity-100" : "border-transparent opacity-0"
-          }`}
-        >
-          detached · still running
-        </span>
+        <span className="ml-3 truncate text-[11.5px] text-[#7f8791]">{multi ? `${panes.length} sessions · dtach` : `claude-${panes[0]?.id ?? "api"} · dtach`}</span>
+        {detached && (
+          <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-live/40 px-2 py-0.5 text-[10.5px] text-live">detached · still running</span>
+        )}
       </div>
       <div className={`flex min-h-0 flex-1 flex-col transition-opacity duration-700 ${detached ? "opacity-70" : ""}`}>
         {panes.map((p) => (
