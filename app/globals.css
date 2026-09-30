@@ -86,6 +86,7 @@
   --color-ink: var(--ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
 }
 
 html {
@@ -310,4 +311,40 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .scroll-wheel, .scroll-chevron, .next-pulse { animation: none; }
+}
+
+/* the day page */
+.pin-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pin-ring 1.8s ease-out infinite;
+}
+@keyframes pin-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.tap-me {
+  animation: tap-me 1.5s ease-in-out infinite;
+}
+@keyframes tap-me {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(53 192 127 / 0); }
+  50% { box-shadow: 0 0 0 5px rgb(53 192 127 / 0.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-ring, .tap-me { animation: none; }
+}
+
+/* receipt paper: a torn bottom edge */
+.receipt {
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 10px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 10px repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - 10px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 10px repeat-x;
+}
+.marquee {
+  animation: marquee 40s linear infinite;
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee { animation: none; }
 }
