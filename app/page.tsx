@@ -1,6 +1,6 @@
 import { SkyRoot } from "@/components/day/sky-root";
 import { DayNav } from "@/components/day/day-nav";
-import { Day } from "@/components/day/day";
+import { DayStage } from "@/components/stage/day-stage";
 import { DayFooter, Faq, How, Install, Receipt, Trust } from "@/components/day/sections";
 
 export default function Home() {
@@ -8,7 +8,7 @@ export default function Home() {
     <SkyRoot>
       <DayNav />
       <main>
-        <Day />
+        <DayStage />
         <Receipt />
         <How />
         <Trust />

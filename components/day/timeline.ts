@@ -33,7 +33,7 @@ export const MOMENTS: Moment[] = [
     time: "08:03",
     place: "Kitchen, first coffee",
     title: "Start it, then leave it.",
-    body: "One command hands Claude a task inside dtach, a tiny detacher that keeps the session alive with no terminal open. Close the window, drop SSH, take the coffee to go.",
+    body: "At the desk, aipager session api runs Claude Code inside dtach and the chat starts mirroring it. Give it the task, then close the terminal: the session keeps running without it.",
     under: "aipager session api  →  claude-api, running under dtach",
     card: {
       kind: "terminal",
@@ -99,7 +99,7 @@ export const MOMENTS: Moment[] = [
     time: "14:05",
     place: "Walking back",
     title: "Hands full? Talk.",
-    body: "Send a voice note. It is transcribed on your own machine and typed in as the next prompt; the audio never leaves it. Voice is an optional extra you can install from the chat.",
+    body: "The morning's turn is done and its answer is waiting in the chat. Send a voice note: it is transcribed on your own machine and typed into the terminal as the next prompt. Voice is an optional extra.",
     under: "voice note  →  local Whisper  →  prompt",
     card: { kind: "voice", busy: "⏳ api · Editing · 1h 52m · Edit ×7 · Bash ×3", transcript: "when the tests are green, start on the rate limiter" },
   },
@@ -126,7 +126,7 @@ export const MOMENTS: Moment[] = [
     time: "18:45",
     place: "Between sets",
     title: "Three sessions, one glance.",
-    body: "/new starts another from chat: name, mode, model, folder. /status lists them all, the pinned bar says who needs you, and /web run the build prompts one without switching.",
+    body: "Two more sessions joined the desk today. /status lists them all, the pinned bar says who needs you, /new starts another from the chat, and /web run the build prompts one without switching.",
     under: "one daemon, one socket per session",
     card: {
       kind: "status",
