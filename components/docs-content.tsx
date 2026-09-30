@@ -5,7 +5,7 @@ import { Mermaid } from "./mermaid";
 
 export function DocsContent({ source }: { source: string }) {
   return (
-    <article className="prose prose-neutral dark:prose-invert max-w-none prose-pre:bg-[var(--terminal-bg)] prose-pre:text-[var(--terminal-fg)] prose-pre:border prose-pre:border-border prose-headings:scroll-mt-20 prose-a:text-accent hover:prose-a:underline">
+    <article className="prose prose-neutral dark:prose-invert max-w-none prose-pre:bg-[var(--terminal-bg)] prose-pre:text-[var(--terminal-fg)] prose-pre:border prose-pre:border-border prose-headings:scroll-mt-20 prose-a:text-accent hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none prose-code:rounded prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:font-normal">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}

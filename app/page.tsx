@@ -1,13 +1,10 @@
 import { Nav } from "@/components/nav";
-import { Hero } from "@/components/landing/hero";
-import { Answer } from "@/components/landing/answer";
-import { Modes } from "@/components/landing/modes";
-import { Fleet } from "@/components/landing/fleet";
-import { Bento } from "@/components/landing/bento";
-import { HowItWorks } from "@/components/landing/how";
-import { Install } from "@/components/landing/install";
-import { Faq } from "@/components/landing/faq";
-import { FinalCta } from "@/components/landing/cta";
+import { Story } from "@/components/story/story";
+import { Install } from "@/components/sections/install";
+import { Boundary } from "@/components/sections/boundary";
+import { Team } from "@/components/sections/team";
+import { Faq } from "@/components/sections/faq";
+import { Outro } from "@/components/sections/outro";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
@@ -15,15 +12,12 @@ export default function Home() {
     <>
       <Nav />
       <main>
-        <Hero />
-        <Answer />
-        <Modes />
-        <Fleet />
-        <Bento />
-        <HowItWorks />
+        <Story />
         <Install />
+        <Boundary />
+        <Team />
         <Faq />
-        <FinalCta />
+        <Outro />
       </main>
       <Footer />
     </>

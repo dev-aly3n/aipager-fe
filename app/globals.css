@@ -20,46 +20,58 @@
 
 /* ===========================
    aipager.run — design tokens
-   dark-first dev-tool palette
+   From the brand kit: ink #181C20, fg #F6F7F8, accent #3FA9F5, live #4FD693.
    =========================== */
 :root {
-  /* surfaces */
-  --bg: oklch(0.145 0.008 250);
-  --bg-elev: oklch(0.175 0.009 250);
+  --bg: #0a0c0f;
+  --ink: #181c20;
+  --ink-2: #1f2429;
+  --line: rgb(255 255 255 / 0.08);
+  --line-2: rgb(255 255 255 / 0.14);
 
-  /* ink */
-  --fg: oklch(0.97 0.005 250);
-  --fg-2: oklch(0.82 0.008 250);
-  --fg-4: oklch(0.46 0.014 250);
+  --fg: #f6f7f8;
+  --fg-2: #b9bfc7;
+  --fg-3: #7f8791;
+  --fg-4: #555c65;
 
-  /* lines */
-  --line-2: oklch(0.235 0.012 250);
+  --accent: #3fa9f5;
+  --live: #4fd693;
+  --amber: #f2b84b;
+  --deny: #f2705d;
 
-  /* accent — electric signal blue */
-  --accent: oklch(0.72 0.17 232);
+  /* Telegram's dark theme, for the phone */
+  --tg-bg: #0e1621;
+  --tg-head: #17212b;
+  --tg-in: #182533;
+  --tg-out: #2b5278;
+  --tg-link: #6ab3f3;
+  --tg-meta: #7f91a4;
+  --tg-btn: rgb(38 58 80 / 0.92);
 
-  /* live / warning / deny */
-  --live: oklch(0.78 0.18 148);
-  --warn: oklch(0.78 0.16 65);
-  --deny: oklch(0.68 0.2 25);
+  /* the terminal */
+  --term-bg: #0c0e11;
+  --term-fg: #d5d9de;
+  --claude: #d97757;
 
   /* ---- bridge tokens (consumed by docs / shared chrome via @theme) ---- */
   --background: var(--bg);
   --foreground: var(--fg);
   --success: var(--live);
-  --warning: var(--warn);
+  --warning: var(--amber);
   --danger: var(--deny);
-  --dim: oklch(0.62 0.012 250);
-  --surface: var(--bg-elev);
-  --border-color: var(--line-2);
-  --terminal-bg: oklch(0.135 0.008 250);
-  --terminal-fg: var(--fg-2);
+  --dim: var(--fg-3);
+  --surface: var(--ink);
+  --border-color: var(--line);
+  --terminal-bg: var(--term-bg);
+  --terminal-fg: var(--term-fg);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-live: var(--live);
+  --color-amber: var(--amber);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -68,6 +80,10 @@
   --color-border: var(--border-color);
   --color-terminal-bg: var(--terminal-bg);
   --color-terminal-fg: var(--terminal-fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-fg-4: var(--fg-4);
+  --color-ink: var(--ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -90,206 +106,208 @@ body {
   color: var(--bg);
 }
 
-/* content column shared by every landing section and the nav */
+/* content column shared by the nav, the docs and the sections */
 .wrap {
   width: 100%;
-  max-width: 72rem;
+  max-width: 80rem;
   margin-inline: auto;
-  padding-inline: clamp(20px, 4vw, 40px);
+  padding-inline: clamp(20px, 4vw, 56px);
 }
 
-/* brand mark (shared with docs chrome) */
-.logo-mark {
-  display: inline-block;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(160deg, var(--accent) 0%, oklch(0.55 0.18 268) 100%);
-  position: relative;
-  box-shadow: 0 0 0 1px var(--line-2);
-}
-.logo-mark::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 2px;
-  background:
-    linear-gradient(180deg, transparent 49%, var(--bg) 49%, var(--bg) 51%, transparent 51%),
-    linear-gradient(90deg, transparent 49%, var(--bg) 49%, var(--bg) 51%, transparent 51%);
-  opacity: 0.85;
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 /* ===========================
-   Hero mirror — phone + chrome
+   The stage: terminal, wire, phone
    =========================== */
 
-/* Galaxy S25 Ultra: flat sides, tight corners, thin even bezel,
-   centered punch-hole camera. */
-.s25 {
-  width: var(--s25-w, 280px);
-  aspect-ratio: 9 / 19.5;
-  padding: 3px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #3a3f46, #23262b 30%, #23262b 70%, #3a3f46);
+/* --- terminal --- */
+.term {
+  background: var(--term-bg);
+  color: var(--term-fg);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(0 0 0 / 0.4);
+  transition: border-color 0.6s, opacity 0.6s, box-shadow 0.6s;
+}
+.term.detached {
+  border-style: dashed;
+  border-color: rgb(255 255 255 / 0.18);
+  box-shadow: none;
+}
+.term .pane + .pane {
+  border-top: 1px solid var(--line);
+}
+.term .box {
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 8px;
+}
+.term .box.claude {
+  border-color: color-mix(in oklab, var(--claude) 70%, transparent);
+}
+.term .box.ask {
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+/* --- phone --- */
+.phone {
+  background: #05070a;
+  border-radius: 44px;
+  padding: 10px;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 24px 60px rgba(0, 0, 0, 0.45);
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    0 0 0 7px #0d1014,
+    0 0 0 8px rgb(255 255 255 / 0.08),
+    0 50px 100px -30px rgb(0 0 0 / 0.95);
 }
-/* Telegram dark palette — any element styled as a piece of Telegram UI
-   (full phone screen or a slim chat card) gets this class. */
-.tg {
-  --tg-bg: #0e1621;
-  --tg-panel: #17212b;
-  --tg-in: #182533;
-  --tg-out: #2b5278;
-  --tg-fg: #f1f5f9;
-  --tg-dim: #7d8e9f;
-  --tg-accent: #64b5f6;
-  --tg-ok: #6ec26e;
-}
-
-.s25-screen {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 19px;
+.phone .screen {
   background: var(--tg-bg);
+  border-radius: 35px;
+  overflow: hidden;
+  font-family: var(--font-geist-sans);
 }
-.s25-punch {
-  position: absolute;
-  top: 7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #000;
-  box-shadow: inset 0 0 2px 1px rgba(255, 255, 255, 0.08);
-  z-index: 10;
+.tg-wall {
+  background-color: var(--tg-bg);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgb(106 179 243 / 0.07), transparent 40%),
+    radial-gradient(circle at 85% 70%, rgb(79 214 147 / 0.05), transparent 45%),
+    radial-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: auto, auto, 14px 14px;
 }
-
-/* Telegram inline-keyboard button */
-.tg-btn {
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 6px 4px;
-  text-align: center;
+.bubble {
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.42;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.25);
+}
+.bubble.in { background: var(--tg-in); border-bottom-left-radius: 4px; }
+.bubble.out { background: var(--tg-out); border-bottom-right-radius: 4px; }
+.bubble code,
+.bubble .mono {
+  font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--tg-fg);
-  transition: background 0.15s ease;
 }
-.tg-btn-hint {
-  animation: tg-hint 1.2s ease-in-out infinite;
-  cursor: pointer;
+.kb {
+  background: var(--tg-btn);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e6edf5;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.3s;
 }
-.tg-btn-hint:hover {
-  background: rgba(255, 255, 255, 0.22);
+.kb.pulse {
+  animation: kb-pulse 1.4s ease-in-out infinite;
 }
-.tg-btn-pressed {
-  background: rgba(255, 255, 255, 0.28);
-  animation: none;
-}
-@keyframes tg-hint {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0); }
-  50% { box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.35); }
+.kb:hover { background: rgb(52 78 106 / 0.95); }
+.kb:active { transform: scale(0.97); }
+
+@keyframes kb-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(79 214 147 / 0); }
+  50% { box-shadow: 0 0 0 4px rgb(79 214 147 / 0.35); }
 }
 
-/* message entrance — animates max-height too, so an arriving bubble or
-   keyboard pushes the chat up smoothly instead of snapping the layout. */
-.msg-in {
-  animation: msg-in 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+/* --- wire --- */
+.wire-line {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05));
 }
-@keyframes msg-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.97); max-height: 0; overflow: hidden; }
-  to { opacity: 1; transform: none; max-height: 280px; overflow: hidden; }
+.packet {
+  position: absolute;
+  top: 50%;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgb(10 12 15 / 0.92);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.packet.right { animation: packet-right 1.5s cubic-bezier(0.45, 0, 0.35, 1) forwards; }
+.packet.left { animation: packet-left 1.5s cubic-bezier(0.45, 0, 0.35, 1) forwards; }
+@keyframes packet-right {
+  0% { left: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes packet-left {
+  0% { left: 100%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 0%; opacity: 0; }
 }
 
-/* reaction pop (👀 → 👍) */
-.react-pop {
-  animation: react-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* the blue notification dot from the mark */
+.dot-pulse {
+  animation: dot-pulse 2.4s ease-out infinite;
 }
-@keyframes react-pop {
-  from { transform: scale(0.3); max-height: 0; overflow: hidden; }
-  to { transform: scale(1); max-height: 30px; overflow: hidden; }
+@keyframes dot-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(63 169 245 / 0.55); }
+  70% { box-shadow: 0 0 0 14px rgb(63 169 245 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(63 169 245 / 0); }
 }
 
-/* typing caret in the Telegram reply bar */
-.type-caret {
+.caret::after {
+  content: "";
   display: inline-block;
-  width: 1.5px;
-  height: 0.95em;
+  width: 7px;
+  height: 1.05em;
   margin-left: 1px;
-  vertical-align: text-bottom;
-  background: var(--tg-accent, var(--accent));
-  animation: caret-blink 1s steps(1) infinite;
+  vertical-align: -2px;
+  background: currentColor;
+  animation: caret 1s steps(1) infinite;
 }
-@keyframes caret-blink {
+@keyframes caret {
   50% { opacity: 0; }
 }
 
-/* Claude Code spinner glyph */
-.term-spin {
-  display: inline-block;
-  animation: term-spin 1.6s ease-in-out infinite;
-}
-@keyframes term-spin {
-  0%, 100% { opacity: 1; transform: none; }
-  50% { opacity: 0.35; transform: rotate(180deg); }
+/* the audit log tail */
+.audit-mask {
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .msg-in,
-  .react-pop,
-  .term-spin,
-  .tg-btn-hint,
-  .type-caret {
-    animation: none;
-  }
+  .packet, .dot-pulse, .kb.pulse, .caret::after { animation: none !important; }
+  html { scroll-behavior: auto; }
 }
 
-/* ===========================
-   "Tap to answer" vignette — one 10s CSS cycle, no JS
-   =========================== */
-.v-early { animation: v-early 10s ease-in-out infinite; }
-.v-out { animation: v-out 10s ease-in-out infinite; }
-.v-late { animation: v-late 10s ease-in-out infinite; }
-.v-later { animation: v-later 10s ease-in-out infinite; }
-.v-ring { animation: v-ring 10s ease-out infinite; opacity: 0; }
-.v-tapbtn { animation: v-tap 10s ease-in-out infinite; }
-
-@keyframes v-early {
-  0%, 3% { opacity: 0; transform: translateY(8px); }
-  6%, 90% { opacity: 1; transform: none; }
-  96%, 100% { opacity: 0; transform: none; }
-}
-@keyframes v-out {
-  0%, 4% { opacity: 0; transform: translateY(8px); }
-  8%, 38% { opacity: 1; transform: none; }
-  43%, 100% { opacity: 0; transform: none; }
-}
-@keyframes v-late {
-  0%, 41% { opacity: 0; transform: translateY(6px) scale(0.95); }
-  46%, 90% { opacity: 1; transform: none; }
-  96%, 100% { opacity: 0; transform: none; }
-}
-@keyframes v-later {
-  0%, 56% { opacity: 0; transform: translateY(8px); }
-  62%, 90% { opacity: 1; transform: none; }
-  96%, 100% { opacity: 0; transform: none; }
-}
-@keyframes v-ring {
-  0%, 28% { opacity: 0; transform: scale(0.75); }
-  31% { opacity: 0.9; transform: scale(1); }
-  38%, 100% { opacity: 0; transform: scale(1.35); }
-}
-@keyframes v-tap {
-  0%, 29%, 39%, 100% { background-color: var(--surface); }
-  32%, 36% { background-color: color-mix(in oklch, var(--accent) 22%, var(--surface)); }
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
+/* the scroll cue */
+.scroll-wheel {
+  animation: scroll-wheel 1.6s ease-in-out infinite;
+}
+@keyframes scroll-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+.scroll-chevron {
+  animation: scroll-chevron 1.6s ease-in-out infinite;
+}
+@keyframes scroll-chevron {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+.next-pulse {
+  animation: next-pulse 1.6s ease-in-out infinite;
+}
+@keyframes next-pulse {
+  0%, 100% { background-color: rgb(63 169 245 / 0.25); }
+  50% { background-color: rgb(63 169 245 / 0.9); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .v-early, .v-late, .v-later, .v-tapbtn { animation: none; }
-  .v-out { animation: none; opacity: 0; }
-  .v-ring { animation: none; opacity: 0; }
+  .scroll-wheel, .scroll-chevron, .next-pulse { animation: none; }
 }

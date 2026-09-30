@@ -13,22 +13,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "aipager — Telegram remote-control for Claude Code",
+  title: "aipager: Claude Code, paging you",
   description:
-    "Mirror Claude Code sessions to Telegram. See status, reply to inject prompts, approve permissions — all from your phone.",
+    "aipager runs your Claude Code sessions in a detached terminal and mirrors them to Telegram: watch them work, approve what they ask, send the next prompt. It runs on your machine.",
   openGraph: {
-    title: "aipager — Telegram remote-control for Claude Code",
+    title: "aipager: Claude Code, paging you",
     description:
-      "Mirror Claude Code sessions to Telegram. See status, reply to inject prompts, approve permissions — all from your phone.",
+      "aipager runs your Claude Code sessions in a detached terminal and mirrors them to Telegram: watch them work, approve what they ask, send the next prompt. It runs on your machine.",
     url: "https://aipager.run",
     siteName: "aipager",
     type: "website",
   },
   twitter: {
-    card: "summary",
-    title: "aipager — Telegram remote-control for Claude Code",
+    card: "summary_large_image",
+    title: "aipager: Claude Code, paging you",
     description:
-      "Mirror Claude Code sessions to Telegram. See status, reply to inject prompts, approve permissions — all from your phone.",
+      "aipager runs your Claude Code sessions in a detached terminal and mirrors them to Telegram: watch them work, approve what they ask, send the next prompt. It runs on your machine.",
   },
   metadataBase: new URL("https://aipager.run"),
 };
