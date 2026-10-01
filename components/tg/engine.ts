@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { STORY } from "./story";
-import { initialWorld, open, type ChatId, type Folder, type World } from "./world";
+import { storyFor, type Step } from "./story";
+import { initialWorld, open, type ChatId, type Folder, type Mode, type World } from "./world";
 
 const VERBS = ["Tinkering", "Pondering", "Investigating", "Deciphering", "Percolating", "Noodling", "Brewing", "Synthesizing"];
 /** How long the story holds still after the reader clicked something. */
@@ -21,8 +21,8 @@ export interface Story {
   held: boolean;
 }
 
-export function useStory(active: boolean): Story {
-  const [world, setWorld] = useState<World>(initialWorld);
+export function useStory(active: boolean, mode: Mode): Story {
+  const [world, setWorld] = useState<World>(() => initialWorld(mode));
   const [waiting, setWaiting] = useState<Story["waiting"]>(null);
   const [held, setHeld] = useState(false);
   const idx = useRef(0);
@@ -30,6 +30,22 @@ export function useStory(active: boolean): Story {
   const lastUser = useRef(-1e9);
   const gateSince = useRef<number | null>(null);
   const noteBorn = useRef(new Map<string, number>());
+  const steps = useRef<Step[]>(storyFor(mode));
+
+  // A new permission mode starts the evening again, in that mode.
+  const shown = useRef(mode);
+  useEffect(() => {
+    if (shown.current === mode) return;
+    shown.current = mode;
+    steps.current = storyFor(mode);
+    idx.current = 0;
+    lastStepAt.current = performance.now();
+    gateSince.current = null;
+    lastUser.current = -1e9;
+    setWaiting(null);
+    setHeld(false);
+    setWorld(initialWorld(mode));
+  }, [mode]);
 
   const edit = useCallback((fn: (w: World) => void) => {
     setWorld((prev) => {
@@ -47,14 +63,14 @@ export function useStory(active: boolean): Story {
       const now = performance.now();
       const userBusy = now - lastUser.current < HOLD_MS;
       setHeld(userBusy && gateSince.current === null);
-      const step = STORY[idx.current];
+      const step = steps.current[idx.current];
       if (!step) {
         // The end: start the evening again.
         idx.current = 0;
         lastStepAt.current = now;
         gateSince.current = null;
         setWaiting(null);
-        setWorld(initialWorld());
+        setWorld(initialWorld(shown.current));
         return;
       }
       if (now - lastStepAt.current < step.after) return;
@@ -140,7 +156,7 @@ export function useStory(active: boolean): Story {
 
   const tap = useCallback(
     (chat: ChatId, msg: string, choice: number): boolean => {
-      const step = STORY[idx.current];
+      const step = steps.current[idx.current];
       if (!step?.gate || step.gate.chat !== chat || step.gate.msg !== msg || gateSince.current === null) return false;
       const g = step.gate;
       edit((w) => g.resolve(w, choice));

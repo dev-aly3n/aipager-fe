@@ -102,7 +102,7 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
               <span className="caret">{p.input}</span>
             </div>
             <div className="mt-1 flex justify-between text-[11px] text-[#555c65]">
-              <span>{multi ? "" : "? for shortcuts"}</span>
+              {p.bypass ? <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span> : <span>{multi ? "" : "? for shortcuts"}</span>}
               <span>{p.status}</span>
             </div>
           </div>

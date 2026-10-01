@@ -37,6 +37,8 @@ export interface Pane {
   dialog: TDialog | null;
   input: string;
   status: string;
+  /** launched with --dangerously-skip-permissions (Auto mode) */
+  bypass?: boolean;
 }
 
 export type CardItem = { type: "prose"; text: string } | { type: "row"; text: string; done: boolean };
@@ -49,7 +51,9 @@ export type Msg =
   | { id: string; kind: "day"; text: string }
   | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string } }
   | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
-  | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string };
+  | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string }
+  /** a bot message with buttons (the /perms confirmation); answering edits it in place */
+  | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string };
 
 export type ChatId = "aipager" | "team" | "mom" | "friends" | "sara" | "saved";
 export type Folder = "all" | "personal" | "work" | "bots";
@@ -80,7 +84,10 @@ export interface Note {
   body: string;
 }
 
+export type Mode = "ask" | "auto";
+
 export interface World {
+  mode: Mode;
   chats: Record<ChatId, Chat>;
   open: ChatId;
   folder: Folder;
@@ -105,8 +112,31 @@ export const PEOPLE: Record<string, { name: string; color: string }> = {
 
 const SHELL = "~/work/api $ ";
 
-export function initialWorld(): World {
+export function initialWorld(mode: Mode = "ask"): World {
+  const w = askWorld();
+  if (mode === "ask") return w;
+  // Auto: the session is idle when the evening starts, and you are in its chat.
+  w.mode = "auto";
+  w.open = "aipager";
+  w.caption = "Auto mode: /perms switches the session so Claude runs tools without asking. Going to Auto asks you to confirm.";
+  const p = w.panes[0];
+  p.lines = [
+    { text: SHELL + "aipager session api", tone: "dim" },
+    { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
+    { text: "> expire idle sessions after 30 minutes", tone: "fg" },
+    { text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", dot: "fg" },
+  ];
+  p.spinner = null;
+  p.secs = 0;
+  const a = w.chats.aipager;
+  a.msgs = a.msgs.filter((m) => m.id === "d0" || m.id === "old");
+  a.pinnedBar = "💤 api (idle)";
+  return w;
+}
+
+function askWorld(): World {
   return {
+    mode: "ask",
     open: "mom",
     folder: "all",
     draft: "",
@@ -332,6 +362,8 @@ export function preview(c: Chat): string {
     }
     case "answer":
       return `${c.kind === "group" ? "aipager: " : ""}💬 ${m.session} · ${m.text}`;
+    case "confirm":
+      return m.done ?? m.text;
     default:
       return "";
   }

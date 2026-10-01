@@ -2,7 +2,7 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { CopyButton, GitHubIcon } from "@/components/brand";
 import { Desktop } from "@/components/tg/desktop";
-import { Ask, Places, Saved, Trust, Under } from "@/components/tg/sections";
+import { Ask, Modes, Places, Saved, Trust, Under } from "@/components/tg/sections";
 
 const INSTALL = "curl -fsSL aipager.run/install | sh";
 
@@ -40,6 +40,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <Modes />
         <Places />
         <Under />
         <Trust />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
+import { Ticks } from "./telegram";
 
 /* ---------------- where it lives ---------------- */
 
@@ -219,7 +220,12 @@ export function Saved() {
                   <code className="block font-mono text-[14px] text-white">{s.cmd}</code>
                   <span className="mt-0.5 block text-[12.5px] text-[#a9c6e6]">
                     {copied === s.cmd ? "Copied ✓" : s.note}
-                    <span className="float-right ml-3 text-[11px] text-[#7da8d3]">{s.time} ✓✓</span>
+                    <span className="float-right ml-3 inline-flex items-center gap-1 text-[11px] text-[#7da8d3]">
+                      {s.time}
+                      <span className="inline-block h-[11px] w-4 text-[#6ab3f3]">
+                        <Ticks n={2} />
+                      </span>
+                    </span>
                   </span>
                 </button>
               </div>
@@ -306,6 +312,113 @@ export function Ask() {
               })}
             </AnimatePresence>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- ask, or let it run ---------------- */
+
+function MiniChat({ title, tag, children }: { title: string; tag: string; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621]">
+      <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3">
+        <Mark size={34} className="rounded-full" />
+        <div className="leading-tight">
+          <div className="text-[14.5px] font-semibold text-white">aipager</div>
+          <div className="text-[12px] text-[#6ab3f3]">bot</div>
+        </div>
+        <span className="ml-auto rounded-full bg-white/[0.06] px-3 py-1 text-[12.5px] font-medium text-white">{title}</span>
+        <span className="text-[12px] text-fg-4">{tag}</span>
+      </div>
+      <div className="tg-pattern space-y-2 px-4 py-5 text-[13.5px] leading-[1.4] text-[#f1f5f9]">{children}</div>
+    </div>
+  );
+}
+
+const In = ({ children }: { children: React.ReactNode }) => <div className="max-w-[88%] rounded-[14px] rounded-bl-[5px] bg-[#182533] px-3 py-2">{children}</div>;
+const Out = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex justify-end">
+    <div className="max-w-[80%] rounded-[14px] rounded-br-[5px] bg-[#2b5278] px-3 py-2">{children}</div>
+  </div>
+);
+const Key = ({ children, on = false }: { children: React.ReactNode; on?: boolean }) => (
+  <span className={`rounded-lg px-2 py-[7px] text-center text-[13px] font-medium text-white ${on ? "bg-[#2e7d57]" : "bg-[#1f3246]/90"}`}>{children}</span>
+);
+const Row = ({ done, children }: { done: boolean; children: React.ReactNode }) => (
+  <div className="flex gap-1.5 text-[12.5px]">
+    <span className="w-4 shrink-0">{done ? "✅" : "⏳"}</span>
+    <code className="min-w-0 truncate font-mono text-[12px] text-[#9fc6ee]">{children}</code>
+  </div>
+);
+
+const MODE_FACTS: { title: string; body: string }[] = [
+  { title: "/perms", body: "Switches the active session. Going to Auto asks you to confirm; going back to Ask doesn't. On a busy session it offers to stop the task first." },
+  { title: "/new !name", body: "The /new wizard asks Ask or Auto when it creates a session; a ! before the name starts it straight in Auto." },
+  { title: "Admins only", body: "In a group, only an admin can switch a session to Auto. It relaunches Claude Code with --dangerously-skip-permissions." },
+  { title: "Questions still come", body: "Auto skips permission prompts, not decisions: when Claude asks you something, the buttons still land in your chat." },
+];
+
+export function Modes() {
+  return (
+    <section id="modes" className="border-t border-white/[0.06] py-32">
+      <div className="wrap !max-w-[76rem]">
+        <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-end gap-16">
+          <div>
+            <div className="eyebrow">Permission modes</div>
+            <h2 className="mt-4 text-[clamp(36px,4vw,56px)] font-semibold leading-[1.02] tracking-[-0.04em]">Ask, or let it run.</h2>
+          </div>
+          <p className="text-[16.5px] leading-relaxed text-fg-2">
+            Every session is in one of two modes. In Ask, Claude stops before a tool that needs approval and waits for your tap. In Auto, it runs
+            every tool on its own and you only hear about the result. Switch any time, per session.
+          </p>
+        </div>
+        <div className="mt-14 grid grid-cols-2 gap-6">
+          <MiniChat title="💬 Ask" tag="default">
+            <In>
+              <div className="mb-1">The test clicks before the session cookie is set.</div>
+              <Row done>Read: src/auth/cookie.ts</Row>
+              <div className="mt-2 rounded-lg bg-black/25 px-2.5 py-2">
+                <div>🔐 Bash: Run the login test with tracing</div>
+                <code className="mt-1 block font-mono text-[12px] text-[#ffc774]">pnpm test e2e/login --trace on</code>
+              </div>
+              <div className="mt-2 border-t border-white/[0.07] pt-1.5">
+                🔐 <b>api</b> · Permission needed
+              </div>
+            </In>
+            <div className="grid max-w-[88%] grid-cols-2 gap-1">
+              <Key on>✅ Allow</Key>
+              <Key>❌ Deny</Key>
+              <Key>🟢 Allow always</Key>
+              <Key>⏹ Stop</Key>
+            </div>
+            <In>✅ [api] · Allowed · Bash: pnpm test e2e/login --trace on</In>
+          </MiniChat>
+          <MiniChat title="🤖 Auto" tag="/perms">
+            <Out>/perms</Out>
+            <In>🤖 api is now in Auto mode.</In>
+            <Out>fix the flaky login e2e test</Out>
+            <In>
+              <div className="mb-1">The test clicks before the session cookie is set.</div>
+              <Row done>Read: src/auth/cookie.ts</Row>
+              <Row done>Bash: pnpm test e2e/login --trace on</Row>
+              <Row done>Edit: e2e/login.spec.ts</Row>
+              <Row done={false}>Bash: pnpm test e2e/login --repeat 10</Row>
+              <div className="mt-2 border-t border-white/[0.07] pt-1.5">
+                ⏳ <b>api</b> · Testing <span className="text-[#8fa3b8]">· 4m 02s · Read ×2 · Bash ×3 · Edit ×1</span>
+              </div>
+            </In>
+            <div className="max-w-[88%] px-1 text-[12.5px] text-fg-3">No buttons. Nothing to tap. Just the answer when it's done.</div>
+          </MiniChat>
+        </div>
+        <div className="mt-12 grid grid-cols-4 gap-8">
+          {MODE_FACTS.map((f) => (
+            <div key={f.title} className="border-t border-white/10 pt-5">
+              <div className="font-mono text-[14px] text-white">{f.title}</div>
+              <p className="mt-2 text-[14px] leading-relaxed text-fg-2">{f.body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

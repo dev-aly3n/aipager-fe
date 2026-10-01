@@ -6,7 +6,7 @@ import { Mark } from "@/components/brand";
 import { useStory } from "./engine";
 import { TelegramWindow } from "./telegram";
 import { Terminal } from "./terminal";
-import { PEOPLE, type ChatId } from "./world";
+import { PEOPLE, type ChatId, type Mode } from "./world";
 
 const W = 1200;
 const H = 640;
@@ -77,10 +77,40 @@ function MenuBar({ sessions, clock }: { sessions: number; clock: string }) {
   );
 }
 
+const MODES: { id: Mode; label: string; line: string }[] = [
+  { id: "ask", label: "💬 Ask", line: "The default. Claude asks before tools that need approval, and you tap Allow." },
+  { id: "auto", label: "🤖 Auto", line: "Claude runs every tool without asking. Switch with /perms, or start with /new !name." },
+];
+
+/** Ask or Auto: the evening replays in the mode you pick. */
+function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+      <span className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-fg-4">Permission mode</span>
+      <div className="flex rounded-full border border-white/10 bg-white/[0.03] p-1" role="radiogroup" aria-label="Permission mode">
+        {MODES.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            role="radio"
+            aria-checked={mode === m.id}
+            onClick={() => onMode(m.id)}
+            className={`rounded-full px-4 py-1.5 text-[13.5px] font-medium transition-colors ${mode === m.id ? "bg-[#2aabee] text-white shadow-[0_6px_20px_-6px_rgb(42_171_238/0.7)]" : "text-fg-3 hover:text-foreground"}`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <span className="text-[13.5px] text-fg-3">{MODES.find((m) => m.id === mode)?.line}</span>
+    </div>
+  );
+}
+
 export function Desktop() {
   const [box, scale] = useFit();
   const on = useOnScreen(box);
-  const story = useStory(on);
+  const [mode, setMode] = useState<Mode>("ask");
+  const story = useStory(on, mode);
   const { world, waiting } = story;
   const [hint, setHint] = useState<string | null>(null);
 
@@ -95,6 +125,12 @@ export function Desktop() {
   const onTap = (msgId: string, choice: number) => {
     const c = world.chats[world.open];
     const m = c.msgs.find((x) => x.id === msgId);
+    // Cancel keeps the session in Ask; this evening is about Auto.
+    if (m?.kind === "confirm" && choice === 1) {
+      setHint("Cancel would keep api in Ask mode. This evening shows Auto: try “Yes, switch”.");
+      window.setTimeout(() => setHint(null), 3500);
+      return;
+    }
     // Deny and Stop are real buttons; in this evening, Claude needs the test run.
     if (m?.kind === "card" && m.prompt?.kind === "perm" && (choice === 1 || choice === 3)) {
       setHint(choice === 1 ? "Deny would block the call for real. This evening needs the test run: try Allow." : "Stop would interrupt the turn. Try Allow.");
@@ -106,6 +142,7 @@ export function Desktop() {
 
   return (
     <div>
+      <ModeSwitch mode={mode} onMode={setMode} />
       <div ref={box} className="relative w-full" style={{ height: H * scale }}>
         <div className="absolute top-0 origin-top overflow-hidden rounded-[18px] border border-white/10" style={{ width: W, height: H, left: "50%", transform: `translateX(-50%) scale(${scale})` }}>
           {/* the desk */}

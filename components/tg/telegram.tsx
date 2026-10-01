@@ -206,16 +206,44 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
 
 /* ---------------- messages ---------------- */
 
+/**
+ * Telegram's sent (one check) and read (two checks) marks, drawn as icons in
+ * a slot of one fixed size, so a message turning read never moves its bubble.
+ */
+export function Ticks({ n }: { n: 1 | 2 }) {
+  return (
+    <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="block" aria-label={n === 2 ? "read" : "sent"}>
+      {n === 2 ? (
+        <>
+          <path d="M1.2 5.9 3.9 8.6 9.6 2.3" />
+          <path d="M8 8.4 8.2 8.6 13.9 2.3" />
+        </>
+      ) : (
+        <path d="M4.2 5.9 6.9 8.6 12.6 2.3" />
+      )}
+    </svg>
+  );
+}
+
 function Meta({ time, ticks, out }: { time: string; ticks?: 1 | 2; out: boolean }) {
   return (
     <span className={`float-right ml-2 mt-[5px] translate-y-[3px] select-none whitespace-nowrap text-[11px] ${out ? "text-[#7da8d3]" : "text-[#6d7f8f]"}`}>
       {time}
-      {out && ticks && <span className="ml-1 text-[#6ab3f3]">{ticks === 2 ? "✓✓" : "✓"}</span>}
+      {out && ticks && (
+        <span className="ml-1 inline-block h-[11px] w-4 align-[-1px] text-[#6ab3f3]">
+          <Ticks n={ticks} />
+        </span>
+      )}
     </span>
   );
 }
 
-function Reaction({ r }: { r?: string }) {
+/**
+ * A reaction sits on the bubble's bottom edge instead of inside it, so it can
+ * land without resizing the bubble. Messages that will get one keep the room
+ * under them from the start (see `reacts` in Bubble).
+ */
+function Reaction({ r, out }: { r?: string; out: boolean }) {
   return (
     <AnimatePresence>
       {r && (
@@ -224,7 +252,7 @@ function Reaction({ r }: { r?: string }) {
           initial={{ scale: 0.3, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 520, damping: 20 }}
-          className="clear-both mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#2f4a66] px-2 py-0.5 text-[12px] text-white"
+          className={`absolute -bottom-[13px] z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-[#0e1621] bg-[#2f4a66] px-2 py-[1px] text-[12px] text-white ${out ? "right-2" : "left-2"}`}
         >
           {r}
         </motion.span>
@@ -309,6 +337,7 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
   const group = chat.kind === "group";
   const prevSender = prev && prev.kind !== "day" ? (prev.kind === "text" ? prev.from : "bot") : null;
   const firstOfRun = prevSender !== sender;
+  const reacts = (m.kind === "text" || m.kind === "answer") && m.reaction !== undefined;
   const bubble = `relative flow-root max-w-[78%] rounded-[14px] px-3 py-[7px] text-[13.5px] leading-[1.38] text-[#f1f5f9] shadow-[0_1px_1px_rgb(0_0_0/0.3)] ${
     out ? "bg-[#2b5278] rounded-br-[5px]" : "bg-[#182533] rounded-bl-[5px]"
   }`;
@@ -331,7 +360,7 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
         )}
         <span className="whitespace-pre-wrap">{m.text}</span>
         <Meta time={m.time} ticks={m.ticks} out={out} />
-        <Reaction r={m.reaction} />
+        <Reaction r={m.reaction} out={out} />
       </>
     );
   } else if (m.kind === "card") {
@@ -339,6 +368,18 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
       <>
         {name}
         <CardBody c={m} />
+        <Meta time={m.time} out={false} />
+      </>
+    );
+  } else if (m.kind === "confirm") {
+    body = (
+      <>
+        {m.done ?? (
+          <>
+            <div>{m.text}</div>
+            <div className="mt-0.5 text-[12.5px] italic text-[#a9b8c6]">{m.note}</div>
+          </>
+        )}
         <Meta time={m.time} out={false} />
       </>
     );
@@ -351,17 +392,32 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
         </div>
         <span>{m.text}</span>
         <Meta time={m.time} out={false} />
-        <Reaction r={m.reaction} />
+        <Reaction r={m.reaction} out={false} />
       </>
     );
   }
 
   return (
-    <div className={`flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"}`}>
+    <div className={`flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""}`}>
       {group && !out && <span className="w-[30px] shrink-0">{firstOfRun && <PersonDot id={sender} />}</span>}
-      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : ""}`}>
-        <div className={m.kind === "card" ? `${bubble} !max-w-full` : bubble}>{body}</div>
+      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : ""}`}>
+        <div className={m.kind === "card" || (m.kind === "confirm" && m.done === null) ? `${bubble} !max-w-full` : bubble}>{body}</div>
         {m.kind === "card" && <Keyboard c={m} waiting={waiting} onTap={(choice) => onTap(m.id, choice)} />}
+        {m.kind === "confirm" && m.done === null && (
+          <div className="mt-1 grid grid-cols-2 gap-1">
+            {m.buttons.map((b, i) => (
+              <button
+                key={b}
+                type="button"
+                disabled={m.answered !== null}
+                onClick={() => onTap(m.id, i)}
+                className={`rounded-lg bg-[#1f3246]/90 px-2 py-[7px] text-[13px] font-medium text-white backdrop-blur transition hover:bg-[#28415b] active:scale-[0.98] ${waiting && i === 0 ? "tap-me" : ""} ${m.answered === i ? "!bg-[#2e7d57]" : ""}`}
+              >
+                {b}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
