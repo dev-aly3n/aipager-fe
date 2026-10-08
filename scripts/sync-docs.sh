@@ -20,6 +20,14 @@ fi
 mkdir -p "$DEST"
 cp -v "$SRC"/*.md "$DEST/"
 
+# The agent install guide is also served raw at aipager.run/agent.md (the
+# README tells people to point their coding agent there). An agent reads
+# it outside the docs site, so its links to other docs become absolute.
+mkdir -p public
+sed -E 's#\]\(([A-Za-z0-9_-]+)\.md(\#[^)]*)?\)#](https://aipager.run/docs/\1\2)#g' \
+  "$SRC/install-with-an-agent.md" > public/agent.md
+echo "✓ public/agent.md written from install-with-an-agent.md"
+
 echo
 echo "✓ docs synced from $SRC"
 echo "  commit + push to deploy."

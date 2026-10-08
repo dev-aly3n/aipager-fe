@@ -16,12 +16,14 @@ export type Doc = DocSummary & {
 // Order shown in the sidebar — explicit beats alphabetical for reference docs.
 const SIDEBAR_ORDER = [
   "",                    // README — index
+  "install-with-an-agent",
   "architecture",
   "hooks",
   "commands",
   "groups",
   "observers",
   "troubleshooting",
+  "problem-reports",
   "security",
 ] as const;
 
