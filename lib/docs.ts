@@ -81,10 +81,14 @@ function extractTitleAndDescription(md: string): { title: string; description: s
 }
 
 // Rewrite [text](X.md) and [text](X.md#anchor) → [text](/docs/X) or /docs/X#anchor.
-// [text](README.md) → [text](/docs).
+// [text](README.md) → [text](/docs). A file outside docs/ ([text](../README.md),
+// ../CHANGELOG.md) is not on this site: link it on GitHub instead.
+const REPO_BLOB = "https://github.com/dev-aly3n/aipager/blob/main";
+
 function rewriteCrossLinks(md: string): string {
   return md.replace(/\]\(([^)]+)\.md(#[^)]+)?\)/g, (_, name: string, anchor: string | undefined) => {
     const cleaned = name.replace(/^\.\//, "");
+    if (cleaned.startsWith("../")) return `](${REPO_BLOB}/${cleaned.slice(3)}.md${anchor ?? ""})`;
     if (cleaned === "README") return `](/docs${anchor ?? ""})`;
     return `](/docs/${cleaned}${anchor ?? ""})`;
   });
