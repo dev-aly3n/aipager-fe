@@ -128,7 +128,10 @@ subagent's call goes on that agent's row), and a `Write` or `Edit`
 shows a diff preview when `/settings` → Diff previews is on (off by
 default). An `AskUserQuestion` call becomes the question with one button
 per option; one asked by a Claude Code helper agent while no turn runs
-is not shown (it is not Claude asking you).
+is not shown (it is not Claude asking you). Claude's own `Agent` call
+leaves its `subagent_type` and `description` for the agent it starts,
+and a subagent's call is that agent's latest activity: both show in the
+status under an answer while the agent runs in the background.
 
 ### `PermissionRequest`
 
@@ -186,7 +189,8 @@ layout says, and Claude's answer is sent (from the event's
 `last_assistant_message`, or else the transcript). Messages that were
 held for the turn to end go out next. Background agents and commands
 that are still running keep the job open: the card stays as the job's
-status and the answer says what is still running (see
+status and the answer ends with a live status of that work: what each
+agent is doing and how many of the job's shells run (see
 [commands → agents still running](commands.md#agents-still-running-when-the-answer-goes-out)).
 The hook clears the turn's open mark first, unless Claude still holds a
 queued message that becomes the next turn at once.
@@ -220,15 +224,19 @@ up), so the pause does not look like a crash. `PostCompact` ends that
 state; the `📦 name · Compacted: X% → Y%` line comes from the
 `SessionStart` that follows, or from the status line when that is
 missed. The status line also gives the warning `⚠️ name · Context at
-82% - auto-compact soon` (with a Compact button) once the context
-reaches 80%, and again only after it has dropped below 30%.
+82% - auto-compact soon` (with a Compact button) when the context
+reaches 80%, once per conversation: compacting does not repeat it, and a
+new conversation (after `/clear`, for example) gets it again.
 
 ### `MessageDisplay`
 
 Claude's own text as it reaches the screen. The transcript is written
 only after each round of tool calls, so this is the one current source
 of what Claude is saying, and what streams its commentary into the busy
-card. A subagent's text stays under its own row. The hook adds no
+card. A subagent's text (any event carrying its `agent_id`) is never
+taken for Claude's own: it never reaches the busy card's commentary,
+the Mini App or the turn's log, and becomes that agent's latest activity
+in the status under an answer. The hook adds no
 status-line data to this event: Claude Code waits for it while it
 draws, and it fires several times per message.
 
@@ -326,7 +334,7 @@ With no tap within 20 seconds the hook prints nothing and Claude Code
 shows its own dialog; a later tap types the answer into that dialog
 through the session's terminal (`dtach -p`). Either way the tap is
 recorded in the audit log and posted under the card (`✅ jim · Allowed
-by @alice · Bash: ls -la /tmp`).
+· @alice · Bash: ls -la /tmp`).
 
 ## See also
 
