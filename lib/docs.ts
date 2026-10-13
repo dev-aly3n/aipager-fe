@@ -21,7 +21,6 @@ const SIDEBAR_ORDER = [
   "hooks",
   "commands",
   "groups",
-  "observers",
   "troubleshooting",
   "problem-reports",
   "security",
