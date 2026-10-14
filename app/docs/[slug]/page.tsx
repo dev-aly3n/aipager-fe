@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { DocsContent } from "@/components/docs-content";
+import { DocsPage } from "@/components/docs-page";
 import { getDoc, listSlugs } from "@/lib/docs";
 
 export function generateStaticParams() {
@@ -35,5 +35,5 @@ export default async function DocPage({
   } catch {
     notFound();
   }
-  return <DocsContent source={doc.source} />;
+  return <DocsPage doc={doc} />;
 }

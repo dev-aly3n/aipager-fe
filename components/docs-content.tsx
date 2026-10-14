@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { Mermaid } from "./mermaid";
+import { DocsCode } from "./docs-code";
 
 // The plain text of a heading's children (code spans and emphasis included).
 function textOf(node: ReactNode): string {
@@ -36,10 +37,18 @@ export function DocsContent({ source }: { source: string }) {
   const slug = makeSlugger();
   const heading = (Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") =>
     function Heading({ node: _n, children, ...rest }: { node?: unknown; children?: ReactNode }) {
-      return <Tag id={slug(textOf(children))} {...rest}>{children}</Tag>;
+      const id = slug(textOf(children));
+      return (
+        <Tag id={id} {...rest}>
+          {children}
+          <a href={`#${id}`} className="anchor" aria-label="Link to this section">
+            #
+          </a>
+        </Tag>
+      );
     };
   return (
-    <article className="prose prose-neutral dark:prose-invert max-w-none prose-pre:bg-[var(--terminal-bg)] prose-pre:text-[var(--terminal-fg)] prose-pre:border prose-pre:border-border prose-headings:scroll-mt-20 prose-a:text-accent hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none prose-code:rounded prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:font-normal">
+    <div>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
@@ -58,26 +67,29 @@ export function DocsContent({ source }: { source: string }) {
           // never scrolls sideways.
           table({ node: _n, children, ...rest }) {
             return (
-              <div className="overflow-x-auto">
+              <div className="-mx-1 overflow-x-auto px-1">
                 <table {...rest}>{children}</table>
               </div>
             );
           },
-          code({ node: _n, className, children, ...rest }) {
-            const match = /language-(\w+)/.exec(className || "");
-            if (match && match[1] === "mermaid") {
-              return <Mermaid source={String(children).trimEnd()} />;
-            }
+          // A fenced block becomes a console: its language, a copy button and
+          // the highlighted code. A mermaid fence becomes the diagram itself.
+          pre({ node: _n, children }) {
+            const kid = Array.isArray(children) ? children[0] : children;
+            const cls = typeof kid === "object" && kid !== null && "props" in kid ? String((kid as { props: { className?: string } }).props.className ?? "") : "";
+            const lang = /language-(\w+)/.exec(cls)?.[1] ?? "";
+            const text = textOf(children);
+            if (lang === "mermaid") return <Mermaid source={text.trimEnd()} />;
             return (
-              <code className={className} {...rest}>
+              <DocsCode text={text} lang={lang}>
                 {children}
-              </code>
+              </DocsCode>
             );
           },
         }}
       >
         {source}
       </ReactMarkdown>
-    </article>
+    </div>
   );
 }

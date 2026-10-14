@@ -1,4 +1,4 @@
-import { DocsContent } from "@/components/docs-content";
+import { DocsPage } from "@/components/docs-page";
 import { getDoc } from "@/lib/docs";
 
 export const metadata = {
@@ -7,6 +7,5 @@ export const metadata = {
 };
 
 export default function DocsIndex() {
-  const doc = getDoc("");
-  return <DocsContent source={doc.source} />;
+  return <DocsPage doc={getDoc("")} />;
 }

@@ -406,3 +406,213 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .jolt { animation: none; }
 }
+
+/* ===========================
+   docs — the reference pages
+   Typography of its own, rather than a plugin's defaults: a column that is
+   comfortable to read, headings that separate without shouting, tables that
+   look like tables, and fenced code that looks like a console.
+   =========================== */
+.docs {
+  color: var(--fg-2);
+  font-size: 15.5px;
+  line-height: 1.72;
+}
+.docs > * + * {
+  margin-top: 1.05em;
+}
+.docs h2,
+.docs h3,
+.docs h4 {
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  scroll-margin-top: 96px;
+}
+.docs h2 {
+  margin-top: 2.6em;
+  padding-top: 1.7em;
+  border-top: 1px solid var(--line);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.docs h3 {
+  margin-top: 2.1em;
+  font-size: 18.5px;
+  font-weight: 600;
+}
+.docs h4 {
+  margin-top: 1.7em;
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.docs h2 + *,
+.docs h3 + *,
+.docs h4 + * {
+  margin-top: 0.7em;
+}
+.docs .anchor {
+  margin-left: 0.4em;
+  color: var(--fg-4);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.docs h2:hover .anchor,
+.docs h3:hover .anchor,
+.docs h4:hover .anchor {
+  opacity: 1;
+}
+.docs a:not(.anchor) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgb(63 169 245 / 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+.docs a:not(.anchor):hover {
+  text-decoration-color: var(--accent);
+}
+.docs strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.docs ul,
+.docs ol {
+  padding-left: 1.35em;
+}
+.docs ul {
+  list-style: none;
+  padding-left: 1.15em;
+}
+.docs ul > li::before {
+  content: "•";
+  display: inline-block;
+  width: 1.15em;
+  margin-left: -1.15em;
+  color: var(--fg-4);
+}
+.docs ol {
+  list-style: decimal;
+}
+.docs li::marker {
+  color: var(--fg-4);
+}
+.docs li + li {
+  margin-top: 0.4em;
+}
+.docs li > ul,
+.docs li > ol {
+  margin-top: 0.4em;
+}
+.docs :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: rgb(255 255 255 / 0.065);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: 5px;
+  padding: 0.1em 0.38em;
+  color: #cfe0f2;
+  white-space: nowrap;
+}
+.docs blockquote {
+  border-left: 2px solid var(--accent);
+  background: rgb(63 169 245 / 0.055);
+  border-radius: 0 10px 10px 0;
+  padding: 0.75em 1.1em;
+  color: var(--fg-2);
+}
+.docs blockquote > * + * {
+  margin-top: 0.6em;
+}
+.docs hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2.6em 0;
+}
+.docs table {
+  width: 100%;
+  /* a reference table keeps its columns legible and scrolls inside its own
+     box on a phone, rather than squashing to one word per line */
+  min-width: 34rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.docs thead th {
+  background: rgb(255 255 255 / 0.04);
+  text-align: left;
+  font-weight: 600;
+  color: var(--fg);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.docs tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+  vertical-align: top;
+}
+.docs tbody tr:last-child td {
+  border-bottom: 0;
+}
+.docs tbody tr:hover td {
+  background: rgb(255 255 255 / 0.02);
+}
+.docs td > code,
+.docs th > code {
+  white-space: nowrap;
+}
+
+/* a fenced block, with its language and a copy button */
+.code-block {
+  margin-top: 1.4em;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--term-bg);
+}
+.code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 6px 8px 6px 14px;
+  background: rgb(255 255 255 / 0.025);
+  border-bottom: 1px solid var(--line);
+}
+.code-bar .lang {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--fg-4);
+}
+.code-block pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.code-block pre code {
+  font-family: var(--font-mono);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--term-fg);
+  white-space: pre;
+}
+.docs .mermaid-block {
+  margin-top: 1.4em;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  background: rgb(255 255 255 / 0.015);
+  overflow-x: auto;
+}
