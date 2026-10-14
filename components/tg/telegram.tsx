@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
-import { fmtElapsed, PEOPLE, preview, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
+import { fmtClock, PEOPLE, preview, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
 
 type Card = Extract<Msg, { kind: "card" }>;
 
@@ -261,23 +261,44 @@ function Reaction({ r, out }: { r?: string; out: boolean }) {
   );
 }
 
+/**
+ * One line of a card: Claude's own words come as a Telegram blockquote, a
+ * settled run of tool calls folds away behind one line, and everything else
+ * is a tool row.
+ */
+function CardRow({ it }: { it: CardItem }) {
+  if (it.type === "prose")
+    return (
+      <div className="relative my-1.5 rounded-[6px] border-l-[3px] border-[#e8737d] bg-[#2a2029]/80 py-1 pl-2.5 pr-5 leading-[1.38]">
+        {it.text}
+        <span className="absolute right-1.5 top-0.5 font-serif text-[13px] leading-none text-[#e8737d]">&rdquo;</span>
+      </div>
+    );
+  if (it.type === "fold")
+    return (
+      <div className="flex items-center gap-2 py-[3px] text-[12.5px] text-[#c9d6e3]">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7d8b99" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+        ▸ {it.n} tool calls
+      </div>
+    );
+  return (
+    <div className="flex gap-1.5 text-[12.5px]">
+      <span className="w-4 shrink-0">{it.done ? "✅" : "⏳"}</span>
+      <code className="min-w-0 truncate font-mono text-[12px] text-[#9fc6ee]">{it.text}</code>
+    </div>
+  );
+}
+
 function CardBody({ c }: { c: Card }) {
-  const verb = c.mark === "✅" ? `Finished (${fmtElapsed(c.elapsed)})` : c.verb;
-  const parts = [c.mark === "⏳" ? fmtElapsed(c.elapsed) : "", c.mark === "⏳" || c.mark === "✅" ? c.tally : ""].filter(Boolean);
+  const verb = c.mark === "✅" ? `Finished (${fmtClock(c.elapsed)})` : c.verb;
+  const parts = [c.mark === "⏳" ? fmtClock(c.elapsed) : "", c.mark === "⏳" || c.mark === "✅" ? c.tally : ""].filter(Boolean);
   return (
     <>
-      {c.items.map((it, i) =>
-        it.type === "prose" ? (
-          <div key={i} className="mb-1">
-            {it.text}
-          </div>
-        ) : (
-          <div key={i} className="flex gap-1.5 text-[12.5px]">
-            <span className="w-4 shrink-0">{it.done ? "✅" : "⏳"}</span>
-            <code className="min-w-0 truncate font-mono text-[12px] text-[#9fc6ee]">{it.text}</code>
-          </div>
-        ),
-      )}
+      {c.items.map((it, i) => (
+        <CardRow key={i} it={it} />
+      ))}
       {c.prompt?.kind === "perm" && (
         <div className="mt-2 rounded-lg bg-black/25 px-2.5 py-2">
           <div>

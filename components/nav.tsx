@@ -2,9 +2,10 @@ import { GitHubIcon, Mark } from "@/components/brand";
 import { getAipagerVersion } from "@/lib/version";
 
 const LINKS: { href: string; label: string; homeOnly?: boolean }[] = [
-  { href: "/#story", label: "How it works", homeOnly: true },
+  { href: "/#modes", label: "Modes", homeOnly: true },
+  { href: "/#how", label: "How it works", homeOnly: true },
   { href: "/#install", label: "Install", homeOnly: true },
-  { href: "/#boundary", label: "Security", homeOnly: true },
+  { href: "/#trust", label: "Security", homeOnly: true },
   { href: "/#faq", label: "FAQ", homeOnly: true },
   { href: "/docs", label: "Docs" },
 ];

@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
+import { Cable, STAGE } from "./cable";
 import { useStory } from "./engine";
 import { TelegramWindow } from "./telegram";
 import { Terminal } from "./terminal";
 import { PEOPLE, type ChatId, type Mode } from "./world";
 
-const W = 1200;
-const H = 640;
+const { w: W, h: H } = STAGE;
+/** the windows stop above the cable zone */
+const WIN = { top: 40, h: 540 };
 
 /**
  * Scales the fixed-size desk like a video: to the width it is given, and no
@@ -77,9 +79,10 @@ function MenuBar({ sessions, clock }: { sessions: number; clock: string }) {
   );
 }
 
-const MODES: { id: Mode; label: string; line: string }[] = [
-  { id: "ask", label: "💬 Ask", line: "The default. Claude asks before tools that need approval, and you tap Allow." },
-  { id: "auto", label: "🤖 Auto", line: "Claude runs every tool without asking. Switch with /perms, or start with /new !name." },
+const MODES: { id: Mode; label: string; tag?: string; line: string }[] = [
+  { id: "ask", label: "💬 Ask", line: "Claude asks before each action, and every call waits for your tap." },
+  { id: "auto", label: "🤖 Auto", tag: "default", line: "Where every new session starts: Claude Code's own safety check runs the safe calls and stops the risky ones for you." },
+  { id: "full", label: "🔓 Full access", line: "Everything runs with no checks. Admins, and you in your own private chat with the bot." },
 ];
 
 /** Ask or Auto: the evening replays in the mode you pick. */
@@ -95,13 +98,16 @@ function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void })
             role="radio"
             aria-checked={mode === m.id}
             onClick={() => onMode(m.id)}
-            className={`rounded-full px-4 py-1.5 text-[13.5px] font-medium transition-colors ${mode === m.id ? "bg-[#2aabee] text-white shadow-[0_6px_20px_-6px_rgb(42_171_238/0.7)]" : "text-fg-3 hover:text-foreground"}`}
+            className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13.5px] font-medium transition-colors ${mode === m.id ? "bg-[#2aabee] text-white shadow-[0_6px_20px_-6px_rgb(42_171_238/0.7)]" : "text-fg-3 hover:text-foreground"}`}
           >
             {m.label}
+            {m.tag && (
+              <span className={`rounded-full px-1.5 py-px font-mono text-[10px] ${mode === m.id ? "bg-white/20 text-white" : "bg-white/[0.06] text-fg-4"}`}>{m.tag}</span>
+            )}
           </button>
         ))}
       </div>
-      <span className="text-[13.5px] text-fg-3">{MODES.find((m) => m.id === mode)?.line}</span>
+      <span className="max-w-[46rem] text-[13.5px] text-fg-3">{MODES.find((m) => m.id === mode)?.line}</span>
     </div>
   );
 }
@@ -109,7 +115,7 @@ function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void })
 export function Desktop() {
   const [box, scale] = useFit();
   const on = useOnScreen(box);
-  const [mode, setMode] = useState<Mode>("ask");
+  const [mode, setMode] = useState<Mode>("auto");
   const story = useStory(on, mode);
   const { world, waiting } = story;
   const [hint, setHint] = useState<string | null>(null);
@@ -148,12 +154,13 @@ export function Desktop() {
           {/* the desk */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,#1b2a44_0%,transparent_55%),radial-gradient(ellipse_at_90%_100%,#2a1d3f_0%,transparent_55%),linear-gradient(180deg,#0b1018,#080b11)]" />
           <MenuBar sessions={world.panes.length} clock={`Tue ${lastTime}`} />
-          <div className="absolute left-4 top-[40px] h-[584px] w-[376px]">
+          <div className="absolute left-4 w-[376px]" style={{ top: WIN.top, height: WIN.h }}>
             <Terminal panes={world.panes} detached={false} />
           </div>
-          <div className="absolute left-[404px] top-[40px] h-[584px] w-[780px]">
+          <div className="absolute left-[404px] w-[780px]" style={{ top: WIN.top, height: WIN.h }}>
             <TelegramWindow world={world} waiting={waiting} onOpen={story.openChat} onFolder={story.setFolder} onTap={onTap} />
           </div>
+          <Cable world={world} spark={story.spark} />
           {/* notifications */}
           <div className="absolute right-4 top-9 z-30 flex w-[340px] flex-col gap-2">
             <AnimatePresence initial={false}>
@@ -192,7 +199,7 @@ export function Desktop() {
             </AnimatePresence>
           </div>
           {hint && (
-            <div className="absolute bottom-6 left-[404px] right-4 z-30 flex justify-center">
+            <div className="absolute bottom-[146px] left-[404px] right-4 z-30 flex justify-center">
               <div className="rounded-full bg-black/75 px-4 py-2 text-[13px] text-white backdrop-blur">{hint}</div>
             </div>
           )}

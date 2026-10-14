@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { storyFor, type Step } from "./story";
-import { initialWorld, open, type ChatId, type Folder, type Mode, type World } from "./world";
+import { FLIGHT_MS } from "./cable";
+import { initialWorld, open, type ChatId, type Folder, type Mode, type Spark, type World } from "./world";
 
 const VERBS = ["Tinkering", "Pondering", "Investigating", "Deciphering", "Percolating", "Noodling", "Brewing", "Synthesizing"];
 /** How long the story holds still after the reader clicked something. */
@@ -19,13 +20,18 @@ export interface Story {
   dismiss: (id: string) => void;
   /** the reader is looking around; the story waits for them */
   held: boolean;
+  /** the charge the cable should be carrying right now */
+  spark: { id: number; s: Spark } | null;
 }
 
 export function useStory(active: boolean, mode: Mode): Story {
   const [world, setWorld] = useState<World>(() => initialWorld(mode));
   const [waiting, setWaiting] = useState<Story["waiting"]>(null);
   const [held, setHeld] = useState(false);
+  const [spark, setSpark] = useState<Story["spark"]>(null);
   const idx = useRef(0);
+  const sparked = useRef(-1);
+  const sparkAt = useRef(0);
   const lastStepAt = useRef(0);
   const lastUser = useRef(-1e9);
   const gateSince = useRef<number | null>(null);
@@ -39,6 +45,7 @@ export function useStory(active: boolean, mode: Mode): Story {
     shown.current = mode;
     steps.current = storyFor(mode);
     idx.current = 0;
+    sparked.current = -1;
     lastStepAt.current = performance.now();
     gateSince.current = null;
     lastUser.current = -1e9;
@@ -67,6 +74,7 @@ export function useStory(active: boolean, mode: Mode): Story {
       if (!step) {
         // The end: start the evening again.
         idx.current = 0;
+        sparked.current = -1;
         lastStepAt.current = now;
         gateSince.current = null;
         setWaiting(null);
@@ -91,6 +99,16 @@ export function useStory(active: boolean, mode: Mode): Story {
         return;
       }
       if (userBusy) return;
+      // Announce it down the cable first; the step lands with the charge.
+      if (step.wire) {
+        if (sparked.current !== idx.current) {
+          sparked.current = idx.current;
+          sparkAt.current = now;
+          setSpark({ id: now, s: step.wire });
+          return;
+        }
+        if (now - sparkAt.current < FLIGHT_MS) return;
+      }
       edit((w) => {
         if (step.open) open(w, step.open);
         if (step.caption) w.caption = step.caption;
@@ -98,7 +116,7 @@ export function useStory(active: boolean, mode: Mode): Story {
       });
       idx.current += 1;
       lastStepAt.current = now;
-    }, 60);
+    }, 25);
     return () => window.clearInterval(id);
   }, [active, edit]);
 
@@ -180,5 +198,5 @@ export function useStory(active: boolean, mode: Mode): Story {
     [edit],
   );
 
-  return { world, waiting, openChat, setFolder, tap, dismiss, held };
+  return { world, waiting, openChat, setFolder, tap, dismiss, held, spark };
 }

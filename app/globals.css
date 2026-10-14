@@ -390,3 +390,19 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .typing-dot, .flow-dot { animation: none; }
 }
+
+/* A charge landing in a window knocks it, the way a plug does. */
+@keyframes jolt {
+  0% { transform: translate3d(0, 0, 0); }
+  16% { transform: translate3d(1.4px, 3px, 0) rotate(0.1deg); }
+  38% { transform: translate3d(-1.2px, -2.2px, 0) rotate(-0.07deg); }
+  62% { transform: translate3d(0.8px, 1.4px, 0); }
+  82% { transform: translate3d(-0.4px, -0.6px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.jolt {
+  animation: jolt 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jolt { animation: none; }
+}

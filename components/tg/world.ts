@@ -41,7 +41,12 @@ export interface Pane {
   bypass?: boolean;
 }
 
-export type CardItem = { type: "prose"; text: string } | { type: "row"; text: string; done: boolean };
+export type CardItem =
+  /** Claude's own words, which the card quotes */
+  | { type: "prose"; text: string }
+  | { type: "row"; text: string; done: boolean }
+  /** a settled run of tool calls, folded away behind one line */
+  | { type: "fold"; n: number };
 
 export type Prompt =
   | { kind: "perm"; tool: string; what: string; command: string; answered: boolean }
@@ -52,7 +57,7 @@ export type Msg =
   | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string } }
   | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
   | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string }
-  /** a bot message with buttons (the /perms confirmation); answering edits it in place */
+  /** a bot message with buttons (the /mode confirmation); answering edits it in place */
   | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string };
 
 export type ChatId = "aipager" | "team" | "mom" | "friends" | "sara" | "saved";
@@ -84,7 +89,23 @@ export interface Note {
   body: string;
 }
 
-export type Mode = "ask" | "auto";
+/**
+ * The three permission modes of aipager 1.1+. Auto is what a new session
+ * starts in; what used to be called Auto (no checks at all) is Full access.
+ */
+export type Mode = "ask" | "auto" | "full";
+
+/**
+ * What travels down the cable for a step: the hook name that leaves one end
+ * and what lands at the other. The story announces it, the step itself is
+ * held back until the charge arrives, so the chat changes on impact.
+ */
+export interface Spark {
+  dir: "out" | "back";
+  from: string;
+  to: string;
+  tone: "hook" | "perm" | "verdict" | "quiet";
+}
 
 export interface World {
   mode: Mode;
@@ -112,13 +133,18 @@ export const PEOPLE: Record<string, { name: string; color: string }> = {
 
 const SHELL = "~/work/api $ ";
 
-export function initialWorld(mode: Mode = "ask"): World {
+export function initialWorld(mode: Mode = "auto"): World {
+  // Every evening starts the same way: a session resting in the other room,
+  // and you about to give it the next job from the sofa.
   const w = askWorld();
-  if (mode === "ask") return w;
-  // Auto: the session is idle when the evening starts, and you are in its chat.
-  w.mode = "auto";
+  w.mode = mode;
   w.open = "aipager";
-  w.caption = "Auto mode: /perms switches the session so Claude runs tools without asking. Going to Auto asks you to confirm.";
+  w.caption =
+    mode === "auto"
+      ? "A Claude Code session resting on your laptop, in Auto mode — where every new session starts."
+      : mode === "ask"
+        ? "A Claude Code session resting on your laptop, in Ask mode: it asks before every action."
+        : "A Claude Code session resting on your laptop. Before the next job, you take its checks off.";
   const p = w.panes[0];
   p.lines = [
     { text: SHELL + "aipager session api", tone: "dim" },
@@ -128,21 +154,19 @@ export function initialWorld(mode: Mode = "ask"): World {
   ];
   p.spinner = null;
   p.secs = 0;
-  const a = w.chats.aipager;
-  a.msgs = a.msgs.filter((m) => m.id === "d0" || m.id === "old");
-  a.pinnedBar = "💤 api (idle)";
+  w.chats.aipager.pinnedBar = "💤 api (idle)";
   return w;
 }
 
 function askWorld(): World {
   return {
     mode: "ask",
-    open: "mom",
+    open: "aipager",
     folder: "all",
     draft: "",
     notes: [],
     seq: 0,
-    caption: "Claude is fixing a flaky test in your terminal. You're catching up with Mom.",
+    caption: "A flaky login test, running on your machine.",
     panes: [
       {
         id: "api",
@@ -158,7 +182,7 @@ function askWorld(): World {
         secs: 192,
         dialog: null,
         input: "",
-        status: "Sonnet 5 · ctx 12% · $0.14",
+        status: "[api] Sonnet 5.5 | 12% ctx | $0.14",
       },
     ],
     chats: {
@@ -179,22 +203,6 @@ function askWorld(): World {
         msgs: [
           { id: "d0", kind: "day", text: "Today" },
           { id: "old", kind: "answer", session: "api", text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", time: "18:40" },
-          { id: "u1", kind: "text", from: "me", text: "fix the flaky login e2e test", time: "21:01", ticks: 2, reaction: "👍" },
-          {
-            id: "c1",
-            kind: "card",
-            session: "api",
-            items: [
-              { type: "prose", text: "I'll run the login test a few times and look at where it fails." },
-              { type: "row", text: "Read: e2e/login.spec.ts", done: true },
-            ],
-            mark: "⏳",
-            verb: "Tinkering",
-            elapsed: 192,
-            tally: "Read ×1",
-            prompt: null,
-            time: "21:01",
-          },
         ],
       },
       team: {
@@ -357,8 +365,10 @@ export function preview(c: Chat): string {
       const head = c.kind === "group" ? "aipager: " : "";
       if (m.prompt?.kind === "perm") return `${head}🔐 ${m.session} · Permission needed`;
       if (m.prompt?.kind === "question") return `${head}❓ ${m.session} · ${m.prompt.question}`;
-      const first = m.items[0];
-      return head + (first ? (first.type === "prose" ? first.text : `${m.mark} ${first.text}`) : `${m.mark} ${m.session} · ${m.verb}`);
+      // The list shows the card's own newest line, as Telegram does.
+      const last = [...m.items].reverse().find((x) => x.type === "prose" || x.type === "row");
+      if (!last) return `${head}${m.mark} ${m.session} · ${m.verb}`;
+      return head + (last.type === "prose" ? last.text : `${m.mark} ${last.text}`);
     }
     case "answer":
       return `${c.kind === "group" ? "aipager: " : ""}💬 ${m.session} · ${m.text}`;
@@ -368,6 +378,17 @@ export function preview(c: Chat): string {
       return "";
   }
 }
+
+/**
+ * The clock aipager puts on a card since 1.1: `0:45`, `4:10`, `1:23:00`.
+ * (The terminal pane keeps Claude Code's own `3m 16s`, which is its UI.)
+ */
+export const fmtClock = (s: number): string => {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+};
 
 export const fmtElapsed = (s: number): string =>
   s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m`;
