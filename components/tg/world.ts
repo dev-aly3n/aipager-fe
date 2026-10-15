@@ -12,8 +12,20 @@
 
 export type Tone = "fg" | "dim" | "accent" | "live" | "amber" | "deny" | "claude";
 
+/** One row of Claude Code's agent block: its type, what it was asked, and
+ *  its running tally. */
+export interface TAgent {
+  type: string;
+  desc: string;
+  uses?: number;
+  tokens?: string;
+  last: string;
+}
+
 export interface TLine {
   text: string;
+  /** the ⏺ Running N agents… block, with a row per agent */
+  agents?: { done: boolean; rows: TAgent[] };
   tone?: Tone;
   sub?: boolean;
   dot?: Tone;
@@ -38,6 +50,8 @@ export interface Pane {
   /** the spinner's verb while Claude works, and how long it has */
   spinner: string | null;
   secs: number;
+  /** what the spinner's token counter reads */
+  tokens?: string;
   dialog: TDialog | null;
   input: string;
   status: string;
@@ -55,11 +69,12 @@ export type CardItem =
   /** a settled run of tool calls, folded away behind one line */
   | { type: "fold"; n: number }
   /**
-   * A subagent's row. `parent` names the agent that started it, which the
-   * card shows as "pipeline-runner › ship-tester"; the tree is never more
-   * than two deep.
+   * A subagent's row. The card keeps a flat list in the order the agents
+   * started, each one `🤖 <type> · <its latest tool call> · <clock>`, and
+   * settles it in place. `fold` is that agent's own tool calls, which hide
+   * behind one line once there are three.
    */
-  | { type: "agent"; name: string; parent?: string; state: "run" | "wait" | "done"; what: string; calls?: number; secs: number }
+  | { type: "agent"; name: string; state: "run" | "done"; what: string; calls?: number; fold?: number; secs: number }
   /** a command Claude left running in the background, with its own clock */
   | { type: "shell"; what: string; state: "run" | "done"; secs: number };
 
@@ -70,7 +85,7 @@ export type CardItem =
 export interface Background {
   agents: number;
   shells: number;
-  rows: { name: string; parent?: string; what: string; state: "run" | "wait" }[];
+  rows: { name: string; what?: string; state: "run" | "done"; clock?: string }[];
   promise: boolean;
   /** set once everything has stopped; replaces the block */
   done?: string;
@@ -83,7 +98,7 @@ export type Prompt =
 export type Msg =
   | { id: string; kind: "day"; text: string }
   | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string } }
-  | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
+  | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓" | "🔄"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
   | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string; background?: Background }
   /** a bot message with buttons (the /mode confirmation); answering edits it in place */
   | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string };

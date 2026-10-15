@@ -533,173 +533,200 @@ const ACT2: Step[] = [
       p.lines.push({ text: "Good enough — no need for Seville.", dot: "fg" });
     },
   },
+  ...say(
+    "aipager",
+    "spawn a couple of agents for it: one on hotels under €180, one on flights from Berlin",
+    "21:23",
+    "u6",
+    true,
+  ),
   {
-    after: 2200,
-    wire: hook("SubagentStart", "🤖 hotels · 🤖 flights"),
-    caption: "Then it sends two agents out at once: one for beds, one for seats.",
+    after: 800,
+    wire: back("your message", "typed into claude-trip"),
+    run: (w) => {
+      const m = msg(w, "aipager", "u6");
+      if (m.kind === "text") m.reaction = "👍";
+      const p = pane(w, "trip");
+      p.lines.push({ text: "spawn a couple of agents for it: one on hotels under €180, one on flights from Berlin", user: true, via: "@owner" });
+      p.spinner = "Delegating";
+      p.tokens = "2.1k";
+    },
+  },
+  {
+    after: 1600,
+    wire: hook("SubagentStart", "🤖 two agents"),
+    caption: "It sends two out at once. Each gets a row of its own, and the card follows what each is doing.",
     run: (w) => {
       const c = card(w, "aipager", "c3");
       c.verb = "Delegating";
-      c.items.push({ type: "agent", name: "hotels", state: "run", what: "Searching 12–19 March, under €180", secs: 6 });
-      c.items.push({ type: "agent", name: "flights", state: "run", what: "BER → LIS, 12 and 19 March", secs: 4 });
-      c.tally = "WebFetch ×1 · Task ×2";
+      c.items.push({ type: "prose", text: "Two agents then: one on beds, one on seats." });
+      // the parent's own Agent calls, then the agents themselves
+      c.items.push({ type: "row", text: "Agent", done: true });
+      c.items.push({ type: "row", text: "Agent", done: true });
+      c.items.push({ type: "agent", name: "general-purpose", state: "run", what: "starting", secs: 2 });
+      c.items.push({ type: "agent", name: "general-purpose", state: "run", what: "starting", secs: 1 });
+      c.tally = "WebFetch ×1 · Agent ×2";
       const p = pane(w, "trip");
       p.agents = 2;
-      p.spinner = "Delegating";
-      p.lines.push({ text: "Task(hotels: 12–19 March, under €180)", dot: "live", bold: true });
-      p.lines.push({ text: "Task(flights: BER → LIS, 12 and 19 March)", dot: "live", bold: true });
+      p.lines.push({ text: "Two agents then: one on beds, one on seats.", dot: "fg" });
+      p.lines.push({
+        text: "",
+        agents: {
+          done: false,
+          rows: [
+            { type: "general-purpose", desc: "hotels in Lisbon under €180", last: "Initializing…" },
+            { type: "general-purpose", desc: "flights BER→LIS, 12 and 19 March", last: "Initializing…" },
+          ],
+        },
+      });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 3200,
-    caption: "Two sessions now live in this one chat. A plain message goes to the one your messages are set to — to reach the other, you reply to something it said.",
+    after: 7000,
+    caption: "They are off on their own now — a few tool calls each, and nothing for you to do.",
     run: (w) => {
       const c = card(w, "aipager", "c3");
-      const h = c.items.find((x) => x.type === "agent" && x.name === "hotels");
-      if (h && h.type === "agent") h.what = "Reading reviews for 6 places";
-    },
-  },
-  // the gesture itself: find api's answer, hold it, and pick Reply
-  {
-    after: 1200,
-    caption: "To aim a message at api you answer one of its own. Scroll back to it…",
-    run: (w) => {
-      w.focus = "a1";
-    },
-  },
-  {
-    after: 1500,
-    run: (w) => {
-      w.press = "a1";
-    },
-  },
-  {
-    after: 650,
-    caption: "…hold it, and Telegram offers what you can do with it.",
-    run: (w) => {
-      w.press = null;
-      w.menu = { msg: "a1", items: ["Reply", "Copy Text", "Pin", "Forward", "Select", "Delete"], on: -1 };
+      const [a1, a2] = c.items.filter((x) => x.type === "agent");
+      if (a1?.type === "agent") {
+        a1.what = "WebFetch: booking.com";
+        a1.secs = 24;
+        a1.fold = 3;
+      }
+      if (a2?.type === "agent") {
+        a2.what = "WebSearch: TAP direct BER LIS March";
+        a2.secs = 23;
+      }
+      const p = pane(w, "trip");
+      const block = p.lines.find((l) => l.agents);
+      if (block?.agents) {
+        block.agents.rows[0] = { ...block.agents.rows[0], uses: 4, tokens: "9.2k", last: "WebFetch(booking.com)" };
+        block.agents.rows[1] = { ...block.agents.rows[1], uses: 3, tokens: "7.4k", last: "WebSearch(TAP direct BER LIS)" };
+      }
+      p.tokens = "11.8k";
     },
   },
   {
-    after: 900,
+    after: 8000,
+    wire: hook("Stop", "💬 trip · an interim answer"),
+    caption: "The turn ends before they do — so the answer goes out with a live line under it for the work still running.",
     run: (w) => {
-      if (w.menu) w.menu = { ...w.menu, on: 0 };
-    },
-  },
-  {
-    after: 700,
-    caption: "Reply. Now the composer is answering that message — and aipager reads the aim from it.",
-    run: (w) => {
-      w.menu = null;
-      w.focus = null;
-      w.replyTo = { id: "a1", name: "aipager", text: "💬 api · Fixed. The test now waits for the session cookie…" };
-    },
-  },
-  ...say("aipager", "also push the fix branch and open the PR", "21:23", "u5", true, undefined, {
-    name: "aipager",
-    text: "💬 api · Fixed. The test now waits for the session cookie…",
-  }),
-  {
-    after: 800,
-    wire: back("a reply · api", "aimed at claude-api"),
-    caption: "The reply is the aim: aipager types it into api, not into trip.",
-    run: (w) => {
-      const m = msg(w, "aipager", "u5");
-      if (m.kind === "text") m.reaction = "👀";
-      const p = pane(w, "api");
-      p.lines.push({ text: "also push the fix branch and open the PR", user: true, via: "@owner" });
-      p.spinner = "Pushing";
-      p.secs = 1;
+      const c = card(w, "aipager", "c3");
+      c.mark = "🔄";
+      c.verb = "2 agents (general-purpose) still working";
+      arrive(w, "aipager", {
+        id: "a5",
+        kind: "answer",
+        session: "trip",
+        text: "Lisbon is on: 18°C, two wet days. Both agents are out looking; I'll come back with the shortlist.",
+        time: "21:24",
+        background: {
+          agents: 2,
+          shells: 0,
+          rows: [
+            { name: "general-purpose", state: "run", what: "Fetching booking.com" },
+            { name: "general-purpose", state: "run", what: "Searching the web for TAP direct BER LIS" },
+          ],
+          promise: true,
+        },
+      });
+      const p = pane(w, "trip");
+      p.spinner = null;
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 1400,
-    wire: hook("UserPromptSubmit", "a card · api"),
+    after: 9000,
+    caption: "aipager keeps that line up to date on its own while they work.",
     run: (w) => {
-      const m = msg(w, "aipager", "u5");
-      if (m.kind === "text") m.reaction = "👍";
-      arrive(w, "aipager", {
-        id: "c4",
-        kind: "card",
-        session: "api",
-        items: [{ type: "row", text: "Bash: git push -u origin fix/login-cookie", done: false }],
-        mark: "⏳",
-        verb: "Pushing",
-        elapsed: 2,
-        tally: "Bash ×1",
-        prompt: null,
-        time: "21:23",
-      });
-      const p = pane(w, "api");
-      p.lines.push({ text: "Bash(git push -u origin fix/login-cookie)", dot: "live", bold: true });
+      const m = msg(w, "aipager", "a5");
+      if (m.kind === "answer" && m.background) {
+        m.background.rows = [
+          { name: "general-purpose", state: "run", what: "Reading reviews for 6 places" },
+          { name: "general-purpose", state: "run", what: "Fetching tap.pt" },
+        ];
+      }
+      const c = card(w, "aipager", "c3");
+      const [a1, a2] = c.items.filter((x) => x.type === "agent");
+      if (a1?.type === "agent") {
+        a1.what = "Read: 6 reviews";
+        a1.fold = 6;
+      }
+      if (a2?.type === "agent") {
+        a2.what = "WebFetch: tap.pt";
+        a2.fold = 3;
+      }
+      const p = pane(w, "trip");
+      const block = p.lines.find((l) => l.agents);
+      if (block?.agents) {
+        block.agents.rows[0] = { ...block.agents.rows[0], uses: 7, tokens: "18.4k", last: "Read(reviews.json)" };
+        block.agents.rows[1] = { ...block.agents.rows[1], uses: 5, tokens: "12.1k", last: "WebFetch(tap.pt)" };
+      }
     },
   },
   {
-    after: 2600,
+    after: 11000,
     wire: hook("SubagentStop", "✅ flights · 7 tool calls"),
     run: (w) => {
       const c = card(w, "aipager", "c3");
-      const f = c.items.find((x) => x.type === "agent" && x.name === "flights");
-      if (f && f.type === "agent") {
-        f.state = "done";
-        f.calls = 7;
-        f.secs = 41;
+      const a2 = c.items.filter((x) => x.type === "agent")[1];
+      if (a2?.type === "agent") {
+        a2.state = "done";
+        a2.calls = 7;
+        a2.secs = 161;
+      }
+      const m = msg(w, "aipager", "a5");
+      if (m.kind === "answer" && m.background) {
+        m.background.rows = [
+          { name: "general-purpose", state: "run", what: "Reading reviews for 6 places" },
+          { name: "general-purpose", state: "done", clock: "2:41" },
+        ];
+        m.background.agents = 1;
       }
       const p = pane(w, "trip");
       p.agents = 1;
-      p.lines.push({ text: "flights · 7 tool calls · 0:41", sub: true, tone: "live" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 2000,
-    wire: hook("Stop", "💬 api · the PR"),
-    caption: "api answers first — it only had one thing to do.",
-    run: (w) => {
-      const c = card(w, "aipager", "c4");
-      const r = c.items[0];
-      if (r.type === "row") r.done = true;
-      c.mark = "✅";
-      c.verb = "Finished";
-      arrive(w, "aipager", { id: "a3", kind: "answer", session: "api", text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", time: "21:24" });
-      const p = pane(w, "api");
-      p.spinner = null;
-      p.lines.push({ text: "Opened PR #214.", dot: "fg" });
-      w.chats.aipager.pinnedBar = pinBar(w);
-    },
-  },
-  {
-    after: 2800,
-    wire: hook("SubagentStop", "✅ hotels · 9 tool calls"),
-    caption: "And the pair come back with something you can actually choose from.",
+    after: 10000,
+    wire: hook("SubagentStop", "✅ hotels · 11 tool calls"),
+    caption: "Both back. aipager folds the line into one and the job wakes Claude with what they found.",
     run: (w) => {
       const c = card(w, "aipager", "c3");
-      const h = c.items.find((x) => x.type === "agent" && x.name === "hotels");
-      if (h && h.type === "agent") {
-        h.state = "done";
-        h.calls = 9;
-        h.secs = 48;
+      const a1 = c.items.filter((x) => x.type === "agent")[0];
+      if (a1?.type === "agent") {
+        a1.state = "done";
+        a1.calls = 11;
+        a1.secs = 192;
       }
-      c.items.push({ type: "prose", text: "Hotels: Casa Baleal €142 · Lx Boutique €165 · Santa Justa €178, all walkable to Baixa." });
-      c.items.push({ type: "prose", text: "Flights: TAP direct, BER→LIS 12 March €89, back on the 19th €104." });
-      c.tally = "WebFetch ×1 · Task ×2";
+      c.mark = "✅";
+      c.verb = "Finished";
+      const m = msg(w, "aipager", "a5");
+      if (m.kind === "answer" && m.background) {
+        m.background.agents = 0;
+        m.background.rows = [];
+        m.background.promise = false;
+        m.background.done = "✅ 2 agents done (3:12)";
+      }
       const p = pane(w, "trip");
       p.agents = 0;
-      p.lines.push({ text: "hotels · 9 tool calls · 0:48", sub: true, tone: "live" });
-      p.lines.push({ text: "3 hotels under €180, TAP direct both ways.", dot: "fg" });
+      const block = p.lines.find((l) => l.agents);
+      if (block?.agents) {
+        block.agents.done = true;
+        block.agents.rows[0] = { ...block.agents.rows[0], uses: 11, tokens: "31.6k", last: "Done (11 tool uses · 31.6k tokens · 3m 12s)" };
+        block.agents.rows[1] = { ...block.agents.rows[1], uses: 7, tokens: "19.8k", last: "Done (7 tool uses · 19.8k tokens · 2m 41s)" };
+      }
+      p.spinner = "Synthesizing";
+      p.tokens = "34.2k";
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 1800,
-    wire: hook("Stop", "💬 trip · the week"),
+    after: 4200,
+    wire: hook("Stop", "💬 trip · the shortlist"),
+    caption: "What they found comes back as its own answer, written once Claude has read both reports.",
     run: (w) => {
-      const c = card(w, "aipager", "c3");
-      c.mark = "✅";
-      c.verb = "Finished";
       arrive(
         w,
         "aipager",
@@ -707,13 +734,14 @@ const ACT2: Step[] = [
           id: "a4",
           kind: "answer",
           session: "trip",
-          text: "Lisbon works: 18°C, two wet days. Casa Baleal is the pick at €142 a night, and TAP direct is €193 return. Say the word and I'll hold both.",
-          time: "21:25",
+          text: "Hotels: Casa Baleal €142 a night, Lx Boutique €165, Santa Justa €178 — all walkable to Baixa. Flights: TAP direct, €89 out on the 12th and €104 back on the 19th. Say the word and I'll hold both.",
+          time: "21:27",
         },
-        { title: "aipager", body: "💬 trip · Lisbon works: 18°C, two wet days…" },
+        { title: "aipager", body: "💬 trip · Hotels: Casa Baleal €142 a night…" },
       );
       const p = pane(w, "trip");
       p.spinner = null;
+      p.lines.push({ text: "Casa Baleal €142 · TAP direct €193 return.", dot: "fg" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },

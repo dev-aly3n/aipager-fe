@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { fmtElapsed, type Pane, type TDialog, type TLine, type Tone } from "./world";
+import { fmtElapsed, type Pane, type TAgent, type TDialog, type TLine, type Tone } from "./world";
 
 const TONE: Record<Tone, string> = {
   fg: "text-[#e8ebee]",
@@ -24,7 +24,60 @@ const DOT: Record<Tone, string> = {
   claude: "text-[#d97757]",
 };
 
+/**
+ * Claude Code's agent block: a header that counts them, then one branch per
+ * agent with its type, what it was asked, its tool uses and tokens, and the
+ * last thing it did under a ⎿.
+ */
+function Agents({ block }: { block: { done: boolean; rows: TAgent[] } }) {
+  return (
+    <div className="my-[3px]">
+      <div className="flex gap-2">
+        <span className="text-[#e8ebee]">⏺</span>
+        <span className="text-[#e8ebee]">
+          {block.done ? (
+            <>
+              <span className="font-semibold">{block.rows.length}</span> agents finished <span className="text-[#555c65]">(ctrl+o to expand)</span>
+            </>
+          ) : (
+            <>
+              Running <span className="font-semibold">{block.rows.length}</span> agents…
+            </>
+          )}
+        </span>
+      </div>
+      <div className="pl-3">
+        {block.rows.map((a, i) => {
+          const last = i === block.rows.length - 1;
+          return (
+            <div key={a.type + i}>
+              <div className="flex gap-2">
+                <span className="w-2 shrink-0 text-[#555c65]">{last ? "└" : "├"}</span>
+                <span className="min-w-0 text-[#9aa1aa]">
+                  <span className="font-semibold text-[#c8a2ff]">{a.type}</span> ({a.desc})
+                  {a.uses !== undefined && (
+                    <>
+                      {" · "}
+                      {a.uses} tool {a.uses === 1 ? "use" : "uses"}
+                      {a.tokens ? ` · ${a.tokens} tokens` : ""}
+                    </>
+                  )}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="w-2 shrink-0 text-[#555c65]">{last ? " " : "│"}</span>
+                <span className="text-[#555c65]">⎿ {a.last}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Line({ line }: { line: TLine }) {
+  if (line.agents) return <Agents block={line.agents} />;
   // What you typed sits in a block of its own, dimmer than Claude's own
   // words — the way Claude Code separates the two in the terminal.
   if (line.user) {
@@ -99,19 +152,22 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
         {p.spinner && (
           <div className="mt-1.5 text-[#d97757]">
             ✻ <span className="text-[#c9ccd1]">
-              {p.spinner}… ({fmtElapsed(p.secs)} · esc to interrupt)
+              {p.spinner}… <span className="text-[#7f8791]">({fmtElapsed(p.secs)}{p.tokens ? ` · ↓ ${p.tokens} tokens` : ""})</span>
             </span>
           </div>
         )}
         {p.status || p.input ? (
           <div className="pt-2">
-            <div className="box px-3 py-1.5 text-[#e8ebee]">
-              <span className="text-[#7f8791]">&gt; </span>
+            {/* 2.1 draws a rule under the prompt, not a box around it */}
+            <div className="flex gap-2 border-b border-[#3a4048] pb-1.5 text-[#e8ebee]">
+              <span className="text-[#7f8791]">❯</span>
               <span className="caret">{p.input}</span>
             </div>
-            <div className="mt-1 flex justify-between text-[11px] text-[#555c65]">
-              {p.bypass ? <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span> : <span>{multi ? "" : "? for shortcuts"}</span>}
-              <span>{p.status}</span>
+            <div className="mt-1 flex justify-between gap-3 text-[11px] text-[#555c65]">
+              <span className="truncate">
+                {p.bypass ? <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span> : p.spinner ? "esc to interrupt" : "? for shortcuts"}
+              </span>
+              <span className="shrink-0">{p.status}</span>
             </div>
           </div>
         ) : null}

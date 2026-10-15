@@ -284,17 +284,26 @@ function CardRow({ it }: { it: CardItem }) {
       </div>
     );
   if (it.type === "agent") {
-    const head = it.parent ? `${it.parent} › ${it.name}` : it.name;
-    const mark = it.state === "done" ? "✅" : it.state === "wait" ? "⏸" : "○";
-    const tail =
-      it.state === "done" ? `${it.calls} tool calls · ${fmtClock(it.secs)}` : it.state === "wait" ? "waiting for its own agents" : `${it.what} · ${fmtClock(it.secs)}`;
+    // The card shows the agent's own latest tool call, verbatim — not a
+    // phrase — and settles the row into its tally and clock.
+    const tail = it.state === "done" ? `${it.calls} tool call${it.calls === 1 ? "" : "s"} · ${fmtClock(it.secs)}` : `${it.what} · ${fmtClock(it.secs)}`;
     return (
-      <div className={`flex gap-1.5 text-[12.5px] ${it.parent ? "pl-3.5" : ""}`}>
-        <span className="w-4 shrink-0">{mark}</span>
-        <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
-          🤖 <b className="font-semibold text-[#cfe3f7]">{head}</b> · {tail}
-        </code>
-      </div>
+      <>
+        <div className="flex gap-1.5 text-[12.5px]">
+          <span className="w-4 shrink-0">{it.state === "done" ? "✅" : "⏳"}</span>
+          <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
+            🤖 {it.name} · {tail}
+          </code>
+        </div>
+        {!!it.fold && (
+          <div className="flex items-center gap-2 py-[2px] pl-5 text-[12.5px] text-[#c9d6e3]">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7d8b99" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+            ▸ {it.fold} tool calls
+          </div>
+        )}
+      </>
     );
   }
   if (it.type === "shell")
@@ -329,12 +338,13 @@ function Background({ b }: { b: BackgroundWork }) {
           <div className="text-[#c9d6e3]">
             ⏳ {b.agents} agent{b.agents === 1 ? "" : "s"} working{b.shells ? ` · 🖥 ${b.shells} shell${b.shells === 1 ? "" : "s"} running` : ""}
           </div>
-          {b.rows.map((r) => (
-            <div key={r.name} className={`flex gap-1.5 ${r.parent ? "pl-3.5" : ""}`}>
-              <span className="w-3 shrink-0 text-[#7f8791]">{r.state === "wait" ? "⏸" : "○"}</span>
-              <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
-                🤖 <b className="font-semibold text-[#cfe3f7]">{r.parent ? `${r.parent} › ${r.name}` : r.name}</b> · {r.state === "wait" ? "waiting for its own agents" : r.what}
-              </code>
+          {b.rows.map((r, i) => (
+            <div key={`${r.name}-${i}`} className="flex gap-1.5">
+              <span className="w-3 shrink-0 text-[#7f8791]">{r.state === "done" ? "✓" : "○"}</span>
+              <span className="min-w-0 leading-[1.45] text-[#c9d6e3]">
+                <b className="font-semibold text-white">{r.name}</b>
+                {r.state === "done" ? ` · done (${r.clock})` : r.what ? ` · ${r.what}` : ""}
+              </span>
             </div>
           ))}
           {b.promise && <div className="mt-1 text-[#8fa3b8]">Results from the agents will follow here.</div>}
@@ -689,8 +699,9 @@ function Feed({
   }, [c.id]);
 
   return (
-    <div
+    <motion.div
       ref={box}
+      layoutScroll
       onPointerDown={(e) => {
         const el = box.current;
         if (!el) return;
@@ -736,7 +747,7 @@ function Feed({
           ))}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
