@@ -629,14 +629,30 @@ body {
   .caret-blink { animation: none; }
 }
 
-/* a terminal tab with a job running: a light sweeping under it */
-.tab-run {
-  animation: tab-run 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+/* A terminal tab with a job running: a light travelling around its ring,
+   the way iTerm2 marks the tab that is busy. The conic gradient turns; the
+   pill's own face covers the middle, so only the ring shows. */
+@property --tab-ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
 }
-@keyframes tab-run {
-  0% { left: -40%; }
-  100% { left: 100%; }
+.tab-ring {
+  background: conic-gradient(
+    from var(--tab-ang),
+    rgb(79 214 147 / 0.35) 0deg,
+    rgb(79 214 147 / 0.45) 120deg,
+    rgb(120 240 180) 210deg,
+    rgb(214 255 234) 250deg,
+    rgb(120 240 180) 290deg,
+    rgb(79 214 147 / 0.35) 360deg
+  );
+  animation: tab-ring 1.8s linear infinite;
+  filter: drop-shadow(0 0 6px rgb(79 214 147 / 0.75));
+}
+@keyframes tab-ring {
+  to { --tab-ang: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tab-run { animation: none; left: 0; width: 100%; opacity: 0.6; }
+  .tab-ring { animation: none; background: rgb(79 214 147 / 0.75); }
 }

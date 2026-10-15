@@ -121,10 +121,9 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
 }
 
 /**
- * A session's tab, the way a terminal draws them: the one you are looking
- * at wears a grey pill that slides when you change tabs, and the green is
- * not about selection at all — it runs under whichever session is working,
- * which may well be one you are not watching.
+ * A session's tab. The one you are looking at wears a grey pill that slides
+ * when you change tabs; a session with a job running wears a ring with a
+ * light travelling around it, whether or not you are watching that one.
  */
 function Tab({ p, n, on, onPick }: { p: Pane; n: number; on: boolean; onPick: () => void }) {
   const working = Boolean(p.spinner);
@@ -138,23 +137,23 @@ function Tab({ p, n, on, onPick }: { p: Pane; n: number; on: boolean; onPick: ()
         on ? "text-[#e8ebee]" : "text-[#7f8791] hover:text-[#b9bfc7]"
       }`}
     >
+      {/* the ring: lit and turning while this session works */}
+      {(working || needs) && (
+        <>
+          <span className={`absolute -inset-[2.5px] rounded-full ${working ? "tab-ring" : "bg-amber/70"}`} />
+          <span className="absolute inset-0 rounded-full bg-[#0a0c0f]" />
+        </>
+      )}
       {on && (
         <motion.span
           layoutId="term-tab"
           transition={{ type: "spring", stiffness: 430, damping: 36, mass: 0.7 }}
-          className="absolute inset-0 rounded-full border border-white/[0.09] bg-white/[0.08] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]"
+          className="absolute inset-0 rounded-full border border-white/[0.09] bg-[#262b31] shadow-[inset_0_1px_0_rgb(255_255_255/0.07)]"
         />
       )}
-      {/* the job runs here: a light that sweeps while Claude works */}
-      {working && (
-        <span className="pointer-events-none absolute inset-x-2 bottom-[-5px] h-[2px] overflow-hidden rounded-full bg-live/20">
-          <span className="tab-run absolute inset-y-0 w-1/3 rounded-full bg-live shadow-[0_0_8px_rgb(79_214_147/0.9)]" />
-        </span>
-      )}
       <span className={`relative text-[10px] transition-opacity ${on ? "text-[#8b939c]" : "text-[#555c65] opacity-0 group-hover:opacity-100"}`}>✕</span>
-      <span className={`relative ${working ? "text-live" : needs ? "text-amber" : on ? "text-[#8b939c]" : "text-[#555c65]"}`}>✳</span>
+      <span className={`relative ${working ? "text-live" : needs ? "text-amber" : on ? "text-[#8b939c]" : "text-[#555c65]"}`}>◐</span>
       <span className="relative">claude-{p.id}</span>
-      {needs && <span className="relative h-[6px] w-[6px] shrink-0 rounded-full bg-amber" />}
       <span className={`relative ${on ? "text-[#6f7781]" : "text-[#4c535b]"}`}>⌘{n}</span>
     </button>
   );
@@ -185,7 +184,11 @@ export function Terminal({
           <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-live/40 px-2 py-0.5 text-[10.5px] text-live">detached · still running</span>
         )}
       </div>
-      <div className="relative flex shrink-0 items-center gap-1 border-b border-white/[0.07] bg-black/30 px-2 py-[7px]">
+      <div
+        className={`relative flex shrink-0 items-center gap-1 border-b bg-black/30 px-2 py-[7px] transition-colors duration-500 ${
+          panes.some((p) => p.spinner) ? "border-live/80" : "border-white/[0.07]"
+        }`}
+      >
         {panes.map((p, i) => (
           <Tab key={p.id} p={p} n={i + 1} on={p.id === shown?.id} onPick={() => onTab?.(p.id)} />
         ))}
