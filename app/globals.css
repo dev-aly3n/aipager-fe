@@ -616,3 +616,15 @@ body {
   background: rgb(255 255 255 / 0.015);
   overflow-x: auto;
 }
+
+/* the shell's caret, waiting for you to paste */
+.caret-blink {
+  animation: caret-blink 1.15s steps(1) infinite;
+}
+@keyframes caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret-blink { animation: none; }
+}

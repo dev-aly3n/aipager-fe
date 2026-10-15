@@ -80,16 +80,15 @@ function MenuBar({ sessions, clock }: { sessions: number; clock: string }) {
 }
 
 const MODES: { id: Mode; label: string; tag?: string; line: string }[] = [
-  { id: "ask", label: "💬 Ask", line: "Claude asks before each action, and every call waits for your tap." },
-  { id: "auto", label: "🤖 Auto", tag: "default", line: "Where every new session starts: Claude Code's own safety check runs the safe calls and stops the risky ones for you." },
-  { id: "full", label: "🔓 Full access", line: "Everything runs with no checks. Admins, and you in your own private chat with the bot." },
+  { id: "ask", label: "💬 Ask", line: "Claude asks before each action." },
+  { id: "auto", label: "🤖 Auto", tag: "default", line: "Safe calls run themselves; the risky ones come to you." },
+  { id: "full", label: "🔓 Full access", line: "Everything runs, with no checks at all." },
 ];
 
 /** Ask or Auto: the evening replays in the mode you pick. */
 function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
   return (
     <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-      <span className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-fg-4">Permission mode</span>
       <div className="flex rounded-full border border-white/10 bg-white/[0.03] p-1" role="radiogroup" aria-label="Permission mode">
         {MODES.map((m) => (
           <button
@@ -107,7 +106,7 @@ function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void })
           </button>
         ))}
       </div>
-      <span className="max-w-[46rem] text-[13.5px] text-fg-3">{MODES.find((m) => m.id === mode)?.line}</span>
+      <span className="hidden text-[13.5px] text-fg-4 lg:inline">{MODES.find((m) => m.id === mode)?.line}</span>
     </div>
   );
 }

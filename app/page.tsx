@@ -1,6 +1,7 @@
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { CopyButton, GitHubIcon } from "@/components/brand";
+import { InstallLine } from "@/components/install-line";
 import { Desktop } from "@/components/tg/desktop";
 import { Ask, Languages, Modes, Places, Saved, Trust, Under } from "@/components/tg/sections";
 
@@ -22,44 +23,28 @@ export default function Home() {
                 aipager puts your Claude Code sessions in Telegram, between your family, your friends and your team. It runs on your machine.
               </p>
               {/* The one command, where it can be seen without scrolling. */}
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-                <div className="group flex h-11 w-[27rem] max-w-full items-center gap-2.5 rounded-xl border border-white/12 bg-[#0d1014] pl-4 pr-1.5 font-mono text-[14px] transition-colors hover:border-white/25">
-                  <span className="text-accent">$</span>
-                  <span className="min-w-0 flex-1 truncate text-left text-foreground">{INSTALL}</span>
-                  <CopyButton
-                    text={INSTALL}
-                    className="shrink-0 rounded-lg border border-white/12 px-3 py-1.5 text-[12px] text-fg-3 transition-colors hover:border-accent hover:text-foreground"
-                  />
-                </div>
-                <a
-                  href="https://github.com/dev-aly3n/aipager"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-5 text-[14px] font-medium text-[#0a0c0f] transition-opacity hover:opacity-90"
-                >
-                  <GitHubIcon size={15} /> Star on GitHub
-                </a>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-fg-4">
-                <span>Linux &amp; macOS · MIT · about a minute</span>
-                <span className="hidden sm:inline" aria-hidden>
-                  ·
-                </span>
-                <a href="#install" className="text-accent transition-colors hover:text-foreground">
-                  or let your coding agent do it →
-                </a>
+              <div className="mt-8">
+                <InstallLine cmd={INSTALL} />
               </div>
             </div>
-            <div className="mt-8">
+            <div className="mt-9">
               <Desktop />
             </div>
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-5 text-[14px] text-fg-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[14px] text-fg-3">
+              <a href="#install" className="transition-colors hover:text-foreground">
+                Let your agent install it
+              </a>
               <a href="#install" className="transition-colors hover:text-foreground">
                 Every way to install
               </a>
               <a href="/docs" className="transition-colors hover:text-foreground">
-                Read the docs
+                Docs
               </a>
               <a href="/docs/security" className="transition-colors hover:text-foreground">
-                The security model
+                Security model
+              </a>
+              <a href="https://github.com/dev-aly3n/aipager" className="inline-flex items-center gap-2 transition-colors hover:text-foreground">
+                <GitHubIcon size={14} /> GitHub
               </a>
             </div>
           </div>
