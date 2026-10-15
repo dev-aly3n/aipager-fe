@@ -289,7 +289,7 @@ const TEAM: Step[] = [
         lines: [
           { text: "~/work/web $ aipager session web", tone: "dim" },
           { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-          { text: "> run the login e2e against staging", tone: "fg" },
+          { text: "run the login e2e against staging", user: true },
           { text: "Bash(pnpm e2e login --env staging)", dot: "live", bold: true },
         ],
         spinner: "Testing",
@@ -509,7 +509,7 @@ const TASK: Step[] = [
       const m = msg(w, "aipager", "u1");
       if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "api");
-      p.lines.push({ text: "> fix the flaky login e2e test", tone: "fg" });
+      p.lines.push({ text: "fix the flaky login e2e test", user: true });
       p.spinner = "Pondering";
       p.secs = 1;
       w.chats.aipager.pinnedBar = "⚙️ api (working)";

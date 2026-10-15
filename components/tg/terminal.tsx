@@ -24,6 +24,16 @@ const DOT: Record<Tone, string> = {
 };
 
 function Line({ line }: { line: TLine }) {
+  // What you typed sits in a block of its own, dimmer than Claude's own
+  // words — the way Claude Code separates the two in the terminal.
+  if (line.user) {
+    return (
+      <div className="-mx-1.5 my-[3px] flex gap-2 rounded bg-white/[0.055] px-1.5 py-[2px]">
+        <span className="text-[#6b727c]">&gt;</span>
+        <span className="min-w-0 text-[#b2b8c0]">{line.text}</span>
+      </div>
+    );
+  }
   if (line.sub) {
     return (
       <div className={`flex gap-2 pl-4 ${TONE[line.tone ?? "dim"]}`}>

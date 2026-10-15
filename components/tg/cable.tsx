@@ -22,10 +22,10 @@ const B = { x: 794, y: SOCKET.top + SOCKET.h };
 const N = 40;
 const SLACK = 1.028;
 const GRAV = 1500;
-const DAMP = 0.986;
-const ITER = 14;
+const DAMP = 0.955;
+const ITER = 16;
 const GRAB_R = 40;
-const PUSH_R = 96;
+const PUSH_R = 74;
 const SLOTS = 6;
 const FLOOR = STAGE.h - 13;
 
@@ -243,8 +243,8 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
           const d = Math.hypot(dx, dy);
           if (d > PUSH_R || d < 0.001) continue;
           const f = 1 - d / PUSH_R;
-          n.x += (dx / d) * f * f * 7 + m.vx * f * 0.42;
-          n.y += (dy / d) * f * f * 7 + m.vy * f * 0.42;
+          n.x += (dx / d) * f * f * 3 + m.vx * f * 0.16;
+          n.y += (dy / d) * f * f * 3 + m.vy * f * 0.16;
         }
       }
       for (let k = 0; k < ITER; k++) {
@@ -347,12 +347,12 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
         if (!p.bumped && p.s >= 0.5) {
           p.bumped = true;
           const n = ns[N / 2];
-          n.y += 1.6;
+          n.y += 0.7;
         }
         if (p.s >= 1) {
           flash(p.dir === "out" ? "r" : "l", p.to);
           land(p.dir === "out" ? "r" : "l");
-          kick(p.dir === "out" ? "b" : "a", 5);
+          kick(p.dir === "out" ? "b" : "a", 2.4);
           live.splice(i, 1);
         }
       }
