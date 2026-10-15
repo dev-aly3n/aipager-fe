@@ -153,7 +153,7 @@ function Tab({ p, n, on, onPick }: { p: Pane; n: number; on: boolean; onPick: ()
       )}
       <span className={`relative text-[10px] transition-opacity ${on ? "text-[#8b939c]" : "text-[#555c65] opacity-0 group-hover:opacity-100"}`}>✕</span>
       <span className={`relative ${working ? "text-live" : needs ? "text-amber" : on ? "text-[#8b939c]" : "text-[#555c65]"}`}>◐</span>
-      <span className="relative">claude-{p.id}</span>
+      <span className="relative">{p.id}</span>
       <span className={`relative ${on ? "text-[#6f7781]" : "text-[#4c535b]"}`}>⌘{n}</span>
     </button>
   );
@@ -185,7 +185,7 @@ export function Terminal({
         )}
       </div>
       <div
-        className={`relative flex shrink-0 items-center gap-1 border-b bg-black/30 px-2 py-[7px] transition-colors duration-500 ${
+        className={`relative flex shrink-0 items-center gap-1 overflow-x-auto border-b bg-black/30 px-2 py-[7px] transition-colors duration-500 ${
           panes.some((p) => p.spinner) ? "border-live/80" : "border-white/[0.07]"
         }`}
       >

@@ -73,16 +73,10 @@ export function useStory(active: boolean, mode: Mode): Story {
       const userBusy = now - lastUser.current < HOLD_MS;
       setHeld(userBusy && gateSince.current === null);
       const step = steps.current[idx.current];
-      if (!step) {
-        // The end: start the evening again.
-        idx.current = 0;
-        sparked.current = -1;
-        lastStepAt.current = now;
-        gateSince.current = null;
-        setWaiting(null);
-        setWorld(initialWorld(shown.current));
-        return;
-      }
+      // The end is an end: the evening stays where it finished, with
+      // everything it did still on screen. Picking another mode starts
+      // a new one.
+      if (!step) return;
       if (now - lastStepAt.current < step.after) return;
       if (step.gate) {
         if (gateSince.current === null) {

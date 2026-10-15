@@ -34,14 +34,14 @@ const look = (chat: ChatId, after: number, caption?: string): Step => ({ after, 
  * then send. The second tick lands a moment later, usually after you have
  * already moved on.
  */
-function say(chat: ChatId, text: string, time: string, id: string, reacts = false, caption?: string): Step[] {
+function say(chat: ChatId, text: string, time: string, id: string, reacts = false, caption?: string, reply?: { name: string; text: string }): Step[] {
   const steps: Step[] = [{ after: 700, open: chat, caption }];
   for (let i = 1; i <= text.length; i++) steps.push({ after: i === 1 ? 450 : 55, run: (w) => (w.draft = text.slice(0, i)) });
   steps.push({
     after: 420,
     run: (w) => {
       w.draft = "";
-      arrive(w, chat, { id, kind: "text", from: "me", text, time, ticks: 1, ...(reacts ? { reaction: "" } : {}) });
+      arrive(w, chat, { id, kind: "text", from: "me", text, time, ticks: 1, ...(reacts ? { reaction: "" } : {}), ...(reply ? { reply } : {}) });
     },
   });
   steps.push({
@@ -442,233 +442,247 @@ const ANSWER: Step[] = [
   { after: 3400, caption: "A flaky test fixed from the sofa, between a question from Mom and a game on Friday." },
 ];
 
-/* ──────────────────────── the night shift ────────────────────────
- * The evening does not end with the answer: you hand the session the
- * bigger job, and it goes and does it with a crew. Agents start agents,
- * a command runs on in the background, and the turn finishes before the
- * work does — which is the thing a chat window is unusually good at
- * showing. Your life is still there, now as a glance rather than a scene.
+/* ─────────────────────── the second errand ───────────────────────
+ * The work is done, and the next thing that pings is not work at all.
+ * You start a second session for it from the same chat, it sends two
+ * agents out to look, and while they are gone you still have the first
+ * session to answer — which is where replying to a message earns its
+ * keep: it is how aipager knows which session you mean.
  */
 
-const SHIP = "ship it: full suite, review the diff, then tag and deploy";
+const TRIP = "a week in Lisbon in March: check the weather first, then 3 hotels under €180 and flights from Berlin. If the weather looks bad, try Seville.";
 
 const ACT2: Step[] = [
-  look("aipager", 2600, "The fix is in. Before the phone goes down, you give it the bigger job."),
-  ...say("aipager", SHIP, "21:19", "u2", true),
+  ...from("sara", "sara", "did you decide for the vacation? 🏖", "21:20", "sv1", 2000),
+  look("sara", 1700, "Not everything that pings is work."),
+  ...say("sara", "two minutes 😄", "21:20", "me4"),
+
+  look("aipager", 1600, "A second session, started from the chat — no terminal, no ssh."),
+  ...say("aipager", "/new trip", "21:21", "u3"),
+  {
+    after: 900,
+    wire: back("/new trip", "a session in ~/travel"),
+    caption: "aipager starts it on your machine and hands it back, ready, in the mode new sessions start in.",
+    run: (w) => {
+      arrive(w, "aipager", { id: "nw", kind: "text", from: "bot", text: "🆕 trip · 🤖 Auto mode · ~/travel · ready", time: "21:21" });
+      w.term = "trip";
+      w.panes.push({
+        id: "trip",
+        lines: [
+          { text: "~/travel $ aipager session trip", tone: "dim" },
+          { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
+        ],
+        spinner: null,
+        secs: 0,
+        dialog: null,
+        input: "",
+        status: "[trip] Sonnet 5.5 | 1% ctx | $0.00",
+      });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  ...say("aipager", TRIP, "21:22", "u4", true),
   {
     after: 700,
-    wire: back("your message", "typed into claude-api"),
+    wire: back("your message", "typed into claude-trip"),
     run: (w) => {
-      const m = msg(w, "aipager", "u2");
+      const m = msg(w, "aipager", "u4");
       if (m.kind === "text") m.reaction = "👀";
-      const p = pane(w, "api");
-      p.lines.push({ text: SHIP, user: true, via: "@owner" });
-      p.spinner = "Planning";
+      const p = pane(w, "trip");
+      p.lines.push({ text: TRIP, user: true, via: "@owner" });
+      p.spinner = "Pondering";
       p.secs = 2;
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
     after: 1100,
-    wire: hook("UserPromptSubmit", "a new card · api"),
-    caption: "A new turn, a new card. This one will outlive it.",
+    wire: hook("UserPromptSubmit", "a new card · trip"),
     run: (w) => {
-      const m = msg(w, "aipager", "u2");
+      const m = msg(w, "aipager", "u4");
       if (m.kind === "text") m.reaction = "👍";
       arrive(w, "aipager", {
-        id: "c2",
+        id: "c3",
         kind: "card",
-        session: "api",
-        items: [{ type: "prose", text: "Suite and review in parallel, then I'll tag and let the deploy wait for this turn." }],
+        session: "trip",
+        items: [{ type: "prose", text: "Weather first — no point pricing a week of rain." }],
         mark: "⏳",
-        verb: "Planning",
-        elapsed: 4,
+        verb: "Checking",
+        elapsed: 3,
         tally: "",
         prompt: null,
-        time: "21:19",
+        time: "21:22",
       });
-      const p = pane(w, "api");
-      p.lines.push({ text: "Suite and review in parallel, then I'll tag.", dot: "fg" });
+      const p = pane(w, "trip");
+      p.lines.push({ text: "Weather first — no point pricing a week of rain.", dot: "fg" });
     },
   },
   {
-    after: 2000,
-    wire: hook("SubagentStart", "🤖 two agents"),
-    caption: "Claude does not do this alone. It starts agents, and the card gives each one a row.",
+    after: 2400,
+    wire: hook("PostToolUse", "Lisbon in March · 18°C"),
+    caption: "It checks the thing that decides the rest, and says what it found.",
     run: (w) => {
-      const c = card(w, "aipager", "c2");
+      const c = card(w, "aipager", "c3");
+      c.items.push({ type: "row", text: "WebFetch: climate, Lisbon, March", done: true });
+      c.items.push({ type: "prose", text: "Lisbon in March: 18°C by day, rain on 2 of the 7. Good enough — no need for Seville." });
+      c.tally = "WebFetch ×1";
+      const p = pane(w, "trip");
+      p.lines.push({ text: "WebFetch(climate, Lisbon, March)", dot: "live", bold: true });
+      p.lines.push({ text: "18°C by day · rain 2 of 7 days", sub: true, tone: "dim" });
+      p.lines.push({ text: "Good enough — no need for Seville.", dot: "fg" });
+    },
+  },
+  {
+    after: 2200,
+    wire: hook("SubagentStart", "🤖 hotels · 🤖 flights"),
+    caption: "Then it sends two agents out at once: one for beds, one for seats.",
+    run: (w) => {
+      const c = card(w, "aipager", "c3");
       c.verb = "Delegating";
-      c.items.push({ type: "agent", name: "ship-tester", state: "run", what: "Writing criteria tests", secs: 12 });
-      c.items.push({ type: "agent", name: "ship-reviewer", state: "run", what: "Reading the diff", secs: 8 });
-      c.tally = "Task ×2";
-      const p = pane(w, "api");
+      c.items.push({ type: "agent", name: "hotels", state: "run", what: "Searching 12–19 March, under €180", secs: 6 });
+      c.items.push({ type: "agent", name: "flights", state: "run", what: "BER → LIS, 12 and 19 March", secs: 4 });
+      c.tally = "WebFetch ×1 · Task ×2";
+      const p = pane(w, "trip");
       p.agents = 2;
       p.spinner = "Delegating";
-      p.lines.push({ text: "Task(ship-tester: write and run criteria tests)", dot: "live", bold: true });
-      p.lines.push({ text: "Task(ship-reviewer: review the diff)", dot: "live", bold: true });
+      p.lines.push({ text: "Task(hotels: 12–19 March, under €180)", dot: "live", bold: true });
+      p.lines.push({ text: "Task(flights: BER → LIS, 12 and 19 March)", dot: "live", bold: true });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 2600,
-    wire: hook("PostToolUse", "🖥 a background shell"),
-    caption: "A long command does not hold the turn: it goes to the background and keeps a clock of its own.",
+    after: 3200,
+    caption: "Two sessions now live in this one chat. A plain message goes to the one your messages are set to — to reach the other, you reply to something it said.",
     run: (w) => {
-      const c = card(w, "aipager", "c2");
-      c.items.push({ type: "shell", what: "pnpm dev on :3000", state: "run", secs: 18 });
-      c.tally = "Task ×2 · Bash ×1";
+      const c = card(w, "aipager", "c3");
+      const h = c.items.find((x) => x.type === "agent" && x.name === "hotels");
+      if (h && h.type === "agent") h.what = "Reading reviews for 6 places";
+    },
+  },
+  ...say("aipager", "also push the fix branch and open the PR", "21:23", "u5", true, undefined, {
+    name: "aipager",
+    text: "💬 api · Fixed. The test now waits for the session cookie…",
+  }),
+  {
+    after: 800,
+    wire: back("a reply · api", "aimed at claude-api"),
+    caption: "The reply is the aim: aipager types it into api, not into trip.",
+    run: (w) => {
+      const m = msg(w, "aipager", "u5");
+      if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "api");
-      p.shells = 1;
-      p.lines.push({ text: "Bash(pnpm dev)", dot: "live", bold: true });
-      p.lines.push({ text: "running in the background (shell_1)", sub: true, tone: "dim" });
+      p.lines.push({ text: "also push the fix branch and open the PR", user: true, via: "@owner" });
+      p.spinner = "Pushing";
+      p.secs = 1;
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 1400,
+    wire: hook("UserPromptSubmit", "a card · api"),
+    run: (w) => {
+      const m = msg(w, "aipager", "u5");
+      if (m.kind === "text") m.reaction = "👍";
+      arrive(w, "aipager", {
+        id: "c4",
+        kind: "card",
+        session: "api",
+        items: [{ type: "row", text: "Bash: git push -u origin fix/login-cookie", done: false }],
+        mark: "⏳",
+        verb: "Pushing",
+        elapsed: 2,
+        tally: "Bash ×1",
+        prompt: null,
+        time: "21:23",
+      });
+      const p = pane(w, "api");
+      p.lines.push({ text: "Bash(git push -u origin fix/login-cookie)", dot: "live", bold: true });
+    },
+  },
+  {
+    after: 2600,
+    wire: hook("SubagentStop", "✅ flights · 7 tool calls"),
+    run: (w) => {
+      const c = card(w, "aipager", "c3");
+      const f = c.items.find((x) => x.type === "agent" && x.name === "flights");
+      if (f && f.type === "agent") {
+        f.state = "done";
+        f.calls = 7;
+        f.secs = 41;
+      }
+      const p = pane(w, "trip");
+      p.agents = 1;
+      p.lines.push({ text: "flights · 7 tool calls · 0:41", sub: true, tone: "live" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 2000,
+    wire: hook("Stop", "💬 api · the PR"),
+    caption: "api answers first — it only had one thing to do.",
+    run: (w) => {
+      const c = card(w, "aipager", "c4");
+      const r = c.items[0];
+      if (r.type === "row") r.done = true;
+      c.mark = "✅";
+      c.verb = "Finished";
+      arrive(w, "aipager", { id: "a3", kind: "answer", session: "api", text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", time: "21:24" });
+      const p = pane(w, "api");
+      p.spinner = null;
+      p.lines.push({ text: "Opened PR #214.", dot: "fg" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
     after: 2800,
-    wire: hook("SubagentStart", "🤖 ship-developer"),
-    caption: "An agent can start agents of its own. The card keeps the chain — never more than two deep.",
+    wire: hook("SubagentStop", "✅ hotels · 9 tool calls"),
+    caption: "And the pair come back with something you can actually choose from.",
     run: (w) => {
-      const c = card(w, "aipager", "c2");
-      const at = c.items.findIndex((x) => x.type === "agent" && x.name === "ship-tester");
-      c.items.splice(at + 1, 0, { type: "agent", name: "ship-developer", parent: "ship-tester", state: "run", what: "Editing e2e/login.spec.ts", secs: 5 });
-      const rev = c.items.find((x) => x.type === "agent" && x.name === "ship-reviewer");
-      if (rev && rev.type === "agent") rev.state = "wait";
-      const p = pane(w, "api");
-      p.agents = 3;
-      p.lines.push({ text: "Task(ship-tester › ship-developer: fix what the criteria tests found)", dot: "live", bold: true });
-      w.chats.aipager.pinnedBar = pinBar(w);
-    },
-  },
-  ...from("team", "sara", "saw the fix land 🙌", "21:22", "t7", 1500, true, true),
-  look("team", 1600, "Your evening is still there. It just does not need you tonight."),
-  {
-    after: 2400,
-    run: (w) => {
-      const m = msg(w, "team", "t7");
-      if (m.kind === "text") m.reaction = "🙌";
-    },
-  },
-  look("aipager", 1800, "Back to the work, which has been getting on with it."),
-  {
-    after: 1400,
-    wire: hook("SubagentStop", "✅ ship-developer"),
-    run: (w) => {
-      const c = card(w, "aipager", "c2");
-      const dev = c.items.find((x) => x.type === "agent" && x.name === "ship-developer");
-      if (dev && dev.type === "agent") {
-        dev.state = "done";
-        dev.calls = 4;
-        dev.secs = 170;
+      const c = card(w, "aipager", "c3");
+      const h = c.items.find((x) => x.type === "agent" && x.name === "hotels");
+      if (h && h.type === "agent") {
+        h.state = "done";
+        h.calls = 9;
+        h.secs = 48;
       }
-      const p = pane(w, "api");
-      p.agents = 2;
-      p.lines.push({ text: "ship-developer · 4 tool calls · 2:50", sub: true, tone: "live" });
+      c.items.push({ type: "prose", text: "Hotels: Casa Baleal €142 · Lx Boutique €165 · Santa Justa €178, all walkable to Baixa." });
+      c.items.push({ type: "prose", text: "Flights: TAP direct, BER→LIS 12 March €89, back on the 19th €104." });
+      c.tally = "WebFetch ×1 · Task ×2";
+      const p = pane(w, "trip");
+      p.agents = 0;
+      p.lines.push({ text: "hotels · 9 tool calls · 0:48", sub: true, tone: "live" });
+      p.lines.push({ text: "3 hotels under €180, TAP direct both ways.", dot: "fg" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {
-    after: 2400,
-    wire: hook("SubagentStop", "✅ ship-tester"),
-    caption: "Each row settles where it stood, with what that agent did and how long it took.",
+    after: 1800,
+    wire: hook("Stop", "💬 trip · the week"),
     run: (w) => {
-      const c = card(w, "aipager", "c2");
-      const t = c.items.find((x) => x.type === "agent" && x.name === "ship-tester");
-      if (t && t.type === "agent") {
-        t.state = "done";
-        t.calls = 11;
-        t.secs = 299;
-      }
-      // the run behind us folds, the way a long card keeps itself readable
-      c.items = [
-        { type: "prose", text: "Suite and review in parallel, then I'll tag and let the deploy wait for this turn." },
-        { type: "fold", n: 6 },
-        ...c.items.filter((x) => x.type === "agent" || x.type === "shell"),
-        { type: "prose", text: "Suite is green: 212 of 212. The review has one note left to collect." },
-      ];
-      c.tally = "Task ×3 · Bash ×4 · Edit ×1";
-      const p = pane(w, "api");
-      p.agents = 1;
-      p.lines.push({ text: "ship-tester · 11 tool calls · 4:59", sub: true, tone: "live" });
-      p.lines.push({ text: "Suite is green: 212 of 212.", dot: "fg" });
-      w.chats.aipager.pinnedBar = pinBar(w);
-    },
-  },
-  {
-    after: 2600,
-    wire: hook("Stop", "💬 the answer"),
-    caption: "The turn ends before the work does — so the answer carries what is still running.",
-    run: (w) => {
-      const c = card(w, "aipager", "c2");
+      const c = card(w, "aipager", "c3");
       c.mark = "✅";
       c.verb = "Finished";
       arrive(
         w,
         "aipager",
         {
-          id: "a2",
+          id: "a4",
           kind: "answer",
-          session: "api",
-          text: "Merged and pushed, tagged v1.4.0. CI is green. The deploy waits until no session is busy, which means it starts the moment this turn ends.",
-          time: "21:27",
-          background: {
-            agents: 1,
-            shells: 1,
-            rows: [{ name: "ship-reviewer", what: "Collecting line numbers", state: "run" }],
-            promise: true,
-          },
+          session: "trip",
+          text: "Lisbon works: 18°C, two wet days. Casa Baleal is the pick at €142 a night, and TAP direct is €193 return. Say the word and I'll hold both.",
+          time: "21:25",
         },
-        { title: "aipager", body: "💬 api · Merged and pushed, tagged v1.4.0…" },
+        { title: "aipager", body: "💬 trip · Lisbon works: 18°C, two wet days…" },
       );
-      const p = pane(w, "api");
+      const p = pane(w, "trip");
       p.spinner = null;
-      p.lines.push({ text: "Merged and pushed, tagged v1.4.0. CI is green.", dot: "fg" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
-  {
-    after: 3400,
-    caption: "It keeps that status up to date on its own, silently, while you read something else.",
-    run: (w) => {
-      const m = msg(w, "aipager", "a2");
-      if (m.kind === "answer" && m.background) {
-        m.background.agents = 0;
-        m.background.rows = [];
-        m.background.promise = false;
-        m.background.done = "✅ 2 agents done (8:04) · 🖥 1 shell running";
-      }
-      const c = card(w, "aipager", "c2");
-      const rev = c.items.find((x) => x.type === "agent" && x.name === "ship-reviewer");
-      if (rev && rev.type === "agent") {
-        rev.state = "done";
-        rev.calls = 35;
-        rev.secs = 484;
-      }
-      const p = pane(w, "api");
-      p.agents = 0;
-      p.lines.push({ text: "ship-reviewer · 35 tool calls · 8:04", sub: true, tone: "live" });
-      w.chats.aipager.pinnedBar = pinBar(w);
-    },
-  },
-  {
-    after: 3000,
-    caption: "And when the last shell stops, the line settles too. The deploy went out on its own.",
-    run: (w) => {
-      const m = msg(w, "aipager", "a2");
-      if (m.kind === "answer" && m.background) m.background.done = "✅ 2 agents done (8:04) · 1 shell finished (2:13:05)";
-      const c = card(w, "aipager", "c2");
-      const sh = c.items.find((x) => x.type === "shell");
-      if (sh && sh.type === "shell") {
-        sh.state = "done";
-        sh.secs = 7985;
-      }
-      const p = pane(w, "api");
-      p.shells = 0;
-      p.lines.push({ text: "shell_1 finished (2:13:05)", sub: true, tone: "dim" });
-      w.chats.aipager.pinnedBar = pinBar(w);
-    },
-  },
-  { after: 4200, caption: "Three agents, a shell and a deploy, from a sofa. Nothing in it needed you." },
+  look("sara", 2200, "Which only leaves the part a machine should not do for you."),
+  ...say("sara", "Lisbon, 12–19 March ☀️ flights €193, hotel €142", "21:26", "me5"),
+  ...from("sara", "sara", "yes!! book it 🎉", "21:26", "sv2", 1600),
+  { after: 2600, caption: "Two sessions, three agents and a week in Lisbon, from a sofa. Nothing left running, nothing left to tap." },
 ];
 
 /* ───────────────────── full access: the way in ───────────────────── */
