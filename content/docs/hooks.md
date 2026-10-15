@@ -169,6 +169,12 @@ mid-turn), a `TaskStop` or `KillShell` of its id, the session ending, or
 two hours (`AIPAGER_BG_SHELL_MAX_TRACK`, seconds, default 7200). See
 [commands](commands.md#idle-responses) for its row on the card.
 
+An `Agent` (or `Task`) call made inside a subagent (its event carries
+`agent_id`) reports the id of the agent it started. aipager remembers
+which agent started which, so it can tell an agent that stopped to wait
+for its own agent from one that finished (see `SubagentStart` /
+`SubagentStop` below).
+
 ### `Notification`
 
 The daemon reads Claude Code's `notification_type`:
@@ -206,13 +212,31 @@ rate limit, ...) is shown in plain words.
 A subagent started or ended. Each one gets its own row on the busy card,
 `🤖 <type> · <activity> · <elapsed>`, with its own tool calls folded
 under it, and settles to `✅ 🤖 <type> · N tool calls · <elapsed>` when it
-stops. A subagent whose `SubagentStop` never arrives is dropped once it
-has been silent for 30 minutes (`AIPAGER_SUBAGENT_SILENCE`, seconds; no
-event of any kind carrying its id). A working agent sends tool events
+stops. `SubagentStart` does not say which agent started it: aipager
+matches it to the `Agent` call (`PreToolUse`) of its type that is
+waiting. When every such call came from one agent, the new agent is
+linked to that agent at once (its card row reads `🤖 pipeline-runner ›
+ship-tester`, and it joins the agents under it in an answer's status);
+when they came from different agents, nothing is linked until the
+starting agent's own `PostToolUse` names it. A call's description is
+used only when exactly one call of the type is waiting. A subagent
+whose `SubagentStop` never arrives is dropped once it has been silent
+for 30 minutes (`AIPAGER_SUBAGENT_SILENCE`, seconds; no event of any
+kind carrying its id). A working agent sends tool events
 every few seconds, so this only collects one whose stop was missed (a
 restart, a lost datagram); a single tool call that runs 30 minutes
 without any event under that agent's id collects it too.
 `AIPAGER_SUBAGENT_TTL` is accepted as an old name for the same setting.
+
+A background agent that ends its turn while an agent it started still
+runs gets a `SubagentStop` too. aipager takes it as a pause, not an end:
+the agent stays running (its row, the job, the status under answers, the
+pinned bar). Its next `SubagentStart`, with the same id, is its resume
+and adds no second row; any tool call of its own counts as a resume
+too. It ends when it stops with none of its own agents running. If it
+has not resumed two minutes after the last of them ended, it is no
+longer counted as running, but is never shown as done. The running
+agents, waiting ones included, are kept across a daemon restart.
 `SubagentStop` events with no type and an unknown id arrive often and
 are ignored.
 
