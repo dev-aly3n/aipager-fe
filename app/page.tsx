@@ -21,21 +21,45 @@ export default function Home() {
               <p className="mx-auto mt-3.5 max-w-3xl text-[17px] leading-relaxed text-fg-2">
                 aipager puts your Claude Code sessions in Telegram, between your family, your friends and your team. It runs on your machine.
               </p>
+              {/* The one command, where it can be seen without scrolling. */}
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+                <div className="group flex h-11 w-[27rem] max-w-full items-center gap-2.5 rounded-xl border border-white/12 bg-[#0d1014] pl-4 pr-1.5 font-mono text-[14px] transition-colors hover:border-white/25">
+                  <span className="text-accent">$</span>
+                  <span className="min-w-0 flex-1 truncate text-left text-foreground">{INSTALL}</span>
+                  <CopyButton
+                    text={INSTALL}
+                    className="shrink-0 rounded-lg border border-white/12 px-3 py-1.5 text-[12px] text-fg-3 transition-colors hover:border-accent hover:text-foreground"
+                  />
+                </div>
+                <a
+                  href="https://github.com/dev-aly3n/aipager"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-foreground px-5 text-[14px] font-medium text-[#0a0c0f] transition-opacity hover:opacity-90"
+                >
+                  <GitHubIcon size={15} /> Star on GitHub
+                </a>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-fg-4">
+                <span>Linux &amp; macOS · MIT · about a minute</span>
+                <span className="hidden sm:inline" aria-hidden>
+                  ·
+                </span>
+                <a href="#install" className="text-accent transition-colors hover:text-foreground">
+                  or let your coding agent do it →
+                </a>
+              </div>
             </div>
-            <div className="mt-6">
+            <div className="mt-8">
               <Desktop />
             </div>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <div className="flex w-[27rem] max-w-full items-center gap-2.5 rounded-xl border border-white/10 bg-[#0d1014] py-2 pl-4 pr-2 font-mono text-[13.5px]">
-                <span className="text-fg-4">$</span>
-                <span className="min-w-0 flex-1 truncate text-left text-fg-2">{INSTALL}</span>
-                <CopyButton text={INSTALL} className="rounded-lg border border-white/10 px-3 py-1.5 text-[12px] text-fg-3 transition-colors hover:border-accent hover:text-foreground" />
-              </div>
-              <a href="https://github.com/dev-aly3n/aipager" className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-[#0a0c0f] transition-opacity hover:opacity-90">
-                <GitHubIcon size={15} /> Star on GitHub
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-5 text-[14px] text-fg-3">
+              <a href="#install" className="transition-colors hover:text-foreground">
+                Every way to install
               </a>
-              <a href="/docs" className="rounded-full border border-white/12 px-5 py-2.5 text-[14px] text-fg-2 transition-colors hover:border-white/30 hover:text-foreground">
+              <a href="/docs" className="transition-colors hover:text-foreground">
                 Read the docs
+              </a>
+              <a href="/docs/security" className="transition-colors hover:text-foreground">
+                The security model
               </a>
             </div>
           </div>
