@@ -9,7 +9,7 @@
  * leave the chat, your sessions carry on without you, and you come back
  * when something pings. Nobody sits watching a chat waiting for a reply.
  */
-import { arrive, card, msg, open, pane, type ChatId, type Mode, type Spark, type World } from "./world";
+import { arrive, card, msg, open, pane, pinBar, type ChatId, type Mode, type Spark, type World } from "./world";
 
 export interface Step {
   after: number;
@@ -145,7 +145,7 @@ const WORK_ASK: Step[] = [
       c.mark = "🔐";
       c.verb = "Permission needed";
       c.prompt = { kind: "perm", tool: "Read", what: "Read the cookie helper", command: "src/auth/cookie.ts", answered: false };
-      w.chats.aipager.pinnedBar = "⏳ api needs you - Read: src/auth/cookie.ts";
+      w.chats.aipager.pinnedBar = pinBar(w, "Read: src/auth/cookie.ts");
       const p = pane(w, "api");
       p.spinner = null;
       p.lines.push({ text: "Read(src/auth/cookie.ts)", dot: "live", bold: true });
@@ -175,7 +175,7 @@ const WORK_ASK: Step[] = [
       c.verb = "Reading";
       c.items.push({ type: "row", text: "Read: src/auth/cookie.ts", done: true });
       c.tally = "Read ×2 · Bash ×1";
-      w.chats.aipager.pinnedBar = "⚙️ api (working)";
+      w.chats.aipager.pinnedBar = pinBar(w);
       arrive(w, "aipager", { id: "ok0", kind: "text", from: "bot", text: "✅ api · Allowed · Read: src/auth/cookie.ts", time: "21:05" });
       const p = pane(w, "api");
       p.lines = p.lines.filter((l) => l.text !== "Running PermissionRequest hook…");
@@ -192,7 +192,7 @@ const WORK_ASK: Step[] = [
       c.mark = "🔐";
       c.verb = "Permission needed";
       c.prompt = { kind: "perm", tool: "Bash", what: "Run the login test with tracing", command: "pnpm test e2e/login --trace on", answered: false };
-      w.chats.aipager.pinnedBar = "⏳ api needs you - Bash: pnpm test e2e/login --trace on";
+      w.chats.aipager.pinnedBar = pinBar(w, "Bash: pnpm test e2e/login --trace on");
       const p = pane(w, "api");
       p.spinner = null;
       p.lines.push({ text: "Bash(pnpm test e2e/login --trace on)", dot: "live", bold: true });
@@ -223,7 +223,7 @@ const WORK_ASK: Step[] = [
       c.items.push({ type: "row", text: "Bash: pnpm test e2e/login --trace on", done: true });
       c.items.push({ type: "prose", text: "The test clicks before the session cookie is set. It sleeps 5s and hopes." });
       c.tally = "Read ×2 · Bash ×2";
-      w.chats.aipager.pinnedBar = "⚙️ api (working)";
+      w.chats.aipager.pinnedBar = pinBar(w);
       arrive(w, "aipager", { id: "ok1", kind: "text", from: "bot", text: "✅ api · Allowed · Bash: pnpm test e2e/login --trace on", time: "21:06" });
       const p = pane(w, "api");
       p.lines = p.lines.filter((l) => l.text !== "Running PermissionRequest hook…");
@@ -285,20 +285,13 @@ const TEAM: Step[] = [
         time: "21:09",
       });
       w.term = "web";
-      w.panes.push({
-        id: "web",
-        lines: [
-          { text: "~/work/web $ aipager session web", tone: "dim" },
-          { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-          { text: "run the login e2e against staging", user: true, via: "@sara" },
-          { text: "Bash(pnpm e2e login --env staging)", dot: "live", bold: true },
-        ],
-        spinner: "Testing",
-        secs: 8,
-        dialog: null,
-        input: "",
-        status: "[web] Sonnet 5.5 | 6% ctx | $0.02",
-      });
+      const web = pane(w, "web");
+      web.lines.push({ text: "run the login e2e against staging", user: true, via: "@sara" });
+      web.lines.push({ text: "Bash(pnpm e2e login --env staging)", dot: "live", bold: true });
+      web.spinner = "Testing";
+      web.secs = 8;
+      web.status = "[web] Sonnet 5.5 | 6% ctx | $0.02";
+      w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   ...from("team", "sam", "@aipagerbot /web kubectl rollout restart deploy/api", "21:10", "t4", 2000),
@@ -326,6 +319,7 @@ const TEAM: Step[] = [
       arrive(w, "team", { id: "ta1", kind: "answer", session: "web", text: "18 of 18 login tests pass on staging. The flake doesn't show there.", time: "21:10", reaction: "" });
       const p = pane(w, "web");
       p.spinner = null;
+      w.chats.aipager.pinnedBar = pinBar(w);
       p.lines.push({ text: "18 passed (41s)", sub: true, tone: "live" });
       p.lines.push({ text: "18 of 18 login tests pass on staging.", dot: "fg" });
     },
@@ -355,7 +349,7 @@ function decide(mode: Mode): Step[] {
         c.mark = "❓";
         c.verb = "Raise the timeout or wait for the cookie?";
         c.prompt = { kind: "question", question: "Raise the timeout, or wait for the cookie?", options: ["Raise the timeout", "Wait for the cookie", "Both"], answered: null };
-        w.chats.aipager.pinnedBar = "⏳ api needs you - Raise the timeout, or wait for the cookie?";
+        w.chats.aipager.pinnedBar = pinBar(w, "Raise the timeout, or wait for the cookie?");
         const p = pane(w, "api");
         p.spinner = null;
         p.dialog = { kind: "question", title: "Fix", body: ["The test sleeps 5s before clicking.", "Raise the timeout, or wait for the cookie?"], options: ["Raise the timeout", "Wait for the cookie", "Both"], selected: 0 };
@@ -397,7 +391,7 @@ function decide(mode: Mode): Step[] {
           { type: "row", text: "Bash: pnpm test e2e/login --repeat 10", done: false },
         ];
         c.tally = "Read ×2 · Bash ×2 · Edit ×1";
-        w.chats.aipager.pinnedBar = "⚙️ api (working)";
+        w.chats.aipager.pinnedBar = pinBar(w);
         arrive(w, "aipager", { id: "ok3", kind: "text", from: "bot", text: `✓ api · Answered · ${choice}`, time: "21:12", reply: { name: "aipager", text: "❓ api · Raise the timeout, or wait for the cookie?" } });
         const p = pane(w, "api");
         p.dialog = null;
@@ -432,7 +426,7 @@ const ANSWER: Step[] = [
       c.mark = "✅";
       c.verb = "Finished";
       c.tally = "Read ×2 · Bash ×3 · Edit ×1";
-      w.chats.aipager.pinnedBar = "💤 all idle";
+      w.chats.aipager.pinnedBar = pinBar(w);
       arrive(
         w,
         "aipager",
@@ -514,7 +508,7 @@ const TASK: Step[] = [
       p.lines.push({ text: "fix the flaky login e2e test", user: true, via: "@owner" });
       p.spinner = "Pondering";
       p.secs = 1;
-      w.chats.aipager.pinnedBar = "⚙️ api (working)";
+      w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
   {

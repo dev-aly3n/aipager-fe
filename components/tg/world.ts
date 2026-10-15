@@ -160,7 +160,7 @@ export function initialWorld(mode: Mode = "auto"): World {
   ];
   p.spinner = null;
   p.secs = 0;
-  w.chats.aipager.pinnedBar = "💤 api (idle)";
+  w.chats.aipager.pinnedBar = pinBar(w);
   return w;
 }
 
@@ -190,6 +190,19 @@ function askWorld(): World {
         dialog: null,
         input: "",
         status: "[api] Sonnet 5.5 | 12% ctx | $0.14",
+      },
+      {
+        // The team's session, open and waiting for its next job.
+        id: "web",
+        lines: [
+          { text: "~/work/web $ aipager session web", tone: "dim" },
+          { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
+        ],
+        spinner: null,
+        secs: 0,
+        dialog: null,
+        input: "",
+        status: "[web] Sonnet 5.5 | 2% ctx | $0.00",
       },
     ],
     chats: {
@@ -331,6 +344,20 @@ export function msg(w: World, chat: ChatId, id: string): Msg {
   const m = w.chats[chat].msgs.find((x) => x.id === id);
   if (!m) throw new Error(`no message ${id} in ${chat}`);
   return m;
+}
+
+/**
+ * The pinned bar's first line. One live session is named; several are
+ * counted — the shape aipager uses in a chat with more than one.
+ */
+export function pinBar(w: World, needs?: string): string {
+  if (needs) return `⏳ api needs you - ${needs}`;
+  const live = w.panes.length;
+  const working = w.panes.filter((p) => p.spinner).length;
+  if (live === 1) return working ? `⚙️ ${w.panes[0].id} (working)` : `💤 ${w.panes[0].id} (idle)`;
+  if (working === 0) return "💤 all idle";
+  if (working === live) return `⚙️ ${working} working`;
+  return `⚙️ ${working} working · ${live - working} idle`;
 }
 
 export function pane(w: World, id: string): Pane {
