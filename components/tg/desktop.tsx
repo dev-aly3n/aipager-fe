@@ -88,7 +88,7 @@ const MODES: { id: Mode; label: string; tag?: string; line: string }[] = [
 /** Ask or Auto: the evening replays in the mode you pick. */
 function ModeSwitch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+    <div className="mb-3.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xl:justify-start">
       <div className="flex rounded-full border border-white/10 bg-white/[0.03] p-1" role="radiogroup" aria-label="Permission mode">
         {MODES.map((m) => (
           <button

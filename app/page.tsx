@@ -12,40 +12,40 @@ export default function Home() {
     <>
       <Nav />
       <main>
-        <section className="relative overflow-hidden pb-24 pt-[84px]">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[700px] bg-[radial-gradient(ellipse_at_50%_0%,rgb(42_171_238/0.16),transparent_60%)]" />
-          <div className="wrap relative !max-w-[86rem]">
-            <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-[clamp(38px,4.3vw,66px)] font-semibold leading-[1] tracking-[-0.05em]">
+        <section className="relative overflow-hidden pb-20 pt-[72px]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[700px] bg-[radial-gradient(ellipse_at_30%_0%,rgb(42_171_238/0.16),transparent_62%)]" />
+          <div className="wrap relative grid !max-w-[92rem] items-center gap-10 xl:grid-cols-[26rem_minmax(0,1fr)] xl:gap-14">
+            {/* what it is, and the one command — never below the fold */}
+            <div className="text-center xl:text-left">
+              <h1 className="text-[clamp(36px,3.6vw,52px)] font-semibold leading-[1.02] tracking-[-0.045em]">
                 Claude is one more chat<span className="text-[#2aabee]">.</span>
               </h1>
-              <p className="mx-auto mt-3.5 max-w-3xl text-[17px] leading-relaxed text-fg-2">
+              <p className="mx-auto mt-4 max-w-xl text-[16.5px] leading-relaxed text-fg-2 xl:mx-0">
                 aipager puts your Claude Code sessions in Telegram, between your family, your friends and your team. It runs on your machine.
               </p>
-              {/* The one command, where it can be seen without scrolling. */}
-              <div className="mt-8">
+              <div className="mt-7">
                 <InstallLine cmd={INSTALL} />
               </div>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13.5px] text-fg-3 xl:justify-start">
+                <a href="#install" className="transition-colors hover:text-foreground">
+                  Let your agent install it
+                </a>
+                <a href="/docs" className="transition-colors hover:text-foreground">
+                  Docs
+                </a>
+                <a href="/docs/security" className="transition-colors hover:text-foreground">
+                  Security
+                </a>
+                <a href="https://github.com/dev-aly3n/aipager" className="inline-flex items-center gap-2 transition-colors hover:text-foreground">
+                  <GitHubIcon size={14} /> GitHub
+                </a>
+              </div>
+              <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.14em] text-fg-4">Linux &amp; macOS · MIT · about a minute</p>
             </div>
-            <div className="mt-9">
+
+            {/* the evening itself, with the height it needs */}
+            <div className="min-w-0">
               <Desktop />
-            </div>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[14px] text-fg-3">
-              <a href="#install" className="transition-colors hover:text-foreground">
-                Let your agent install it
-              </a>
-              <a href="#install" className="transition-colors hover:text-foreground">
-                Every way to install
-              </a>
-              <a href="/docs" className="transition-colors hover:text-foreground">
-                Docs
-              </a>
-              <a href="/docs/security" className="transition-colors hover:text-foreground">
-                Security model
-              </a>
-              <a href="https://github.com/dev-aly3n/aipager" className="inline-flex items-center gap-2 transition-colors hover:text-foreground">
-                <GitHubIcon size={14} /> GitHub
-              </a>
             </div>
           </div>
         </section>
