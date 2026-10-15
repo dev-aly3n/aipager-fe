@@ -628,3 +628,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .caret-blink { animation: none; }
 }
+
+/* a terminal tab with a job running: a light sweeping under it */
+.tab-run {
+  animation: tab-run 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes tab-run {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-run { animation: none; left: 0; width: 100%; opacity: 0.6; }
+}
