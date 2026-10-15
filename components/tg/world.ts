@@ -20,6 +20,8 @@ export interface TLine {
   bold?: boolean;
   /** something you typed: Claude Code gives it a block of its own */
   user?: boolean;
+  /** the handle it arrived from, when aipager typed it in for someone */
+  via?: string;
 }
 
 export interface TDialog {
@@ -153,7 +155,7 @@ export function initialWorld(mode: Mode = "auto"): World {
   p.lines = [
     { text: SHELL + "aipager session api", tone: "dim" },
     { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-    { text: "expire idle sessions after 30 minutes", user: true },
+    { text: "expire idle sessions after 30 minutes", user: true, via: "@owner" },
     { text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", dot: "fg" },
   ];
   p.spinner = null;
@@ -178,7 +180,7 @@ function askWorld(): World {
         lines: [
           { text: SHELL + "aipager session api", tone: "dim" },
           { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-          { text: "fix the flaky login e2e test", user: true },
+          { text: "fix the flaky login e2e test", user: true, via: "@owner" },
           { text: "I'll run the login test a few times and look at where it fails.", dot: "fg" },
           { text: "Read(e2e/login.spec.ts)", dot: "live", bold: true },
           { text: "Read 64 lines", sub: true, tone: "dim" },

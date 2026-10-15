@@ -30,8 +30,11 @@ function Line({ line }: { line: TLine }) {
   if (line.user) {
     return (
       <div className="-mx-4 my-[3px] flex gap-2 bg-white/[0.2] px-4 py-[3px]">
-        <span className="text-[#aeb6bf]">›</span>
-        <span className="min-w-0 text-[#f1f3f5]">{line.text}</span>
+        <span className="shrink-0 text-[#aeb6bf]">›</span>
+        <span className="min-w-0">
+          {line.via && <span className="block text-[#aeb6bf]">[via Telegram · {line.via}]</span>}
+          <span className="block text-[#f1f3f5]">{line.text}</span>
+        </span>
       </div>
     );
   }

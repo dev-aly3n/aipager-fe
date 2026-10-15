@@ -259,7 +259,7 @@ const WORK_FULL: Step[] = [
 
 /** Mom writes back while you are elsewhere. You go, answer, and leave again. */
 const MOM_2: Step[] = [
-  ...from("mom", "mom", "lovely 😊 sunday lunch at 1?", "21:07", "mom2", 2400),
+  ...from("mom", "mom", "sunday lunch at 1? 😊", "21:07", "mom2", 2400),
   look("mom", 1500, "Mom again. The session carries on behind you — it does not need a window open."),
   ...say("mom", "1pm ❤️", "21:08", "me2"),
   look("aipager", 1200),
@@ -290,7 +290,7 @@ const TEAM: Step[] = [
         lines: [
           { text: "~/work/web $ aipager session web", tone: "dim" },
           { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-          { text: "run the login e2e against staging", user: true },
+          { text: "run the login e2e against staging", user: true, via: "@sara" },
           { text: "Bash(pnpm e2e login --env staging)", dot: "live", bold: true },
         ],
         spinner: "Testing",
@@ -511,7 +511,7 @@ const TASK: Step[] = [
       const m = msg(w, "aipager", "u1");
       if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "api");
-      p.lines.push({ text: "fix the flaky login e2e test", user: true });
+      p.lines.push({ text: "fix the flaky login e2e test", user: true, via: "@owner" });
       p.spinner = "Pondering";
       p.secs = 1;
       w.chats.aipager.pinnedBar = "⚙️ api (working)";

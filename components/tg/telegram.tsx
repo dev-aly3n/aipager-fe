@@ -227,7 +227,7 @@ export function Ticks({ n }: { n: 1 | 2 }) {
 
 function Meta({ time, ticks, out }: { time: string; ticks?: 1 | 2; out: boolean }) {
   return (
-    <span className={`float-right ml-2 mt-[5px] translate-y-[3px] select-none whitespace-nowrap text-[11px] ${out ? "text-[#7da8d3]" : "text-[#6d7f8f]"}`}>
+    <span className={`float-right ml-2 mt-[3px] select-none whitespace-nowrap text-[11px] leading-[1.38] ${out ? "text-[#7da8d3]" : "text-[#6d7f8f]"}`}>
       {time}
       {out && ticks && (
         <span className="ml-1 inline-block h-[11px] w-4 align-[-1px] text-[#6ab3f3]">
@@ -359,7 +359,7 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
   const prevSender = prev && prev.kind !== "day" ? (prev.kind === "text" ? prev.from : "bot") : null;
   const firstOfRun = prevSender !== sender;
   const reacts = (m.kind === "text" || m.kind === "answer") && m.reaction !== undefined;
-  const bubble = `relative flow-root max-w-[78%] rounded-[14px] px-3 py-[7px] text-[13.5px] leading-[1.38] text-[#f1f5f9] shadow-[0_1px_1px_rgb(0_0_0/0.3)] ${
+  const bubble = `relative flow-root w-fit max-w-[82%] rounded-[14px] px-3 py-[7px] text-[13.5px] leading-[1.38] text-[#f1f5f9] shadow-[0_1px_1px_rgb(0_0_0/0.3)] ${
     out ? "bg-[#2b5278] rounded-br-[5px]" : "bg-[#182533] rounded-bl-[5px]"
   }`;
   const name = group && !out && firstOfRun ? (
@@ -421,7 +421,9 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
   return (
     <div className={`flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""}`}>
       {group && !out && <span className="w-[30px] shrink-0">{firstOfRun && <PersonDot id={sender} />}</span>}
-      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : ""}`}>
+      {/* w-full on purpose: the bubble's own max-width is a share of the row,
+          and a shrink-to-fit wrapper would resolve it against itself. */}
+      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : "w-full"}`}>
         <div className={m.kind === "card" || (m.kind === "confirm" && m.done === null) ? `${bubble} !max-w-full` : bubble}>{body}</div>
         {m.kind === "card" && <Keyboard c={m} waiting={waiting} onTap={(choice) => onTap(m.id, choice)} />}
         {m.kind === "confirm" && m.done === null && (
