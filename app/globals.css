@@ -656,3 +656,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tab-ring { animation: none; background: rgb(79 214 147 / 0.75); }
 }
+
+/* a message being pressed, the moment before its menu opens */
+.tg-press > div {
+  transform: scale(0.985);
+  filter: brightness(1.22);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}

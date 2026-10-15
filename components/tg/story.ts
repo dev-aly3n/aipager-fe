@@ -41,6 +41,7 @@ function say(chat: ChatId, text: string, time: string, id: string, reacts = fals
     after: 420,
     run: (w) => {
       w.draft = "";
+      w.replyTo = null;
       arrive(w, chat, { id, kind: "text", from: "me", text, time, ticks: 1, ...(reacts ? { reaction: "" } : {}), ...(reply ? { reply } : {}) });
     },
   });
@@ -557,6 +558,43 @@ const ACT2: Step[] = [
       const c = card(w, "aipager", "c3");
       const h = c.items.find((x) => x.type === "agent" && x.name === "hotels");
       if (h && h.type === "agent") h.what = "Reading reviews for 6 places";
+    },
+  },
+  // the gesture itself: find api's answer, hold it, and pick Reply
+  {
+    after: 1200,
+    caption: "To aim a message at api you answer one of its own. Scroll back to it…",
+    run: (w) => {
+      w.focus = "a1";
+    },
+  },
+  {
+    after: 1500,
+    run: (w) => {
+      w.press = "a1";
+    },
+  },
+  {
+    after: 650,
+    caption: "…hold it, and Telegram offers what you can do with it.",
+    run: (w) => {
+      w.press = null;
+      w.menu = { msg: "a1", items: ["Reply", "Copy Text", "Pin", "Forward", "Select", "Delete"], on: -1 };
+    },
+  },
+  {
+    after: 900,
+    run: (w) => {
+      if (w.menu) w.menu = { ...w.menu, on: 0 };
+    },
+  },
+  {
+    after: 700,
+    caption: "Reply. Now the composer is answering that message — and aipager reads the aim from it.",
+    run: (w) => {
+      w.menu = null;
+      w.focus = null;
+      w.replyTo = { id: "a1", name: "aipager", text: "💬 api · Fixed. The test now waits for the session cookie…" };
     },
   },
   ...say("aipager", "also push the fix branch and open the PR", "21:23", "u5", true, undefined, {

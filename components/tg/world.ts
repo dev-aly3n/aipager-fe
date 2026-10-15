@@ -143,6 +143,14 @@ export interface World {
   open: ChatId;
   folder: Folder;
   draft: string;
+  /** the composer is answering this message, Telegram's reply mode */
+  replyTo?: { id: string; name: string; text: string } | null;
+  /** a message being pressed, for the tap it flashes back */
+  press?: string | null;
+  /** the menu Telegram opens on a message; `on` is the item under the finger */
+  menu?: { msg: string; items: string[]; on: number } | null;
+  /** bring this message into view, smoothly */
+  focus?: string | null;
   notes: Note[];
   panes: Pane[];
   caption: string;

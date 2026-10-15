@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
 import { fmtClock, PEOPLE, preview, type Background as BackgroundWork, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
@@ -399,7 +399,63 @@ function Keyboard({ c, waiting, onTap }: { c: Card; waiting: boolean; onTap: (ch
   );
 }
 
-function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: Msg | undefined; waiting: boolean; onTap: (msg: string, choice: number) => void }) {
+const MENU_ICONS: Record<string, string> = {
+  Reply: "M9 14 4 9l5-5M4 9h7a6 6 0 0 1 6 6v3",
+  "Copy Text": "M9 9h10v10H9zM5 15V5h10",
+  Pin: "M12 17v4M8 3h8l-1 6 3 3v2H6v-2l3-3z",
+  Forward: "m15 10 5 5-5 5M20 15H9a6 6 0 0 1-6-6V6",
+  Select: "M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0M9 12l2 2 4-4",
+  Delete: "M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13",
+};
+
+/** The menu Telegram opens on a message, with the item under the finger lit. */
+function ChatMenu({ items, on, out }: { items: string[]; on: number; out: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: -4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 520, damping: 32 }}
+      style={{ transformOrigin: out ? "top right" : "top left" }}
+      className={`absolute top-full z-40 mt-1 w-[168px] overflow-hidden rounded-[10px] border border-white/[0.07] bg-[#1c2733]/97 py-1 shadow-[0_18px_40px_-10px_rgb(0_0_0/0.9)] backdrop-blur-sm ${
+        out ? "right-0" : "left-0"
+      }`}
+    >
+      {items.map((label, i) => (
+        <div
+          key={label}
+          className={`flex items-center gap-2.5 px-3 py-[6px] text-[13px] transition-colors ${
+            i === on ? "bg-white/[0.08] text-white" : "text-[#d6e0ea]"
+          } ${label === "Delete" ? "text-[#f2705d]" : ""}`}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d={MENU_ICONS[label] ?? "M5 12h14"} />
+          </svg>
+          {label}
+        </div>
+      ))}
+    </motion.div>
+  );
+}
+
+function Bubble({
+  m,
+  chat,
+  prev,
+  waiting,
+  onTap,
+  press,
+  menu,
+}: {
+  m: Msg;
+  chat: Chat;
+  prev: Msg | undefined;
+  waiting: boolean;
+  onTap: (msg: string, choice: number) => void;
+  /** the finger is on this one */
+  press?: boolean;
+  /** the menu Telegram opened on it */
+  menu?: { items: string[]; on: number } | null;
+}) {
   if (m.kind === "day")
     return (
       <div className="flex justify-center py-1.5">
@@ -473,12 +529,18 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
   }
 
   return (
-    <div className={`flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""}`}>
+    <div
+      data-msg={m.id}
+      className={`relative flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""} ${
+        press ? "tg-press" : ""
+      }`}
+    >
       {group && !out && <span className="w-[30px] shrink-0">{firstOfRun && <PersonDot id={sender} />}</span>}
       {/* w-full on purpose: the bubble's own max-width is a share of the row,
           and a shrink-to-fit wrapper would resolve it against itself. */}
       <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : "w-full"}`}>
         <div className={m.kind === "card" || (m.kind === "confirm" && m.done === null) ? `${bubble} !max-w-full` : bubble}>{body}</div>
+        {menu && <ChatMenu items={menu.items} on={menu.on} out={out} />}
         {m.kind === "card" && <Keyboard c={m} waiting={waiting} onTap={(choice) => onTap(m.id, choice)} />}
         {m.kind === "confirm" && m.done === null && (
           <div className="mt-1 grid grid-cols-2 gap-1">
@@ -539,37 +601,140 @@ function ChatView({ world, waiting, onTap }: { world: World; waiting: { chat: Ch
           </div>
         </div>
       )}
-      <div className="tg-pattern relative flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-4 pb-3">
-        <div key={c.id}>
-          <AnimatePresence initial={false}>
-            {c.msgs.map((m, i) => (
-              <motion.div
-                key={m.id}
-                layout="position"
-                initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 420, damping: 34 }}
-              >
-                <Bubble m={m} chat={c} prev={c.msgs[i - 1]} waiting={!!waiting && waiting.chat === c.id && waiting.msg === m.id} onTap={onTap} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+      <Feed world={world} c={c} waiting={waiting} onTap={onTap} />
+      <div className="flex shrink-0 flex-col border-t border-black/40 bg-[#17212b]">
+        {world.replyTo && (
+          <div className="flex items-center gap-2.5 px-4 pt-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6ab3f3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9 14 4 9l5-5M4 9h7a6 6 0 0 1 6 6v3" />
+            </svg>
+            <div className="min-w-0 flex-1 border-l-2 border-[#6ab3f3] pl-2 leading-tight">
+              <div className="text-[12.5px] font-semibold text-[#6ab3f3]">{world.replyTo.name}</div>
+              <div className="truncate text-[12.5px] text-[#a9b8c6]">{world.replyTo.text}</div>
+            </div>
+            <span className="shrink-0 text-[15px] text-[#6d7f8f]">✕</span>
+          </div>
+        )}
+        <div className="flex min-h-[52px] items-end gap-3 px-4 py-[15px]">
+          <svg className="mb-[1px] shrink-0" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8" />
+          </svg>
+          <div className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-[14px] leading-[1.35] ${world.draft ? "text-white" : "text-[#6d7f8f]"}`}>
+            {world.draft ? <span className="caret">{world.draft}</span> : "Write a message…"}
+          </div>
+          {world.draft ? (
+            <svg className="mb-[-1px] shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="#6ab3f3" aria-hidden>
+              <path d="M3.4 20.4 21 12 3.4 3.6l.1 6.5L15 12 3.5 13.9z" />
+            </svg>
+          ) : (
+            <svg className="mb-[1px] shrink-0" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+              <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
+            </svg>
+          )}
         </div>
       </div>
-      <div className="flex h-[52px] shrink-0 items-center gap-3 border-t border-black/40 bg-[#17212b] px-4">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8" />
-        </svg>
-        <div className={`min-w-0 flex-1 truncate text-[14px] ${world.draft ? "text-white" : "text-[#6d7f8f]"}`}>{world.draft ? <span className="caret">{world.draft}</span> : "Write a message…"}</div>
-        {world.draft ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#6ab3f3" aria-hidden>
-            <path d="M3.4 20.4 21 12 3.4 3.6l.1 6.5L15 12 3.5 13.9z" />
-          </svg>
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-            <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
-          </svg>
-        )}
+    </div>
+  );
+}
+
+/**
+ * The conversation. It scrolls by dragging it, never by the wheel, so a
+ * reader scrolling the page is never caught by it; and the story can ask
+ * it to bring an older message back into view.
+ */
+function Feed({
+  world,
+  c,
+  waiting,
+  onTap,
+}: {
+  world: World;
+  c: Chat;
+  waiting: { chat: ChatId; msg: string } | null;
+  onTap: (msg: string, choice: number) => void;
+}) {
+  const box = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; top: number; moved: boolean } | null>(null);
+  const look = useRef<string | null | undefined>(world.focus);
+  look.current = world.focus;
+
+  // New messages bring it back to the bottom, unless the story is pointing
+  // at an older one. Typing does not: a line appearing in the composer must
+  // not yank the view, and must not fight a drag in progress.
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || world.focus || drag.current) return;
+    el.scrollTop = el.scrollHeight;
+  }, [c.msgs.length, c.id, world.focus, Boolean(world.replyTo)]);
+
+  useEffect(() => {
+    if (!world.focus) return;
+    box.current?.querySelector(`[data-msg="${world.focus}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [world.focus]);
+
+  // A card that edits itself into a prompt grows without a new message
+  // arriving, and its buttons must not end up below the fold.
+  useEffect(() => {
+    const el = box.current;
+    const content = inner.current;
+    if (!el || !content) return;
+    const ro = new ResizeObserver(() => {
+      if (look.current || drag.current) return;
+      el.scrollTop = el.scrollHeight;
+    });
+    ro.observe(content);
+    return () => ro.disconnect();
+    // the inner div is keyed by chat, so a new chat means a new node to watch
+  }, [c.id]);
+
+  return (
+    <div
+      ref={box}
+      onPointerDown={(e) => {
+        const el = box.current;
+        if (!el) return;
+        drag.current = { y: e.clientY, top: el.scrollTop, moved: false };
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        const el = box.current;
+        if (!d || !el) return;
+        const dy = e.clientY - d.y;
+        if (!d.moved && Math.abs(dy) < 4) return;
+        d.moved = true;
+        el.scrollTop = d.top - dy;
+      }}
+      onPointerUp={() => {
+        drag.current = null;
+      }}
+      onPointerLeave={() => {
+        drag.current = null;
+      }}
+      className="tg-pattern relative flex min-h-0 flex-1 cursor-grab flex-col overflow-hidden px-4 pb-3 active:cursor-grabbing"
+    >
+      <div key={c.id} ref={inner} className="mt-auto">
+        <AnimatePresence initial={false}>
+          {c.msgs.map((m, i) => (
+            <motion.div
+              key={m.id}
+              layout="position"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            >
+              <Bubble
+                m={m}
+                chat={c}
+                prev={c.msgs[i - 1]}
+                waiting={!!waiting && waiting.chat === c.id && waiting.msg === m.id}
+                onTap={onTap}
+                press={world.press === m.id}
+                menu={world.menu?.msg === m.id ? world.menu : null}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );
