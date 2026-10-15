@@ -28,9 +28,9 @@ function Line({ line }: { line: TLine }) {
   // words — the way Claude Code separates the two in the terminal.
   if (line.user) {
     return (
-      <div className="-mx-1.5 my-[3px] flex gap-2 rounded bg-white/[0.055] px-1.5 py-[2px]">
-        <span className="text-[#6b727c]">&gt;</span>
-        <span className="min-w-0 text-[#b2b8c0]">{line.text}</span>
+      <div className="-mx-1.5 my-[3px] flex gap-2 rounded bg-white/[0.11] px-1.5 py-[2px]">
+        <span className="text-[#8a929c]">&gt;</span>
+        <span className="min-w-0 text-[#d3d8de]">{line.text}</span>
       </div>
     );
   }
