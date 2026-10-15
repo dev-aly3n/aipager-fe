@@ -530,7 +530,7 @@ const ACT2: Step[] = [
       const p = pane(w, "trip");
       p.lines.push({ text: "WebFetch(climate, Lisbon, March)", dot: "live", bold: true });
       p.lines.push({ text: "18°C by day · rain 2 of 7 days", sub: true, tone: "dim" });
-      p.lines.push({ text: "Good enough — no need for Seville.", dot: "fg" });
+      p.lines.push({ text: "Lisbon in March: 18°C by day, rain on 2 of the 7. Good enough — no need for Seville.", dot: "fg" });
     },
   },
   ...say(
@@ -579,6 +579,10 @@ const ACT2: Step[] = [
           ],
         },
       });
+      p.panel = [
+        { name: "general-purpose", what: "Starting", clock: "0:02", tokens: "1.1k tokens" },
+        { name: "general-purpose", what: "Starting", clock: "0:01", tokens: "0.9k tokens" },
+      ];
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
@@ -604,6 +608,88 @@ const ACT2: Step[] = [
         block.agents.rows[1] = { ...block.agents.rows[1], uses: 3, tokens: "7.4k", last: "WebSearch(TAP direct BER LIS)" };
       }
       p.tokens = "11.8k";
+      p.panel = [
+        { name: "general-purpose", what: "booking.com", clock: "0:24", tokens: "9.2k tokens" },
+        { name: "general-purpose", what: "TAP direct", clock: "0:23", tokens: "7.4k tokens" },
+      ];
+    },
+  },
+  // While they are out, the first session still needs an answer — and with
+  // two live in one chat, the reply is how you say which one you mean.
+  {
+    after: 1600,
+    caption: "Two sessions live in this chat now. A plain message goes to the one your messages are set to — to reach the other, you answer one of its own.",
+    run: (w) => {
+      w.focus = "a1";
+    },
+  },
+  {
+    after: 1500,
+    run: (w) => {
+      w.press = "a1";
+    },
+  },
+  {
+    after: 650,
+    caption: "Hold it, and Telegram offers what you can do with it.",
+    run: (w) => {
+      w.press = null;
+      w.menu = { msg: "a1", items: ["Reply", "Copy Text", "Pin", "Forward", "Select", "Delete"], on: -1 };
+    },
+  },
+  {
+    after: 900,
+    run: (w) => {
+      if (w.menu) w.menu = { ...w.menu, on: 0 };
+    },
+  },
+  {
+    after: 700,
+    caption: "Reply. The composer is answering that message, and aipager reads the aim from it.",
+    run: (w) => {
+      w.menu = null;
+      w.focus = null;
+      w.replyTo = { id: "a1", name: "aipager", text: "💬 api · Fixed. The test now waits for the session cookie…" };
+    },
+  },
+  ...say("aipager", "also push the fix branch and open the PR", "21:24", "u5", true, undefined, {
+    name: "aipager",
+    text: "💬 api · Fixed. The test now waits for the session cookie…",
+  }),
+  {
+    after: 800,
+    wire: back("a reply · api", "aimed at claude-api"),
+    caption: "Typed into api, not into trip.",
+    run: (w) => {
+      const m = msg(w, "aipager", "u5");
+      if (m.kind === "text") m.reaction = "👀";
+      const p = pane(w, "api");
+      p.lines.push({ text: "also push the fix branch and open the PR", user: true, via: "@owner" });
+      p.spinner = "Pushing";
+      p.tokens = "1.4k";
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 1400,
+    wire: hook("UserPromptSubmit", "a card · api"),
+    run: (w) => {
+      const m = msg(w, "aipager", "u5");
+      if (m.kind === "text") m.reaction = "👍";
+      arrive(w, "aipager", {
+        id: "c4",
+        kind: "card",
+        session: "api",
+        items: [{ type: "row", text: "Bash: git push -u origin fix/login-cookie", done: false }],
+        mark: "⏳",
+        verb: "Pushing",
+        elapsed: 2,
+        tally: "Bash ×1",
+        prompt: null,
+        time: "21:24",
+      });
+      const p = pane(w, "api");
+      p.lines.push({ text: "Bash(git push -u origin fix/login-cookie)", dot: "live", bold: true });
     },
   },
   {
@@ -636,6 +722,23 @@ const ACT2: Step[] = [
     },
   },
   {
+    after: 2600,
+    wire: hook("Stop", "💬 api · the PR"),
+    caption: "api answers first — it only had the one thing to do.",
+    run: (w) => {
+      const c = card(w, "aipager", "c4");
+      const r = c.items[0];
+      if (r.type === "row") r.done = true;
+      c.mark = "✅";
+      c.verb = "Finished";
+      arrive(w, "aipager", { id: "a3", kind: "answer", session: "api", text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", time: "21:25" });
+      const p = pane(w, "api");
+      p.spinner = null;
+      p.lines.push({ text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", dot: "fg" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
     after: 9000,
     caption: "aipager keeps that line up to date on its own while they work.",
     run: (w) => {
@@ -662,6 +765,10 @@ const ACT2: Step[] = [
         block.agents.rows[0] = { ...block.agents.rows[0], uses: 7, tokens: "18.4k", last: "Read(reviews.json)" };
         block.agents.rows[1] = { ...block.agents.rows[1], uses: 5, tokens: "12.1k", last: "WebFetch(tap.pt)" };
       }
+      p.panel = [
+        { name: "general-purpose", what: "6 reviews", clock: "1:42", tokens: "18.4k tokens" },
+        { name: "general-purpose", what: "tap.pt", clock: "1:41", tokens: "12.1k tokens" },
+      ];
     },
   },
   {
@@ -685,6 +792,7 @@ const ACT2: Step[] = [
       }
       const p = pane(w, "trip");
       p.agents = 1;
+      p.panel = [{ name: "general-purpose", what: "6 reviews", clock: "2:38", tokens: "27.9k tokens" }];
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
@@ -719,6 +827,7 @@ const ACT2: Step[] = [
       }
       p.spinner = "Synthesizing";
       p.tokens = "34.2k";
+      p.panel = undefined;
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },
@@ -741,7 +850,7 @@ const ACT2: Step[] = [
       );
       const p = pane(w, "trip");
       p.spinner = null;
-      p.lines.push({ text: "Casa Baleal €142 · TAP direct €193 return.", dot: "fg" });
+      p.lines.push({ text: "Hotels: Casa Baleal €142 a night, Lx Boutique €165, Santa Justa €178 — all walkable to Baixa. Flights: TAP direct, €89 out on the 12th and €104 back on the 19th. Say the word and I’ll hold both.", dot: "fg" });
       w.chats.aipager.pinnedBar = pinBar(w);
     },
   },

@@ -158,17 +158,46 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
         )}
         {p.status || p.input ? (
           <div className="pt-2">
-            {/* 2.1 draws a rule under the prompt, not a box around it */}
-            <div className="flex gap-2 border-b border-[#3a4048] pb-1.5 text-[#e8ebee]">
+            {/* the session's name sits on the rule above the prompt */}
+            <div className="flex items-center gap-2">
+              <span className="h-px flex-1 bg-[#262c34]" />
+              <span className="shrink-0 text-[11px] text-[#555c65]">{p.id}</span>
+              <span className="h-px w-4 bg-[#262c34]" />
+            </div>
+            <div className="flex gap-2 pt-1.5 text-[#e8ebee]">
               <span className="text-[#7f8791]">❯</span>
               <span className="caret">{p.input}</span>
             </div>
-            <div className="mt-1 flex justify-between gap-3 text-[11px] text-[#555c65]">
-              <span className="truncate">
-                {p.bypass ? <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span> : p.spinner ? "esc to interrupt" : "? for shortcuts"}
-              </span>
-              <span className="shrink-0">{p.status}</span>
+            <div className="mt-1.5 h-px bg-[#262c34]" />
+            <div className="mt-1.5 text-[11px] text-[#555c65]">{p.status}</div>
+            <div className="flex flex-wrap gap-x-1.5 text-[11px] text-[#555c65]">
+              {p.bypass ? (
+                <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span>
+              ) : (
+                <span>{p.spinner ? "esc to interrupt" : "? for shortcuts"}</span>
+              )}
+              {!!p.shells && (
+                <span>
+                  · {p.shells} shell{p.shells === 1 ? "" : "s"}
+                </span>
+              )}
+              {!!p.agents && <span>· ← for agents</span>}
             </div>
+            {p.panel && p.panel.length > 0 && (
+              <div className="mt-2.5 text-[11px]">
+                <div className="font-semibold text-[#e8ebee]">● main</div>
+                {p.panel.map((a) => (
+                  <div key={a.name + a.what} className="flex gap-2">
+                    <span className="shrink-0 text-[#555c65]">○</span>
+                    <span className="shrink-0 text-[#9aa1aa]">{a.name}</span>
+                    <span className="min-w-0 truncate text-[#7f8791]">{a.what}</span>
+                    <span className="ml-auto shrink-0 whitespace-nowrap text-[#555c65]">
+                      {a.clock} · ↓ {a.tokens}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : null}
       </div>

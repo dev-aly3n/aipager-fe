@@ -121,11 +121,12 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
       const was = tops.current.get(id);
       tops.current.set(id, topNow);
       if (was === undefined || was === topNow) return;
-      el.style.transition = "none";
-      el.style.transform = `translateY(${was - topNow}px)`;
-      requestAnimationFrame(() => {
-        el.style.transition = "transform 0.45s cubic-bezier(0.25, 0.8, 0.25, 1)";
-        el.style.transform = "";
+      // Written as one animation rather than two style writes a frame apart:
+      // the browser used to coalesce those into a jump, which read as a
+      // flicker down the whole list whenever a chat moved to the top.
+      el.animate([{ transform: `translateY(${was - topNow}px)` }, { transform: "translateY(0px)" }], {
+        duration: 420,
+        easing: "cubic-bezier(0.25, 0.8, 0.25, 1)",
       });
     });
   });
@@ -292,7 +293,7 @@ function CardRow({ it }: { it: CardItem }) {
         <div className="flex gap-1.5 text-[12.5px]">
           <span className="w-4 shrink-0">{it.state === "done" ? "✅" : "⏳"}</span>
           <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
-            🤖 {it.name} · {tail}
+            🤖 {it.parent ? `${it.parent} › ${it.name}` : it.name} · {tail}
           </code>
         </div>
         {!!it.fold && (
@@ -339,11 +340,11 @@ function Background({ b }: { b: BackgroundWork }) {
             ⏳ {b.agents} agent{b.agents === 1 ? "" : "s"} working{b.shells ? ` · 🖥 ${b.shells} shell${b.shells === 1 ? "" : "s"} running` : ""}
           </div>
           {b.rows.map((r, i) => (
-            <div key={`${r.name}-${i}`} className="flex gap-1.5">
-              <span className="w-3 shrink-0 text-[#7f8791]">{r.state === "done" ? "✓" : "○"}</span>
+            <div key={`${r.name}-${i}`} className={`flex gap-1.5 ${r.nested ? "pl-3" : ""}`}>
+              <span className="w-3 shrink-0 text-[#7f8791]">{r.nested ? "•" : r.state === "wait" ? "⏸" : r.state === "done" ? "✓" : "○"}</span>
               <span className="min-w-0 leading-[1.45] text-[#c9d6e3]">
-                <b className="font-semibold text-white">{r.name}</b>
-                {r.state === "done" ? ` · done (${r.clock})` : r.what ? ` · ${r.what}` : ""}
+                🤖 <b className="font-semibold text-white">{r.name}</b>
+                {r.state === "wait" ? " · waiting for its own agents" : r.state === "done" ? ` · done (${r.clock})` : r.what ? ` · ${r.what}` : ""}
               </span>
             </div>
           ))}

@@ -60,6 +60,8 @@ export interface Pane {
   /** subagents and background shells this session has running */
   agents?: number;
   shells?: number;
+  /** Claude Code's agents panel under the prompt, one row per agent */
+  panel?: { name: string; what: string; clock: string; tokens: string }[];
 }
 
 export type CardItem =
@@ -74,7 +76,7 @@ export type CardItem =
    * settles it in place. `fold` is that agent's own tool calls, which hide
    * behind one line once there are three.
    */
-  | { type: "agent"; name: string; state: "run" | "done"; what: string; calls?: number; fold?: number; secs: number }
+  | { type: "agent"; name: string; parent?: string; state: "run" | "done"; what: string; calls?: number; fold?: number; secs: number }
   /** a command Claude left running in the background, with its own clock */
   | { type: "shell"; what: string; state: "run" | "done"; secs: number };
 
@@ -85,7 +87,7 @@ export type CardItem =
 export interface Background {
   agents: number;
   shells: number;
-  rows: { name: string; what?: string; state: "run" | "done"; clock?: string }[];
+  rows: { name: string; nested?: boolean; what?: string; state: "run" | "wait" | "done"; clock?: string }[];
   promise: boolean;
   /** set once everything has stopped; replaces the block */
   done?: string;
