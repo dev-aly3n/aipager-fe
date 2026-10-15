@@ -186,8 +186,8 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
             {p.panel && p.panel.length > 0 && (
               <div className="mt-2.5 text-[11px]">
                 <div className="font-semibold text-[#e8ebee]">● main</div>
-                {p.panel.map((a) => (
-                  <div key={a.name + a.what} className="flex gap-2">
+                {p.panel.map((a, i) => (
+                  <div key={i} className="flex gap-2">
                     <span className="shrink-0 text-[#555c65]">○</span>
                     <span className="shrink-0 text-[#9aa1aa]">{a.name}</span>
                     <span className="min-w-0 truncate text-[#7f8791]">{a.what}</span>
