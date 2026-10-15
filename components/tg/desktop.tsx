@@ -154,7 +154,7 @@ export function Desktop() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,#1b2a44_0%,transparent_55%),radial-gradient(ellipse_at_90%_100%,#2a1d3f_0%,transparent_55%),linear-gradient(180deg,#0b1018,#080b11)]" />
           <MenuBar sessions={world.panes.length} clock={`Tue ${lastTime}`} />
           <div className="absolute left-4 w-[376px]" style={{ top: WIN.top, height: WIN.h }}>
-            <Terminal panes={world.panes} detached={false} />
+            <Terminal panes={world.panes} detached={false} active={world.term} onTab={story.setTerm} />
           </div>
           <div className="absolute left-[404px] w-[780px]" style={{ top: WIN.top, height: WIN.h }}>
             <TelegramWindow world={world} waiting={waiting} onOpen={story.openChat} onFolder={story.setFolder} onTap={onTap} />

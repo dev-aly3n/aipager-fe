@@ -16,6 +16,8 @@ export interface Story {
   waiting: { chat: ChatId; msg: string } | null;
   openChat: (id: ChatId) => void;
   setFolder: (f: Folder) => void;
+  /** bring a terminal tab to the front */
+  setTerm: (id: string) => void;
   tap: (chat: ChatId, msg: string, choice: number) => boolean;
   dismiss: (id: string) => void;
   /** the reader is looking around; the story waits for them */
@@ -172,6 +174,16 @@ export function useStory(active: boolean, mode: Mode): Story {
     [edit],
   );
 
+  const setTerm = useCallback(
+    (id: string) => {
+      touch();
+      edit((w) => {
+        w.term = id;
+      });
+    },
+    [edit],
+  );
+
   const tap = useCallback(
     (chat: ChatId, msg: string, choice: number): boolean => {
       const step = steps.current[idx.current];
@@ -198,5 +210,5 @@ export function useStory(active: boolean, mode: Mode): Story {
     [edit],
   );
 
-  return { world, waiting, openChat, setFolder, tap, dismiss, held, spark };
+  return { world, waiting, openChat, setFolder, setTerm, tap, dismiss, held, spark };
 }

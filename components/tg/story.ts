@@ -284,6 +284,7 @@ const TEAM: Step[] = [
         prompt: null,
         time: "21:09",
       });
+      w.term = "web";
       w.panes.push({
         id: "web",
         lines: [
@@ -349,6 +350,7 @@ function decide(mode: Mode): Step[] {
           ? "Now something only you can answer. A mode decides what runs without asking; a question like this comes to you in every mode."
           : "A question, not a permission: Claude's own decision, with a button per option.",
       run: (w) => {
+        w.term = "api";
         const c = card(w, "aipager", "c1");
         c.mark = "❓";
         c.verb = "Raise the timeout or wait for the cookie?";

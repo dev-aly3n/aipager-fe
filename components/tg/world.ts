@@ -111,6 +111,8 @@ export interface Spark {
 
 export interface World {
   mode: Mode;
+  /** the terminal tab in front, by pane id */
+  term: string;
   chats: Record<ChatId, Chat>;
   open: ChatId;
   folder: Folder;
@@ -163,6 +165,7 @@ export function initialWorld(mode: Mode = "auto"): World {
 function askWorld(): World {
   return {
     mode: "ask",
+    term: "api",
     open: "aipager",
     folder: "all",
     draft: "",
@@ -204,6 +207,9 @@ function askWorld(): World {
         pinnedBar: "⚙️ api (working)",
         msgs: [
           { id: "d0", kind: "day", text: "Today" },
+          // The turn the terminal still has on screen: your message, then its
+          // answer. What one side shows, the other shows.
+          { id: "old-u", kind: "text", from: "me", text: "expire idle sessions after 30 minutes", time: "18:36", ticks: 2 },
           { id: "old", kind: "answer", session: "api", text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", time: "18:40" },
         ],
       },

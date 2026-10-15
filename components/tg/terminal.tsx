@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { fmtElapsed, type Pane, type TDialog, type TLine, type Tone } from "./world";
 
 const TONE: Record<Tone, string> = {
@@ -85,12 +86,6 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
   });
   return (
     <div className="pane flex min-h-0 flex-1 flex-col">
-      {multi && (
-        <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-1.5 text-[11px] text-[#7f8791]">
-          <span className={`h-1.5 w-1.5 rounded-full ${p.dialog ? "bg-amber" : p.spinner ? "bg-live" : "bg-[#555c65]"}`} />
-          claude-{p.id}
-        </div>
-      )}
       <div ref={body} className="min-h-0 flex-1 overflow-hidden px-4 pb-2 pt-3">
         <div className="space-y-1">
           {p.lines.map((l, i) => (
@@ -122,23 +117,77 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
   );
 }
 
-export function Terminal({ panes, detached }: { panes: Pane[]; detached: boolean }) {
+/**
+ * A session's tab. The one in front wears a lit pill with a line under it,
+ * and both slide across when another tab takes over — the way a terminal
+ * moves its indicator rather than blinking it from place to place.
+ */
+function Tab({ p, n, on, onPick }: { p: Pane; n: number; on: boolean; onPick: () => void }) {
+  const state = p.dialog ? "bg-amber" : p.spinner ? "bg-live" : "bg-[#555c65]";
+  const glide = { type: "spring" as const, stiffness: 420, damping: 36, mass: 0.7 };
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className={`relative flex shrink-0 items-center gap-2 rounded-full px-3 py-[3px] text-[11.5px] transition-colors ${
+        on ? "text-[#e8ebee]" : "text-[#7f8791] hover:text-[#b9bfc7]"
+      }`}
+    >
+      {on && (
+        <>
+          <motion.span
+            layoutId="term-tab"
+            transition={glide}
+            className="absolute inset-0 rounded-full border border-live/70 bg-white/[0.07] shadow-[0_0_14px_-3px_rgb(79_214_147/0.9)]"
+          />
+          <motion.span
+            layoutId="term-line"
+            transition={glide}
+            className="absolute inset-x-1 -bottom-[8px] h-[2px] rounded-full bg-live shadow-[0_0_10px_rgb(79_214_147/0.9)]"
+          />
+        </>
+      )}
+      <span className={`relative h-1.5 w-1.5 shrink-0 rounded-full ${state}`} />
+      <span className="relative">claude-{p.id}</span>
+      <span className={`relative ${on ? "text-[#7f8791]" : "text-[#555c65]"}`}>⌘{n}</span>
+    </button>
+  );
+}
+
+export function Terminal({
+  panes,
+  detached,
+  active = "",
+  onTab,
+}: {
+  panes: Pane[];
+  detached: boolean;
+  /** the pane in front */
+  active?: string;
+  onTab?: (id: string) => void;
+}) {
   const multi = panes.length > 1;
+  const shown = panes.find((p) => p.id === active) ?? panes[0];
   return (
     <div className={`term flex h-full flex-col overflow-hidden ${detached ? "detached" : ""}`}>
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-2.5">
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#ff5f57]/80" />
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#febc2e]/80" />
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#28c840]/80" />
-        <span className="ml-3 truncate text-[11.5px] text-[#7f8791]">{multi ? `${panes.length} sessions · dtach` : `claude-${panes[0]?.id ?? "api"} · dtach`}</span>
+        <span className="ml-3 truncate text-[11.5px] text-[#7f8791]">claude-{shown?.id ?? "api"} · dtach</span>
         {detached && (
           <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-live/40 px-2 py-0.5 text-[10.5px] text-live">detached · still running</span>
         )}
       </div>
+      {multi && (
+        <div className="relative flex shrink-0 items-center gap-1.5 border-b-2 border-live/25 bg-black/25 px-2.5 py-1.5">
+          {panes.map((p, i) => (
+            <Tab key={p.id} p={p} n={i + 1} on={p.id === shown?.id} onPick={() => onTab?.(p.id)} />
+          ))}
+        </div>
+      )}
       <div className={`flex min-h-0 flex-1 flex-col transition-opacity duration-700 ${detached ? "opacity-70" : ""}`}>
-        {panes.map((p) => (
-          <PaneView key={p.id} p={p} multi={multi} />
-        ))}
+        {shown && <PaneView key={shown.id} p={shown} multi={multi} />}
       </div>
     </div>
   );
