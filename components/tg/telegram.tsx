@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
-import { fmtClock, PEOPLE, preview, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
+import { fmtClock, PEOPLE, preview, type Background as BackgroundWork, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
 
 type Card = Extract<Msg, { kind: "card" }>;
 
@@ -283,10 +283,63 @@ function CardRow({ it }: { it: CardItem }) {
         ▸ {it.n} tool calls
       </div>
     );
+  if (it.type === "agent") {
+    const head = it.parent ? `${it.parent} › ${it.name}` : it.name;
+    const mark = it.state === "done" ? "✅" : it.state === "wait" ? "⏸" : "○";
+    const tail =
+      it.state === "done" ? `${it.calls} tool calls · ${fmtClock(it.secs)}` : it.state === "wait" ? "waiting for its own agents" : `${it.what} · ${fmtClock(it.secs)}`;
+    return (
+      <div className={`flex gap-1.5 text-[12.5px] ${it.parent ? "pl-3.5" : ""}`}>
+        <span className="w-4 shrink-0">{mark}</span>
+        <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
+          🤖 <b className="font-semibold text-[#cfe3f7]">{head}</b> · {tail}
+        </code>
+      </div>
+    );
+  }
+  if (it.type === "shell")
+    return (
+      <div className="flex gap-1.5 text-[12.5px]">
+        <span className="w-4 shrink-0">{it.state === "done" ? "✅" : "🖥"}</span>
+        <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
+          shell: {it.what} {it.state === "done" ? `- done (${fmtClock(it.secs)})` : `(${fmtClock(it.secs)})`}
+        </code>
+      </div>
+    );
   return (
     <div className="flex gap-1.5 text-[12.5px]">
       <span className="w-4 shrink-0">{it.done ? "✅" : "⏳"}</span>
       <code className="min-w-0 truncate font-mono text-[12px] text-[#9fc6ee]">{it.text}</code>
+    </div>
+  );
+}
+
+/**
+ * The live status aipager keeps under an answer while agents and shells
+ * that outlived the turn carry on: the counts, a row each, the promise —
+ * then one line once they have all stopped.
+ */
+function Background({ b }: { b: BackgroundWork }) {
+  return (
+    <div className="mt-2 border-t border-white/[0.08] pt-1.5 text-[12.5px] leading-[1.5]">
+      {b.done ? (
+        <div className="text-[#c9d6e3]">{b.done}</div>
+      ) : (
+        <>
+          <div className="text-[#c9d6e3]">
+            ⏳ {b.agents} agent{b.agents === 1 ? "" : "s"} working{b.shells ? ` · 🖥 ${b.shells} shell${b.shells === 1 ? "" : "s"} running` : ""}
+          </div>
+          {b.rows.map((r) => (
+            <div key={r.name} className={`flex gap-1.5 ${r.parent ? "pl-3.5" : ""}`}>
+              <span className="w-3 shrink-0 text-[#7f8791]">{r.state === "wait" ? "⏸" : "○"}</span>
+              <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
+                🤖 <b className="font-semibold text-[#cfe3f7]">{r.parent ? `${r.parent} › ${r.name}` : r.name}</b> · {r.state === "wait" ? "waiting for its own agents" : r.what}
+              </code>
+            </div>
+          ))}
+          {b.promise && <div className="mt-1 text-[#8fa3b8]">Results from the agents will follow here.</div>}
+        </>
+      )}
     </div>
   );
 }
@@ -412,6 +465,7 @@ function Bubble({ m, chat, prev, waiting, onTap }: { m: Msg; chat: Chat; prev: M
           💬 <b className="font-semibold">{m.session}</b>
         </div>
         <span>{m.text}</span>
+        {m.background && <Background b={m.background} />}
         <Meta time={m.time} out={false} />
         <Reaction r={m.reaction} out={false} />
       </>

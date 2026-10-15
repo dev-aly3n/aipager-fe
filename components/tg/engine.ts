@@ -133,6 +133,10 @@ export function useStory(active: boolean, mode: Mode): Story {
           for (const m of c.msgs) {
             if (m.kind === "card" && m.mark === "⏳") {
               m.elapsed += 1;
+              for (const it of m.items) {
+                if (it.type === "agent" && it.state !== "done") it.secs += 1;
+                if (it.type === "shell" && it.state === "run") it.secs += 1;
+              }
               if (n % 3 === 0 && !["Testing", "Running", "Editing"].includes(m.verb)) m.verb = VERBS[(VERBS.indexOf(m.verb) + 1) % VERBS.length];
             }
           }

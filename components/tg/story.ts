@@ -442,6 +442,235 @@ const ANSWER: Step[] = [
   { after: 3400, caption: "A flaky test fixed from the sofa, between a question from Mom and a game on Friday." },
 ];
 
+/* ──────────────────────── the night shift ────────────────────────
+ * The evening does not end with the answer: you hand the session the
+ * bigger job, and it goes and does it with a crew. Agents start agents,
+ * a command runs on in the background, and the turn finishes before the
+ * work does — which is the thing a chat window is unusually good at
+ * showing. Your life is still there, now as a glance rather than a scene.
+ */
+
+const SHIP = "ship it: full suite, review the diff, then tag and deploy";
+
+const ACT2: Step[] = [
+  look("aipager", 2600, "The fix is in. Before the phone goes down, you give it the bigger job."),
+  ...say("aipager", SHIP, "21:19", "u2", true),
+  {
+    after: 700,
+    wire: back("your message", "typed into claude-api"),
+    run: (w) => {
+      const m = msg(w, "aipager", "u2");
+      if (m.kind === "text") m.reaction = "👀";
+      const p = pane(w, "api");
+      p.lines.push({ text: SHIP, user: true, via: "@owner" });
+      p.spinner = "Planning";
+      p.secs = 2;
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 1100,
+    wire: hook("UserPromptSubmit", "a new card · api"),
+    caption: "A new turn, a new card. This one will outlive it.",
+    run: (w) => {
+      const m = msg(w, "aipager", "u2");
+      if (m.kind === "text") m.reaction = "👍";
+      arrive(w, "aipager", {
+        id: "c2",
+        kind: "card",
+        session: "api",
+        items: [{ type: "prose", text: "Suite and review in parallel, then I'll tag and let the deploy wait for this turn." }],
+        mark: "⏳",
+        verb: "Planning",
+        elapsed: 4,
+        tally: "",
+        prompt: null,
+        time: "21:19",
+      });
+      const p = pane(w, "api");
+      p.lines.push({ text: "Suite and review in parallel, then I'll tag.", dot: "fg" });
+    },
+  },
+  {
+    after: 2000,
+    wire: hook("SubagentStart", "🤖 two agents"),
+    caption: "Claude does not do this alone. It starts agents, and the card gives each one a row.",
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      c.verb = "Delegating";
+      c.items.push({ type: "agent", name: "ship-tester", state: "run", what: "Writing criteria tests", secs: 12 });
+      c.items.push({ type: "agent", name: "ship-reviewer", state: "run", what: "Reading the diff", secs: 8 });
+      c.tally = "Task ×2";
+      const p = pane(w, "api");
+      p.agents = 2;
+      p.spinner = "Delegating";
+      p.lines.push({ text: "Task(ship-tester: write and run criteria tests)", dot: "live", bold: true });
+      p.lines.push({ text: "Task(ship-reviewer: review the diff)", dot: "live", bold: true });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 2600,
+    wire: hook("PostToolUse", "🖥 a background shell"),
+    caption: "A long command does not hold the turn: it goes to the background and keeps a clock of its own.",
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      c.items.push({ type: "shell", what: "pnpm dev on :3000", state: "run", secs: 18 });
+      c.tally = "Task ×2 · Bash ×1";
+      const p = pane(w, "api");
+      p.shells = 1;
+      p.lines.push({ text: "Bash(pnpm dev)", dot: "live", bold: true });
+      p.lines.push({ text: "running in the background (shell_1)", sub: true, tone: "dim" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 2800,
+    wire: hook("SubagentStart", "🤖 ship-developer"),
+    caption: "An agent can start agents of its own. The card keeps the chain — never more than two deep.",
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      const at = c.items.findIndex((x) => x.type === "agent" && x.name === "ship-tester");
+      c.items.splice(at + 1, 0, { type: "agent", name: "ship-developer", parent: "ship-tester", state: "run", what: "Editing e2e/login.spec.ts", secs: 5 });
+      const rev = c.items.find((x) => x.type === "agent" && x.name === "ship-reviewer");
+      if (rev && rev.type === "agent") rev.state = "wait";
+      const p = pane(w, "api");
+      p.agents = 3;
+      p.lines.push({ text: "Task(ship-tester › ship-developer: fix what the criteria tests found)", dot: "live", bold: true });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  ...from("team", "sara", "saw the fix land 🙌", "21:22", "t7", 1500, true, true),
+  look("team", 1600, "Your evening is still there. It just does not need you tonight."),
+  {
+    after: 2400,
+    run: (w) => {
+      const m = msg(w, "team", "t7");
+      if (m.kind === "text") m.reaction = "🙌";
+    },
+  },
+  look("aipager", 1800, "Back to the work, which has been getting on with it."),
+  {
+    after: 1400,
+    wire: hook("SubagentStop", "✅ ship-developer"),
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      const dev = c.items.find((x) => x.type === "agent" && x.name === "ship-developer");
+      if (dev && dev.type === "agent") {
+        dev.state = "done";
+        dev.calls = 4;
+        dev.secs = 170;
+      }
+      const p = pane(w, "api");
+      p.agents = 2;
+      p.lines.push({ text: "ship-developer · 4 tool calls · 2:50", sub: true, tone: "live" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 2400,
+    wire: hook("SubagentStop", "✅ ship-tester"),
+    caption: "Each row settles where it stood, with what that agent did and how long it took.",
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      const t = c.items.find((x) => x.type === "agent" && x.name === "ship-tester");
+      if (t && t.type === "agent") {
+        t.state = "done";
+        t.calls = 11;
+        t.secs = 299;
+      }
+      // the run behind us folds, the way a long card keeps itself readable
+      c.items = [
+        { type: "prose", text: "Suite and review in parallel, then I'll tag and let the deploy wait for this turn." },
+        { type: "fold", n: 6 },
+        ...c.items.filter((x) => x.type === "agent" || x.type === "shell"),
+        { type: "prose", text: "Suite is green: 212 of 212. The review has one note left to collect." },
+      ];
+      c.tally = "Task ×3 · Bash ×4 · Edit ×1";
+      const p = pane(w, "api");
+      p.agents = 1;
+      p.lines.push({ text: "ship-tester · 11 tool calls · 4:59", sub: true, tone: "live" });
+      p.lines.push({ text: "Suite is green: 212 of 212.", dot: "fg" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 2600,
+    wire: hook("Stop", "💬 the answer"),
+    caption: "The turn ends before the work does — so the answer carries what is still running.",
+    run: (w) => {
+      const c = card(w, "aipager", "c2");
+      c.mark = "✅";
+      c.verb = "Finished";
+      arrive(
+        w,
+        "aipager",
+        {
+          id: "a2",
+          kind: "answer",
+          session: "api",
+          text: "Merged and pushed, tagged v1.4.0. CI is green. The deploy waits until no session is busy, which means it starts the moment this turn ends.",
+          time: "21:27",
+          background: {
+            agents: 1,
+            shells: 1,
+            rows: [{ name: "ship-reviewer", what: "Collecting line numbers", state: "run" }],
+            promise: true,
+          },
+        },
+        { title: "aipager", body: "💬 api · Merged and pushed, tagged v1.4.0…" },
+      );
+      const p = pane(w, "api");
+      p.spinner = null;
+      p.lines.push({ text: "Merged and pushed, tagged v1.4.0. CI is green.", dot: "fg" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 3400,
+    caption: "It keeps that status up to date on its own, silently, while you read something else.",
+    run: (w) => {
+      const m = msg(w, "aipager", "a2");
+      if (m.kind === "answer" && m.background) {
+        m.background.agents = 0;
+        m.background.rows = [];
+        m.background.promise = false;
+        m.background.done = "✅ 2 agents done (8:04) · 🖥 1 shell running";
+      }
+      const c = card(w, "aipager", "c2");
+      const rev = c.items.find((x) => x.type === "agent" && x.name === "ship-reviewer");
+      if (rev && rev.type === "agent") {
+        rev.state = "done";
+        rev.calls = 35;
+        rev.secs = 484;
+      }
+      const p = pane(w, "api");
+      p.agents = 0;
+      p.lines.push({ text: "ship-reviewer · 35 tool calls · 8:04", sub: true, tone: "live" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  {
+    after: 3000,
+    caption: "And when the last shell stops, the line settles too. The deploy went out on its own.",
+    run: (w) => {
+      const m = msg(w, "aipager", "a2");
+      if (m.kind === "answer" && m.background) m.background.done = "✅ 2 agents done (8:04) · 1 shell finished (2:13:05)";
+      const c = card(w, "aipager", "c2");
+      const sh = c.items.find((x) => x.type === "shell");
+      if (sh && sh.type === "shell") {
+        sh.state = "done";
+        sh.secs = 7985;
+      }
+      const p = pane(w, "api");
+      p.shells = 0;
+      p.lines.push({ text: "shell_1 finished (2:13:05)", sub: true, tone: "dim" });
+      w.chats.aipager.pinnedBar = pinBar(w);
+    },
+  },
+  { after: 4200, caption: "Three agents, a shell and a deploy, from a sofa. Nothing in it needed you." },
+];
+
 /* ───────────────────── full access: the way in ───────────────────── */
 
 const FULL_SWITCH: Step[] = [
@@ -544,7 +773,7 @@ const TASK: Step[] = [
 export function storyFor(mode: Mode): Step[] {
   const work = mode === "ask" ? WORK_ASK : mode === "full" ? WORK_FULL : WORK_AUTO;
   const start = mode === "full" ? FULL_SWITCH : [];
-  return [...start, ...TASK, ...GLANCE, ...MOM_1, ...work, ...MOM_2, ...TEAM, ...decide(mode), ...FRIENDS, ...ANSWER];
+  return [...start, ...TASK, ...GLANCE, ...MOM_1, ...work, ...MOM_2, ...TEAM, ...decide(mode), ...FRIENDS, ...ANSWER, ...ACT2];
 }
 
 export { open };

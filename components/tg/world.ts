@@ -43,6 +43,9 @@ export interface Pane {
   status: string;
   /** launched with --dangerously-skip-permissions (Auto mode) */
   bypass?: boolean;
+  /** subagents and background shells this session has running */
+  agents?: number;
+  shells?: number;
 }
 
 export type CardItem =
@@ -50,7 +53,28 @@ export type CardItem =
   | { type: "prose"; text: string }
   | { type: "row"; text: string; done: boolean }
   /** a settled run of tool calls, folded away behind one line */
-  | { type: "fold"; n: number };
+  | { type: "fold"; n: number }
+  /**
+   * A subagent's row. `parent` names the agent that started it, which the
+   * card shows as "pipeline-runner › ship-tester"; the tree is never more
+   * than two deep.
+   */
+  | { type: "agent"; name: string; parent?: string; state: "run" | "wait" | "done"; what: string; calls?: number; secs: number }
+  /** a command Claude left running in the background, with its own clock */
+  | { type: "shell"; what: string; state: "run" | "done"; secs: number };
+
+/**
+ * What an answer says about work that outlived its turn: the counts, a row
+ * per agent, and the promise — or, once they have all stopped, one line.
+ */
+export interface Background {
+  agents: number;
+  shells: number;
+  rows: { name: string; parent?: string; what: string; state: "run" | "wait" }[];
+  promise: boolean;
+  /** set once everything has stopped; replaces the block */
+  done?: string;
+}
 
 export type Prompt =
   | { kind: "perm"; tool: string; what: string; command: string; answered: boolean }
@@ -60,7 +84,7 @@ export type Msg =
   | { id: string; kind: "day"; text: string }
   | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string } }
   | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
-  | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string }
+  | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string; background?: Background }
   /** a bot message with buttons (the /mode confirmation); answering edits it in place */
   | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string };
 
@@ -354,10 +378,14 @@ export function pinBar(w: World, needs?: string): string {
   if (needs) return `⏳ api needs you - ${needs}`;
   const live = w.panes.length;
   const working = w.panes.filter((p) => p.spinner).length;
-  if (live === 1) return working ? `⚙️ ${w.panes[0].id} (working)` : `💤 ${w.panes[0].id} (idle)`;
-  if (working === 0) return "💤 all idle";
-  if (working === live) return `⚙️ ${working} working`;
-  return `⚙️ ${working} working · ${live - working} idle`;
+  const agents = w.panes.reduce((n, p) => n + (p.agents ?? 0), 0);
+  const shells = w.panes.reduce((n, p) => n + (p.shells ?? 0), 0);
+  const extra = [agents ? `${agents} agent${agents === 1 ? "" : "s"}` : "", shells ? `${shells} shell${shells === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ");
+  const tail = extra ? `, ${extra} running` : "";
+  if (live === 1) return working ? `⚙️ ${w.panes[0].id} (working${tail})` : `💤 ${w.panes[0].id} (idle${tail})`;
+  if (working === 0) return extra ? `💤 all idle${tail}` : "💤 all idle";
+  if (working === live) return `⚙️ ${working} working${tail ? ` ·${tail.slice(1)}` : ""}`;
+  return `⚙️ ${working} working · ${live - working} idle${tail ? ` ·${tail.slice(1)}` : ""}`;
 }
 
 export function pane(w: World, id: string): Pane {
