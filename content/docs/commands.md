@@ -95,9 +95,9 @@ Whatever the layout, every busy card ends with its session's status
 line (`⏳`/`✅ name · …`) and every answer starts with its result line
 (`💬 name`, plus `· Finished (…)` when no finished card is left to show
 the stats); the merged layout stacks the two, each line in its own
-section. A divider line sits above the busy card's status line, and in
-the merged layout a second one separates the finished card from the
-answer. In the card layout the answer deliberately follows the
+section. A divider line sits above the busy card's status line (small
+text), and in the merged layout a second one separates the finished card
+from the answer. In the card layout the answer deliberately follows the
 finished card by a moment, so the card is seen to say Finished before
 the answer lands under it; tune or disable that head start with
 `FINISH_CARD_GRACE_SECONDS` (seconds, default 0.8; 0 sends both at
@@ -533,16 +533,18 @@ attachment above carries the complete record.
 Claude Code can run agents in the background, and the turn that launched
 them can end while they work. The answer then ends with a divider line
 and a short status of that background work, in the style of Claude
-Code's own agent panel, kept up to date while it runs:
+Code's own agent panel, kept up to date while it runs. Everything under
+the divider is small text (Telegram's footer), so the answer itself
+stands out:
 
 ```
 ⏳ 5 agents working · 🖥 1 shell running
 
 ○ 🤖 pipeline-runner · Writing final.md for the pipeline
 
-- ○ 🤖 ship-tester · Write and run criteria tests
-- ○ 🤖 ship-developer · Editing state.py
-- ○ 🤖 ship-developer › ship-reviewer · Collect line numbers
+- 🤖 ship-tester · Write and run criteria tests
+- 🤖 ship-developer · Editing state.py
+- 🤖 ship-developer › ship-reviewer · Collect line numbers
 
 ⏸ 🤖 r2-runner · waiting for its own agents
 
@@ -566,9 +568,10 @@ Results from the agents will follow here.
   an agent of the second level names that agent first (`ship-developer ›
   ship-reviewer`). The busy card names the same agent after the agent
   at the top instead (`pipeline-runner › ship-reviewer`). There are
-  never more than two levels. An agent whose starter aipager does not
-  know yet is shown on the first level, never under a guess, and moves
-  under its starter once that is known.
+  never more than two levels. A working agent on the second level has no
+  ○ of its own: Telegram draws a bullet there. An agent whose starter
+  aipager does not know yet is shown on the first level, never under a
+  guess, and moves under its starter once that is known.
 - **At most six rows,** the agents still working first, then `+N more`
   for the agents without a row. An agent never shows without the agents
   above it.
@@ -818,8 +821,18 @@ turn is running in the owner's private chat. In the Mini App,
 **Settings → Updates** shows the same state as a line above the card,
 with **Restart now** (it asks first).
 
+In the Mini App, **Updates** is the first card on the Settings tab: its
+name, the running version, and a small **Check for updates** at the end
+of the row. Opening the Settings tab checks by itself (at most once every
+ten minutes, never while an update runs or aipager restarts; a check that
+fails there says nothing), and a tap always checks. The card stays one
+quiet row until there is something to do: a newer version brings its
+lines and the one Update button, "Everything is up to date." is a single
+line with no button, and a running update, a restart or **Restart now**
+keep their own buttons.
+
 Only one update runs at a time, across `/update`, the Mini App's
-**Settings → Updates** block (the same Check for updates button, the same one Update button, the same job) and
+**Settings → Updates** card (the same check, the same one Update button, the same job) and
 `aipager update` on the command line. That includes the seconds between
 "installed, restarting…" and the restart itself: `/update` answers that
 aipager is about to restart, the Mini App offers no buttons, and the
