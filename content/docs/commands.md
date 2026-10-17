@@ -389,7 +389,11 @@ above` as a reply to the prompt, once per wait.
 
 `AskUserQuestion` dialogs render the same way, with one button per
 option (the first four), and for a question that allows several answers
-⬜/☑ toggles and a `✅ Submit` button.
+⬜/☑ toggles and a `✅ Submit` button. The question and each option's
+description are shown whole, as in the terminal. Only a form too long for
+one Telegram message is shortened: the busy card first shows fewer of its
+tool rows, then the longest of the question and the descriptions end in
+`…` at a word.
 
 At 80% context the chat gets `⚠️ name · Context at 82% - auto-compact
 soon` with **📦 Compact Now**, which sends `/compact` to that session. It
@@ -546,7 +550,7 @@ stands out:
 - 🤖 ship-developer · Editing state.py
 - 🤖 ship-developer › ship-reviewer · Collect line numbers
 
-⏸ 🤖 r2-runner · waiting for its own agents
+‖ 🤖 r2-runner · waiting for its own agents
 
 Results from the agents will follow here.
 ```
@@ -557,10 +561,13 @@ Results from the agents will follow here.
 - **One row per agent,** a 🤖 and its type in bold, then what it is
   doing now: its own latest line of text (Claude's words, shown as
   written, never translated), else its latest tool as a short phrase
-  (`Reading state.py`, `Writing final.md`, `Running a command`,
-  `Searching for …`), else the description Claude gave the agent when it
-  launched it, else just the type. An agent that has stopped to wait for
-  agents it started itself says `⏸ … waiting for its own agents`
+  that names what it works on (`Reading state.py`, `Writing final.md`,
+  `Searching for …`, or a command's own description), else the task
+  Claude gave the agent when it launched it, else its latest tool alone
+  (`Running a command`, `Using TodoWrite`), else just the type. So two
+  agents of one type running commands without a description still show
+  their own tasks. An agent that has stopped to wait for
+  agents it started itself says `‖ … waiting for its own agents`
   instead.
 - **Agents as a tree.** The agents the session started are the first
   level. Every agent one of them started, at any depth, is listed right
@@ -816,8 +823,12 @@ a newer aipager is installed and waiting, and on a one-time notice: when
 Claude Code's hooks (which start fresh on every event, from the
 installed aipager) already run a newer aipager than the daemon, the owner
 gets one silent message per newer version and daemon run, `⚠️ The
-aipager update is only half done: …`, with the button. It waits until no
-turn is running in the owner's private chat. In the Mini App,
+aipager update is only half done: …`, with the button. It waits two
+minutes from when the hooks first ran the newer version (a restart right
+after an install never shows it), then until no turn is running in the
+owner's private chat. After the restart into that version, the notice is
+edited into `✅ The aipager update is finished: aipager runs B now.`,
+without the button. In the Mini App,
 **Settings → Updates** shows the same state as a line above the card,
 with **Restart now** (it asks first).
 
