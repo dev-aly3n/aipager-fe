@@ -101,8 +101,9 @@ from the answer. In the card layout the answer deliberately follows the
 finished card by a moment, so the card is seen to say Finished before
 the answer lands under it; tune or disable that head start with
 `FINISH_CARD_GRACE_SECONDS` (seconds, default 0.8; 0 sends both at
-once). The message layout decides the card for every turn, whether or
-not tools ran.
+once). In the card layout a turn that made no tool call keeps no card:
+the card is removed before it would say Done, and the answer's first
+line carries the stats, as in the replace layout.
 
 ### Per-session dynamic commands
 
@@ -474,7 +475,7 @@ session. While the chat is
 does nothing at all - the prompt is not re-sent and the button stays -
 so tap it again once the ban has lifted.
 
-In the card layout ("Busy card + result") the finished card always stays above the answer, for every turn, as the record of how it was reached: its tool rows, agent rows and what Claude said between them, or just `✅ name · Done · Ns` for a turn that ran no tools. The answer arrives as its own (notifying) message. To have one message per turn instead, choose "Merged into busy message" (the answer goes into the card) or "Replace with result" (the card is removed and the answer stands alone).
+In the card layout ("Busy card + result") the finished card stays above the answer as the record of how it was reached: its tool rows, agent rows and what Claude said between them. The answer arrives as its own (notifying) message. A turn that made no tool call (no tool, agent, background shell or prompt) would leave only `✅ name · Done · Ns`, so its card is removed while it still says Working, never turned into Done, and the answer's first line carries the time instead (`💬 name · Finished (…)`). Sending you a file does not count as a tool call here: the files follow the answer. A turn with no answer to show, or one that ended in an API error, keeps its card. To have one message per turn instead, choose "Merged into busy message" (the answer goes into the card) or "Replace with result" (the card is removed and the answer stands alone).
 
 Each turn has exactly one busy card. A message you send while a turn
 runs never adds a second card for that turn, and a card whose turn has
@@ -1111,6 +1112,19 @@ one message - is handed to claude as a single prompt (the caption,
 then every file path in order) once its last item has landed; if one
 item cannot be downloaded the rest still go out, with one note naming
 the missing one.
+
+### Files Claude sends
+
+Claude can send you files from its session: ask in your own words ("send me the screenshot", "send me the image at ~/proj/chart.png"), or it sends one when it thinks you want it. It uses Claude Code's SendUserFile tool (Claude Code 2.1.301 or newer), which every session aipager starts gets: aipager starts it with `CLAUDE_CODE_ATTACHMENTS_BY_PATH=1` and tells Claude the tool is there. A session started before your aipager had this needs a restart to get it: `/restart`, a mode switch that restarts it, or Resume.
+
+- The files arrive after the turn's answer, as replies to it (to your message when the turn has no answer), silently, in the session's own chat only. While the turn runs, the busy card shows `📎 Sending 2 files`.
+- Each file goes by its content, not its name: an image as a photo when it fits Telegram's photo limits (at most 10 MB, width plus height at most 10,000, the long side at most 20 times the short one), else as a file; a GIF as an animation; an MP4 as a video; an MP3 or M4A as audio; anything else as a file. When Claude asks for a plain attachment, everything goes as a file.
+- 2 to 10 photos and videos go as one album; files go with files and audio with audio; an animation goes on its own. More are split evenly (11 go as 6 and 5), and no album is over 50 MB.
+- The caption is `💬 <session>`, with Claude's own caption on the next line of the first message, at most 1,024 characters.
+- Every file is checked first, for everyone, the owner included ([security](security.md#files-claude-sends)): aipager's settings, Claude's credentials, keys and secret-looking files are never sent; a file must be a regular file, not empty and at most 50 MB; a member sends only files inside the chat's [root folder](groups.md#root-folders). If a file of a request is refused, nothing of that request is sent: Claude is told why and tells you, and the turn goes on.
+- aipager sends a private copy it took when Claude Code read the file, kept in `~/.local/state/aipager/outbox/` and deleted once sent, or after a day.
+- aipager sets no count limit of its own: sends are paced to Telegram's rate limits, an album counting one per file. While the chat is flood-muted, the files wait and follow the answer.
+- A file that cannot be sent gets one line in the chat, for example `⚠️ Couldn't send report.pdf: Telegram refused it.` A file whose request aipager cannot find in Claude's own transcript gets no line ([security](security.md#files-claude-sends)). One whose request is there but that aipager cannot tie to the running turn gets `⚠️ Couldn't send report.pdf: aipager could not confirm that Claude sent it in this turn.` Files also come from a message you send while Claude works that it takes up next, and from a turn a Stop hook keeps going (`/goal`). Every file sent, refused or failed has its own record in the [audit log](security.md#audit-log).
 
 ### Voice
 
