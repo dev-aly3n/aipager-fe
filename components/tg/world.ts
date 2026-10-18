@@ -10,6 +10,9 @@
  * message when the turn ends.
  */
 
+import type { Dict } from "@/lib/i18n";
+import { fill, type BotStrings } from "@/lib/i18n/bot";
+
 export type Tone = "fg" | "dim" | "accent" | "live" | "amber" | "deny" | "claude";
 
 /** One row of Claude Code's agent block: its type, what it was asked, and
@@ -34,6 +37,16 @@ export interface TLine {
   user?: boolean;
   /** the handle it arrived from, when aipager typed it in for someone */
   via?: string;
+  /**
+   * In a group the marker carries the sender's role as well: the prompt
+   * runs with it, and Claude can see whose rules it is under.
+   */
+  role?: string;
+  /**
+   * Still in Claude's own queue. Claude Code renders a queued prompt in its
+   * dim colour and switches it to the normal one when it takes it.
+   */
+  queued?: boolean;
 }
 
 export interface TDialog {
@@ -82,13 +95,14 @@ export type CardItem =
 
 /**
  * What an answer says about work that outlived its turn: the counts, a row
- * per agent, and the promise — or, once they have all stopped, one line.
+ * per agent, and the promise; or, once they have all stopped, one line.
  */
 export interface Background {
   agents: number;
   shells: number;
   rows: { name: string; nested?: boolean; what?: string; state: "run" | "wait" | "done"; clock?: string }[];
-  promise: boolean;
+  /** the product's own line about what is still to come, when it applies */
+  promise: string | null;
   /** set once everything has stopped; replaces the block */
   done?: string;
 }
@@ -99,11 +113,17 @@ export type Prompt =
 
 export type Msg =
   | { id: string; kind: "day"; text: string }
-  | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string } }
+  | { id: string; kind: "text"; from: string; text: string; time: string; reaction?: string; ticks?: 1 | 2; reply?: { name: string; text: string }; queued?: boolean }
   | { id: string; kind: "card"; session: string; items: CardItem[]; mark: "⏳" | "✅" | "🔐" | "❓" | "🔄"; verb: string; elapsed: number; tally: string; prompt: Prompt | null; time: string }
   | { id: string; kind: "answer"; session: string; text: string; time: string; reaction?: string; background?: Background }
   /** a bot message with buttons (the /mode confirmation); answering edits it in place */
-  | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string };
+  | { id: string; kind: "confirm"; text: string; note: string; buttons: string[]; answered: number | null; done: string | null; time: string }
+  /**
+   * The line aipager replies with under a message Claude Code has queued,
+   * with the button that hands it over now. It is deleted, with the 👀, the
+   * moment Claude takes the message.
+   */
+  | { id: string; kind: "queue"; text: string; button: string; time: string; reply: { name: string; text: string } };
 
 export type ChatId = "aipager" | "team" | "mom" | "friends" | "sara" | "saved";
 export type Folder = "all" | "personal" | "work" | "bots";
@@ -116,6 +136,8 @@ export interface Chat {
   color: string;
   initials: string;
   subtitle: string;
+  /** the subtitle means they are here now, whatever the language calls it */
+  online?: boolean;
   pinned: boolean;
   muted: boolean;
   unread: number;
@@ -188,32 +210,27 @@ export const PEOPLE: Record<string, { name: string; color: string }> = {
 
 const SHELL = "~/work/api $ ";
 
-export function initialWorld(mode: Mode = "auto"): World {
+export function initialWorld(t: Dict, bot: BotStrings, mode: Mode = "auto"): World {
   // Every evening starts the same way: a session resting in the other room,
   // and you about to give it the next job from the sofa.
-  const w = askWorld();
+  const w = askWorld(t, bot);
   w.mode = mode;
   w.open = "aipager";
-  w.caption =
-    mode === "auto"
-      ? "A Claude Code session resting on your laptop, in Auto mode — where every new session starts."
-      : mode === "ask"
-        ? "A Claude Code session resting on your laptop, in Ask mode: it asks before every action."
-        : "A Claude Code session resting on your laptop. Before the next job, you take its checks off.";
+  w.caption = mode === "auto" ? t.demo.captions.restAuto : mode === "ask" ? t.demo.captions.restAsk : t.demo.captions.restFull;
   const p = w.panes[0];
   p.lines = [
     { text: SHELL + "aipager session api", tone: "dim" },
     { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-    { text: "expire idle sessions after 30 minutes", user: true, via: "@owner" },
-    { text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", dot: "fg" },
+    { text: t.demo.seed.oldPrompt, user: true, via: "@owner" },
+    { text: t.demo.seed.oldAnswer, dot: "fg" },
   ];
   p.spinner = null;
   p.secs = 0;
-  w.chats.aipager.pinnedBar = pinBar(w);
+  w.chats.aipager.pinnedBar = pinBar(w, bot);
   return w;
 }
 
-function askWorld(): World {
+function askWorld(t: Dict, bot: BotStrings): World {
   return {
     mode: "ask",
     term: "api",
@@ -222,15 +239,15 @@ function askWorld(): World {
     draft: "",
     notes: [],
     seq: 0,
-    caption: "A flaky login test, running on your machine.",
+    caption: t.demo.captions.restAsk,
     panes: [
       {
         id: "api",
         lines: [
           { text: SHELL + "aipager session api", tone: "dim" },
           { text: "✻ Welcome to Claude Code!", tone: "claude", bold: true },
-          { text: "fix the flaky login e2e test", user: true, via: "@owner" },
-          { text: "I'll run the login test a few times and look at where it fails.", dot: "fg" },
+          { text: t.demo.prompts.fix, user: true, via: "@owner" },
+          { text: t.demo.claude.plan, dot: "fg" },
           { text: "Read(e2e/login.spec.ts)", dot: "live", bold: true },
           { text: "Read 64 lines", sub: true, tone: "dim" },
         ],
@@ -257,34 +274,34 @@ function askWorld(): World {
     chats: {
       aipager: {
         id: "aipager",
-        name: "aipager",
+        name: t.demo.chats.aipager.name,
         kind: "bot",
         folder: "bots",
         color: "#3fa9f5",
         initials: "ai",
-        subtitle: "bot",
+        subtitle: t.demo.chats.aipager.subtitle,
         pinned: true,
         muted: false,
         unread: 0,
         typing: null,
         order: 100,
-        pinnedBar: "⚙️ api (working)",
+        pinnedBar: fill(bot.tpl.pinWorking, { session: "api" }),
         msgs: [
-          { id: "d0", kind: "day", text: "Today" },
+          { id: "d0", kind: "day", text: t.demo.days.today },
           // The turn the terminal still has on screen: your message, then its
           // answer. What one side shows, the other shows.
-          { id: "old-u", kind: "text", from: "me", text: "expire idle sessions after 30 minutes", time: "18:36", ticks: 2 },
-          { id: "old", kind: "answer", session: "api", text: "Done. The session store now expires idle sessions after 30 minutes; 212 tests pass.", time: "18:40" },
+          { id: "old-u", kind: "text", from: "me", text: t.demo.seed.oldPrompt, time: "18:36", ticks: 2 },
+          { id: "old", kind: "answer", session: "api", text: t.demo.seed.oldAnswer, time: "18:40" },
         ],
       },
       team: {
         id: "team",
-        name: "backend-team",
+        name: t.demo.chats.team.name,
         kind: "group",
         folder: "work",
         color: "#faa774",
         initials: "BT",
-        subtitle: "5 members, 3 online",
+        subtitle: t.demo.chats.team.subtitle,
         pinned: false,
         muted: false,
         unread: 2,
@@ -292,19 +309,20 @@ function askWorld(): World {
         order: 90,
         pinnedBar: null,
         msgs: [
-          { id: "d0", kind: "day", text: "Today" },
-          { id: "t1", kind: "text", from: "sara", text: "prod login is flaky again 😬 anyone?", time: "21:02" },
-          { id: "t2", kind: "text", from: "sam", text: "saw it too, twice in the last hour", time: "21:03" },
+          { id: "d0", kind: "day", text: t.demo.days.today },
+          { id: "t1", kind: "text", from: "sara", text: t.demo.seed.teamFlaky, time: "21:02" },
+          { id: "t2", kind: "text", from: "sam", text: t.demo.seed.teamSaw, time: "21:03" },
         ],
       },
       mom: {
         id: "mom",
-        name: "Mom",
+        name: t.demo.chats.mom.name,
         kind: "dm",
         folder: "personal",
         color: "#ee7aae",
         initials: "M",
-        subtitle: "online",
+        subtitle: t.demo.chats.mom.subtitle,
+        online: true,
         pinned: false,
         muted: false,
         unread: 0,
@@ -312,18 +330,18 @@ function askWorld(): World {
         order: 80,
         pinnedBar: null,
         msgs: [
-          { id: "d0", kind: "day", text: "Today" },
-          { id: "m1", kind: "text", from: "mom", text: "Did you eat? 🙂", time: "20:58" },
+          { id: "d0", kind: "day", text: t.demo.days.today },
+          { id: "m1", kind: "text", from: "mom", text: t.demo.seed.momEat, time: "20:58" },
         ],
       },
       friends: {
         id: "friends",
-        name: "Friday 5-a-side ⚽",
+        name: t.demo.chats.friends.name,
         kind: "group",
         folder: "personal",
         color: "#7bc862",
         initials: "F5",
-        subtitle: "9 members",
+        subtitle: t.demo.chats.friends.subtitle,
         pinned: false,
         muted: true,
         unread: 3,
@@ -331,20 +349,20 @@ function askWorld(): World {
         order: 70,
         pinnedBar: null,
         msgs: [
-          { id: "d0", kind: "day", text: "Today" },
-          { id: "f1", kind: "text", from: "leo", text: "pitch booked, friday 7pm", time: "19:12" },
-          { id: "f2", kind: "text", from: "nima", text: "in 🙋", time: "19:20" },
-          { id: "f3", kind: "text", from: "omid", text: "in, bringing the new ball", time: "19:41" },
+          { id: "d0", kind: "day", text: t.demo.days.today },
+          { id: "f1", kind: "text", from: "leo", text: t.demo.seed.friendsPitch, time: "19:12" },
+          { id: "f2", kind: "text", from: "nima", text: t.demo.seed.friendsIn, time: "19:20" },
+          { id: "f3", kind: "text", from: "omid", text: t.demo.seed.friendsBall, time: "19:41" },
         ],
       },
       sara: {
         id: "sara",
-        name: "Sara",
+        name: t.demo.chats.sara.name,
         kind: "dm",
         folder: "work",
         color: "#b18cff",
         initials: "S",
-        subtitle: "last seen recently",
+        subtitle: t.demo.chats.sara.subtitle,
         pinned: false,
         muted: false,
         unread: 0,
@@ -352,14 +370,14 @@ function askWorld(): World {
         order: 60,
         pinnedBar: null,
         msgs: [
-          { id: "d0", kind: "day", text: "Yesterday" },
-          { id: "s1", kind: "text", from: "me", text: "merged your PR 🚀", time: "17:30", ticks: 2 },
-          { id: "s2", kind: "text", from: "sara", text: "thanks!!", time: "17:31" },
+          { id: "d0", kind: "day", text: t.demo.days.yesterday },
+          { id: "s1", kind: "text", from: "me", text: t.demo.seed.saraMerged, time: "17:30", ticks: 2 },
+          { id: "s2", kind: "text", from: "sara", text: t.demo.seed.saraThanks, time: "17:31" },
         ],
       },
       saved: {
         id: "saved",
-        name: "Saved Messages",
+        name: t.demo.chats.saved.name,
         kind: "saved",
         folder: "personal",
         color: "#3fa9f5",
@@ -372,7 +390,7 @@ function askWorld(): World {
         order: 50,
         pinnedBar: null,
         msgs: [
-          { id: "d0", kind: "day", text: "Monday" },
+          { id: "d0", kind: "day", text: t.demo.days.monday },
           { id: "v1", kind: "text", from: "me", text: "curl -fsSL aipager.run/install | sh", time: "10:02", ticks: 2 },
           { id: "v2", kind: "text", from: "me", text: "aipager config", time: "10:03", ticks: 2 },
         ],
@@ -397,20 +415,27 @@ export function msg(w: World, chat: ChatId, id: string): Msg {
 
 /**
  * The pinned bar's first line. One live session is named; several are
- * counted — the shape aipager uses in a chat with more than one.
+ * counted: the shape aipager uses in a chat with more than one.
  */
-export function pinBar(w: World, needs?: string): string {
-  if (needs) return `⏳ api needs you - ${needs}`;
+export function pinBar(w: World, bot: BotStrings, needs?: string): string {
   const live = w.panes.length;
   const working = w.panes.filter((p) => p.spinner).length;
   const agents = w.panes.reduce((n, p) => n + (p.agents ?? 0), 0);
-  const shells = w.panes.reduce((n, p) => n + (p.shells ?? 0), 0);
-  const extra = [agents ? `${agents} agent${agents === 1 ? "" : "s"}` : "", shells ? `${shells} shell${shells === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ");
-  const tail = extra ? `, ${extra} running` : "";
-  if (live === 1) return working ? `⚙️ ${w.panes[0].id} (working${tail})` : `💤 ${w.panes[0].id} (idle${tail})`;
-  if (working === 0) return extra ? `💤 all idle${tail}` : "💤 all idle";
-  if (working === live) return `⚙️ ${working} working${tail ? ` ·${tail.slice(1)}` : ""}`;
-  return `⚙️ ${working} working · ${live - working} idle${tail ? ` ·${tail.slice(1)}` : ""}`;
+  const running = agents ? fill(bot.tpl.pinRunning, { running: agents === 1 ? bot.count.agents1 : bot.count.agents2 }) : "";
+  const tail = running ? ` ${running}` : "";
+  if (needs) return fill(bot.tpl.pinWaiting, { session: "api", summary: needs });
+  if (live === 1) {
+    const one = working ? bot.tpl.pinWorking : bot.tpl.pinOneIdle;
+    return fill(one, { session: w.panes[0].id }) + tail;
+  }
+  if (working === 0) return bot.tpl.pinIdle + tail;
+  const counts = [
+    working === 1 ? bot.count.working1 : bot.count.working2,
+    live - working > 0 ? (live - working === 1 ? bot.count.idle1 : bot.count.idle2) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return fill(bot.tpl.pinCounts, { glyph: "⚙️", counts }) + tail;
 }
 
 export function pane(w: World, id: string): Pane {
@@ -437,6 +462,26 @@ export function arrive(w: World, chat: ChatId, m: Msg, notify?: { title: string;
   }
 }
 
+/** aipager deleting one of its own messages. */
+export function drop(w: World, chat: ChatId, id: string): void {
+  const c = w.chats[chat];
+  c.msgs = c.msgs.filter((x) => x.id !== id);
+}
+
+/**
+ * Claude took a message mid-turn, so the turn's card belongs under *that*
+ * message. Telegram cannot move a message, so aipager sends the same card
+ * again at the bottom and deletes the old copy, which is what this is: the
+ * card keeps its own object, so its clock and timeline carry straight on,
+ * and the demo animates the move instead of blinking it.
+ */
+export function moveCard(w: World, chat: ChatId, id: string): void {
+  const c = w.chats[chat];
+  const i = c.msgs.findIndex((x) => x.id === id);
+  if (i < 0) throw new Error(`no card ${id} in ${chat}`);
+  c.msgs.push(...c.msgs.splice(i, 1));
+}
+
 export function open(w: World, chat: ChatId): void {
   w.open = chat;
   w.chats[chat].unread = 0;
@@ -444,16 +489,23 @@ export function open(w: World, chat: ChatId): void {
 }
 
 /** The text a chat row shows under its name. */
-export function preview(c: Chat): string {
+/** Telegram's own list shows a line's words, not its markup. */
+const plain = (text: string) => text.replace(/<\/?(?:b|i|code)>/g, "");
+
+export function preview(c: Chat, you: string, needs: string): string {
+  return plain(newest(c, you, needs));
+}
+
+function newest(c: Chat, you: string, needs: string): string {
   const m = [...c.msgs].reverse().find((x) => x.kind !== "day");
   if (!m) return "";
-  const who = (from: string) => (c.kind === "group" && from !== "me" ? `${PEOPLE[from]?.name ?? from}: ` : from === "me" && c.kind !== "saved" ? "You: " : "");
+  const who = (from: string) => (c.kind === "group" && from !== "me" ? `${PEOPLE[from]?.name ?? from}: ` : from === "me" && c.kind !== "saved" ? `${you}: ` : "");
   switch (m.kind) {
     case "text":
       return who(m.from) + m.text;
     case "card": {
       const head = c.kind === "group" ? "aipager: " : "";
-      if (m.prompt?.kind === "perm") return `${head}🔐 ${m.session} · Permission needed`;
+      if (m.prompt?.kind === "perm") return `${head}🔐 ${m.session} · ${needs}`;
       if (m.prompt?.kind === "question") return `${head}❓ ${m.session} · ${m.prompt.question}`;
       // The list shows the card's own newest line, as Telegram does.
       const last = [...m.items].reverse().find((x) => x.type === "prose" || x.type === "row");
@@ -464,6 +516,8 @@ export function preview(c: Chat): string {
       return `${c.kind === "group" ? "aipager: " : ""}💬 ${m.session} · ${m.text}`;
     case "confirm":
       return m.done ?? m.text;
+    case "queue":
+      return m.text;
     default:
       return "";
   }

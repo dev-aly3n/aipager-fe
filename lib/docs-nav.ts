@@ -8,6 +8,10 @@ export type DocSummary = {
   slug: string; // "" for the index (README.md), else e.g. "architecture"
   title: string;
   description: string;
+  /** read in this language, or falling back to the English page */
+  translated?: boolean;
+  /** put together by the site rather than read from one markdown file */
+  built?: boolean;
 };
 
 /** One entry in a page's table of contents. */
@@ -19,6 +23,22 @@ export const GROUPS: { label: string; slugs: string[] }[] = [
   { label: "Reference", slugs: ["architecture", "hooks", "commands", "groups"] },
   { label: "Running it", slugs: ["security", "troubleshooting", "problem-reports"] },
 ];
+
+/**
+ * What a page is called in the nav.
+ *
+ * A translated page is named by its own heading, which aipager's translators
+ * wrote, minus any tail after a colon: "Problem reports: what a report
+ * contains" is a title, not a nav entry. The index's heading is only the
+ * product's name, so it goes by the word the language uses for the docs.
+ * An English page, or one a language has not got yet, uses the short names
+ * below, which read better than the headings they shorten.
+ */
+export function navTitle(doc: DocSummary, docsTitle: string): string {
+  if (!doc.translated) return SHORT_TITLES[doc.slug] ?? doc.title;
+  if (doc.slug === "") return docsTitle;
+  return doc.title.split(/\s*[:：]\s*/)[0];
+}
 
 /** The short name a page goes by in the nav, where its own H1 is too long. */
 export const SHORT_TITLES: Record<string, string> = {

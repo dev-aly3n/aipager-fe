@@ -3,6 +3,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
+import type { Dict } from "@/lib/i18n";
+import { digits } from "@/lib/i18n/locales";
+import { botOf, fill } from "@/lib/i18n/bot";
+import { Rich } from "./rich";
+import { useLocale } from "./locale-context";
+import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
 import { fmtClock, PEOPLE, preview, type Background as BackgroundWork, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
 
 type Card = Extract<Msg, { kind: "card" }>;
@@ -73,33 +79,34 @@ const Typing = () => (
 
 /* ---------------- folders and the chat list ---------------- */
 
-const FOLDERS: { id: Folder; label: string; icon: string }[] = [
-  { id: "all", label: "All chats", icon: "M4 5h16v11H8l-4 4V5Z" },
-  { id: "personal", label: "Personal", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" },
-  { id: "work", label: "Work", icon: "M4 8h16v11H4zM9 8V5h6v3" },
-  { id: "bots", label: "Bots", icon: "M6 9h12v9H6zM12 5v4M9 13h.01M15 13h.01" },
+const FOLDER_ICONS: { id: Folder; icon: string }[] = [
+  { id: "all", icon: "M4 5h16v11H8l-4 4V5Z" },
+  { id: "personal", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" },
+  { id: "work", icon: "M4 8h16v11H4zM9 8V5h6v3" },
+  { id: "bots", icon: "M6 9h12v9H6zM12 5v4M9 13h.01M15 13h.01" },
 ];
 
 function inFolder(c: Chat, f: Folder): boolean {
   return f === "all" || c.folder === f;
 }
 
-function Folders({ world, onFolder }: { world: World; onFolder: (f: Folder) => void }) {
+function Folders({ world, onFolder, t }: { world: World; onFolder: (f: Folder) => void; t: Dict }) {
+  const folders = FOLDER_ICONS.map((f) => ({ ...f, label: t.demo.folders[f.id] }));
   return (
     <div className="flex w-[62px] shrink-0 flex-col items-center gap-1 bg-[#0e1621] pt-3">
-      {FOLDERS.map((f) => {
+      {folders.map((f) => {
         const unread = Object.values(world.chats)
           .filter((c) => inFolder(c, f.id) && !c.muted)
           .reduce((a, c) => a + (c.unread > 0 ? 1 : 0), 0);
         const on = world.folder === f.id;
         return (
           <button key={f.id} type="button" onClick={() => onFolder(f.id)} className={`relative flex w-full flex-col items-center gap-1 py-2 text-[10.5px] ${on ? "text-white" : "text-[#6d7f8f] hover:text-[#a9b8c6]"}`}>
-            {on && <span className="absolute left-0 top-2 h-8 w-[3px] rounded-r bg-[#6ab3f3]" />}
+            {on && <span className="absolute start-0 top-2 h-8 w-[3px] rounded-e bg-[#6ab3f3]" />}
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden>
               <path d={f.icon} />
             </svg>
             {f.label}
-            {unread > 0 && <span className="absolute right-2.5 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#5288c1] px-1 text-[9.5px] font-semibold text-white">{unread}</span>}
+            {unread > 0 && <span className="absolute end-2.5 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#5288c1] px-1 text-[9.5px] font-semibold text-white">{unread}</span>}
           </button>
         );
       })}
@@ -107,7 +114,49 @@ function Folders({ world, onFolder }: { world: World; onFolder: (f: Folder) => v
   );
 }
 
-function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => void }) {
+/**
+ * The folders as Telegram's phone app draws them: a strip of tabs across the
+ * top of the chat list, the open one underlined, each with its unread count.
+ */
+export function FolderTabs({ world, onFolder, t }: { world: World; onFolder: (f: Folder) => void; t: Dict }) {
+  const folders = FOLDER_ICONS.map((f) => ({ ...f, label: t.demo.folders[f.id] }));
+  return (
+    <div className="flex shrink-0 gap-5 overflow-x-auto border-b border-black/40 bg-[#17212b] px-4 [scrollbar-width:none]">
+      {folders.map((f) => {
+        const unread = Object.values(world.chats)
+          .filter((c) => inFolder(c, f.id) && !c.muted)
+          .reduce((a, c) => a + (c.unread > 0 ? 1 : 0), 0);
+        const on = world.folder === f.id;
+        return (
+          <button key={f.id} type="button" onClick={() => onFolder(f.id)} className={`relative flex shrink-0 items-center gap-1.5 pb-2.5 pt-2 text-[13.5px] font-medium ${on ? "text-[#6ab3f3]" : "text-[#8a98a6]"}`}>
+            {f.label}
+            {unread > 0 && <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[11px] font-semibold ${on ? "bg-[#6ab3f3] text-[#17212b]" : "bg-[#3b4a5a] text-[#c9d6e3]"}`}>{unread}</span>}
+            {on && <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-t-full bg-[#6ab3f3]" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The chat list: a column beside the chat on a desk, the whole screen on a
+ * phone. A phone's list marks no chat as the open one, since the chat covers
+ * it; it only lights the row being pressed.
+ */
+export function ChatList({
+  world,
+  onOpen,
+  t,
+  full = false,
+  pressed = null,
+}: {
+  world: World;
+  onOpen: (id: ChatId) => void;
+  t: Dict;
+  full?: boolean;
+  pressed?: ChatId | null;
+}) {
   const chats = Object.values(world.chats)
     .filter((c) => inFolder(c, world.folder))
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.order - a.order);
@@ -132,17 +181,20 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
   });
 
   return (
-    <div className="flex w-[262px] shrink-0 flex-col border-r border-black/40 bg-[#17212b]">
-      <div className="flex items-center gap-3 px-3 py-2.5">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="2" strokeLinecap="round" aria-hidden>
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <div className="flex-1 rounded-full bg-[#242f3d] px-3.5 py-1.5 text-[13px] text-[#6d7f8f]">Search</div>
-      </div>
+    <div className={`flex flex-col bg-[#17212b] ${full ? "min-h-0 w-full flex-1" : "w-[262px] shrink-0 border-e border-black/40"}`}>
+      {/* a phone's search is the magnifier in the bar above */}
+      {!full && (
+        <div className="flex items-center gap-3 px-3 py-2.5">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <div className="flex-1 rounded-full bg-[#242f3d] px-3.5 py-1.5 text-[13px] text-[#6d7f8f]">{t.demo.search}</div>
+        </div>
+      )}
       <ul className="relative min-h-0 flex-1 overflow-hidden">
         {chats.map((c) => {
-          const on = c.id === world.open;
-          const pv = preview(c);
+          const on = !full && c.id === world.open;
+          const pv = preview(c, t.demo.people.you, t.modes.ask.needs);
           let time = "";
           for (const m of c.msgs) if (m.kind !== "day") time = m.time;
           return (
@@ -153,8 +205,12 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
                 else items.current.delete(c.id);
               }}
             >
-              <button type="button" onClick={() => onOpen(c.id)} className={`flex w-full items-center gap-2.5 px-2.5 py-[7px] text-left transition-colors duration-150 ${on ? "bg-[#2b5278]" : "hover:bg-[#202b36]"}`}>
-                <Avatar chat={c} size={42} />
+              <button
+                type="button"
+                onClick={() => onOpen(c.id)}
+                className={`flex w-full items-center text-start transition-colors duration-150 ${full ? "gap-3 px-3 py-[9px]" : "gap-2.5 px-2.5 py-[7px]"} ${on ? "bg-[#2b5278]" : pressed === c.id ? "bg-[#232e3c]" : "hover:bg-[#202b36]"}`}
+              >
+                <Avatar chat={c} size={full ? 50 : 42} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1">
                     {c.kind === "group" && (
@@ -162,7 +218,7 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
                         <path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 8a6 6 0 0 1 12 0H3Zm13-8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm1 8h4a5 5 0 0 0-6.4-4.8A7.5 7.5 0 0 1 17 19Z" />
                       </svg>
                     )}
-                    <span className="truncate text-[14px] font-semibold text-white">{c.name}</span>
+                    <span className={`truncate font-semibold text-white ${full ? "text-[15px]" : "text-[14px]"}`}>{c.name}</span>
                     {c.kind === "bot" && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill={on ? "#fff" : "#6ab3f3"} aria-hidden>
                         <path d="M12 2 14.4 4.4 17.8 4.2 18 7.6 20.4 10 18 12.4 17.8 15.8 14.4 15.6 12 18 9.6 15.6 6.2 15.8 6 12.4 3.6 10 6 7.6 6.2 4.2 9.6 4.4Z" opacity=".9" />
@@ -173,15 +229,15 @@ function ChatList({ world, onOpen }: { world: World; onOpen: (id: ChatId) => voi
                         <path d="M11 5 6 9H3v6h3l5 4V5ZM22 9l-6 6M16 9l6 6" />
                       </svg>
                     )}
-                    <span className={`ml-auto shrink-0 text-[12px] ${on ? "text-[#c8dcf0]" : "text-[#6d7f8f]"}`}>{time}</span>
+                    <span className={`ms-auto shrink-0 text-[12px] ${on ? "text-[#c8dcf0]" : "text-[#6d7f8f]"}`}>{time}</span>
                   </span>
                   <span className="mt-0.5 flex items-center gap-1.5">
                     {c.typing ? (
-                      <span className={`min-w-0 flex-1 truncate text-[13px] ${on ? "text-white" : "text-[#6ab3f3]"}`}>
-                        {c.kind === "group" ? `${PEOPLE[c.typing]?.name} is typing` : "typing"} <Typing />
+                      <span className={`min-w-0 flex-1 truncate ${full ? "text-[14px]" : "text-[13px]"} ${on ? "text-white" : "text-[#6ab3f3]"}`}>
+                        {c.kind === "group" ? `${PEOPLE[c.typing]?.name} ${t.demo.isTyping}` : t.demo.typing} <Typing />
                       </span>
                     ) : (
-                      <Pop value={pv} className={`min-w-0 flex-1 truncate text-[13px] ${on ? "text-[#c8dcf0]" : "text-[#7d8b99]"}`}>
+                      <Pop value={pv} className={`min-w-0 flex-1 truncate ${full ? "text-[14px]" : "text-[13px]"} ${on ? "text-[#c8dcf0]" : "text-[#7d8b99]"}`}>
                         {pv}
                       </Pop>
                     )}
@@ -228,10 +284,10 @@ export function Ticks({ n }: { n: 1 | 2 }) {
 
 function Meta({ time, ticks, out }: { time: string; ticks?: 1 | 2; out: boolean }) {
   return (
-    <span className={`float-right ml-2 mt-[3px] select-none whitespace-nowrap text-[11px] leading-[1.38] ${out ? "text-[#7da8d3]" : "text-[#6d7f8f]"}`}>
+    <span className={`float-end ms-2 mt-[3px] select-none whitespace-nowrap text-[11px] leading-[1.38] ${out ? "text-[#7da8d3]" : "text-[#6d7f8f]"}`}>
       {time}
       {out && ticks && (
-        <span className="ml-1 inline-block h-[11px] w-4 align-[-1px] text-[#6ab3f3]">
+        <span className="ms-1 inline-block h-[11px] w-4 align-[-1px] text-[#6ab3f3]">
           <Ticks n={ticks} />
         </span>
       )}
@@ -253,7 +309,7 @@ function Reaction({ r, out }: { r?: string; out: boolean }) {
           initial={{ scale: 0.3, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 520, damping: 20 }}
-          className={`absolute -bottom-[13px] z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-[#0e1621] bg-[#2f4a66] px-2 py-[1px] text-[12px] text-white ${out ? "right-2" : "left-2"}`}
+          className={`absolute -bottom-[13px] z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-[#0e1621] bg-[#2f4a66] px-2 py-[1px] text-[12px] text-white ${out ? "end-2" : "start-2"}`}
         >
           {r}
         </motion.span>
@@ -268,11 +324,28 @@ function Reaction({ r, out }: { r?: string; out: boolean }) {
  * is a tool row.
  */
 function CardRow({ it }: { it: CardItem }) {
+  const locale = useLocale();
+  const n = (text: string) => digits(text, locale);
+  const bot = botOf(locale);
+  // The catalog has these lines for the counts the evening reaches; another
+  // count would fall back to the English shape.
+  const FOLDS: Record<number, string> = { 3: bot.count.fold3, 4: bot.count.fold4, 6: bot.count.fold6 };
+  const folded = (count: number) => FOLDS[count] ?? `▸ ${n(String(count))} tool calls`;
+  // "🤖 {agent} · 7 tool calls · {clock}" with the name drawn by the card:
+  // fill the name with a mark no language uses and keep what follows it,
+  // minus the isolate the right-to-left catalogs close the name with.
+  const DONE: Record<number, string> = { 7: bot.count.agentDone7, 11: bot.count.agentDone11 };
+  const done = (calls: number, secs: number) => {
+    const line = DONE[calls];
+    if (!line) return n(`${calls} tool call${calls === 1 ? "" : "s"} · ${fmtClock(secs)}`);
+    const after = fill(line, { agent: "\u0000", clock: n(fmtClock(secs)) }).split("\u0000")[1] ?? "";
+    return after.replace(/^[\u2066-\u2069\u200e\u200f]+/, "").replace(/^\s*·\s*/, "");
+  };
   if (it.type === "prose")
     return (
-      <div className="relative my-1.5 rounded-[6px] border-l-[3px] border-[#e8737d] bg-[#2a2029]/80 py-1 pl-2.5 pr-5 leading-[1.38]">
+      <div className="relative my-1.5 rounded-[6px] border-s-[3px] border-[#e8737d] bg-[#2a2029]/80 py-1 ps-2.5 pe-5 leading-[1.38]">
         {it.text}
-        <span className="absolute right-1.5 top-0.5 font-serif text-[13px] leading-none text-[#e8737d]">&rdquo;</span>
+        <span className="absolute end-1.5 top-0.5 font-serif text-[13px] leading-none text-[#e8737d]">&rdquo;</span>
       </div>
     );
   if (it.type === "fold")
@@ -281,27 +354,28 @@ function CardRow({ it }: { it: CardItem }) {
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7d8b99" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="m6 9 6 6 6-6" />
         </svg>
-        ▸ {it.n} tool calls
+        {folded(it.n)}
       </div>
     );
   if (it.type === "agent") {
-    // The card shows the agent's own latest tool call, verbatim — not a
-    // phrase — and settles the row into its tally and clock.
-    const tail = it.state === "done" ? `${it.calls} tool call${it.calls === 1 ? "" : "s"} · ${fmtClock(it.secs)}` : `${it.what} · ${fmtClock(it.secs)}`;
+    // The card shows the agent's own latest tool call, verbatim, not a
+    // phrase, and settles the row into its tally and clock.
+    const tail = it.state === "done" ? done(it.calls ?? 0, it.secs) : `${it.what} · ${fmtClock(it.secs)}`;
+    // (the agent's own activity is Claude Code's words, so only the clock moves)
     return (
       <>
         <div className="flex gap-1.5 text-[12.5px]">
           <span className="w-4 shrink-0">{it.state === "done" ? "✅" : "⏳"}</span>
           <code className="min-w-0 font-mono text-[12px] leading-[1.45] text-[#9fc6ee]">
-            🤖 {it.parent ? `${it.parent} › ${it.name}` : it.name} · {tail}
+            🤖 {it.parent ? `${it.parent} › ${it.name}` : it.name} · {n(tail)}
           </code>
         </div>
         {!!it.fold && (
-          <div className="flex items-center gap-2 py-[2px] pl-5 text-[12.5px] text-[#c9d6e3]">
+          <div className="flex items-center gap-2 py-[2px] ps-5 text-[12.5px] text-[#c9d6e3]">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7d8b99" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="m6 9 6 6 6-6" />
             </svg>
-            ▸ {it.fold} tool calls
+            {folded(it.fold)}
           </div>
         )}
       </>
@@ -326,10 +400,17 @@ function CardRow({ it }: { it: CardItem }) {
 
 /**
  * The live status aipager keeps under an answer while agents and shells
- * that outlived the turn carry on: the counts, a row each, the promise —
+ * that outlived the turn carry on: the counts, a row each, the promise;
  * then one line once they have all stopped.
  */
 function Background({ b }: { b: BackgroundWork }) {
+  const bot = botOf(useLocale());
+  // The catalog writes a whole row, "✓ {agent} · done ({clock})", while the
+  // card draws the glyph and the name itself. Filling the name with a mark
+  // no language uses gives back exactly the words that follow it.
+  const CUT = "\u0000";
+  const tail = (template: string, vars: Record<string, string | number>) =>
+    fill(template, { agent: CUT, ...vars }).split(CUT)[1] ?? "";
   return (
     <div className="mt-2 border-t border-white/[0.08] pt-1.5 text-[12.5px] leading-[1.5]">
       {b.done ? (
@@ -337,18 +418,28 @@ function Background({ b }: { b: BackgroundWork }) {
       ) : (
         <>
           <div className="text-[#c9d6e3]">
-            ⏳ {b.agents} agent{b.agents === 1 ? "" : "s"} working{b.shells ? ` · 🖥 ${b.shells} shell${b.shells === 1 ? "" : "s"} running` : ""}
+            {!b.shells && (b.agents === 1 || b.agents === 2)
+              ? b.agents === 1
+                ? bot.count.agentsWorking1
+                : bot.count.agentsWorking2
+              : `⏳ ${b.agents} agent${b.agents === 1 ? "" : "s"} working${b.shells ? ` · 🖥 ${b.shells} shell${b.shells === 1 ? "" : "s"} running` : ""}`}
           </div>
           {b.rows.map((r, i) => (
-            <div key={`${r.name}-${i}`} className={`flex gap-1.5 ${r.nested ? "pl-3" : ""}`}>
+            <div key={`${r.name}-${i}`} className={`flex gap-1.5 ${r.nested ? "ps-3" : ""}`}>
               <span className="w-3 shrink-0 text-[#7f8791]">{r.nested ? "•" : r.state === "wait" ? "⏸" : r.state === "done" ? "✓" : "○"}</span>
               <span className="min-w-0 leading-[1.45] text-[#c9d6e3]">
                 🤖 <b className="font-semibold text-white">{r.name}</b>
-                {r.state === "wait" ? " · waiting for its own agents" : r.state === "done" ? ` · done (${r.clock})` : r.what ? ` · ${r.what}` : ""}
+                {r.state === "wait"
+                  ? " · waiting for its own agents"
+                  : r.state === "done"
+                    ? tail(bot.tpl.bgRowDone, { clock: r.clock ?? "" })
+                    : r.what
+                      ? tail(bot.tpl.bgRowWorking, { activity: r.what })
+                      : ""}
               </span>
             </div>
           ))}
-          {b.promise && <div className="mt-1 text-[#8fa3b8]">Results from the agents will follow here.</div>}
+          {b.promise && <div className="mt-1 text-[#8fa3b8]">{b.promise}</div>}
         </>
       )}
     </div>
@@ -356,8 +447,12 @@ function Background({ b }: { b: BackgroundWork }) {
 }
 
 function CardBody({ c }: { c: Card }) {
-  const verb = c.mark === "✅" ? `Finished (${fmtClock(c.elapsed)})` : c.verb;
-  const parts = [c.mark === "⏳" ? fmtClock(c.elapsed) : "", c.mark === "⏳" || c.mark === "✅" ? c.tally : ""].filter(Boolean);
+  // The verb is the product's own word; the numbers around it are written
+  // the way this language writes numbers.
+  const locale = useLocale();
+  const n = (text: string) => digits(text, locale);
+  const verb = c.mark === "✅" ? `${c.verb} (${n(fmtClock(c.elapsed))})` : c.verb;
+  const parts = [c.mark === "⏳" ? n(fmtClock(c.elapsed)) : "", c.mark === "⏳" || c.mark === "✅" ? n(c.tally) : ""].filter(Boolean);
   return (
     <>
       {c.items.map((it, i) => (
@@ -365,8 +460,11 @@ function CardBody({ c }: { c: Card }) {
       ))}
       {c.prompt?.kind === "perm" && (
         <div className="mt-2 rounded-lg bg-black/25 px-2.5 py-2">
+          {/* the tool's own name, where the language has not already put it
+              inside the line it reads with */}
           <div>
-            🔐 {c.prompt.tool}: {c.prompt.what}
+            🔐 {c.prompt.tool ? `${c.prompt.tool}: ` : ""}
+            {c.prompt.what}
           </div>
           <code className="mt-1 block font-mono text-[12px] text-[#ffc774]">{c.prompt.command}</code>
         </div>
@@ -381,6 +479,7 @@ function CardBody({ c }: { c: Card }) {
 }
 
 function Keyboard({ c, waiting, onTap }: { c: Card; waiting: boolean; onTap: (choice: number) => void }) {
+  const bot = botOf(useLocale());
   const p = c.prompt;
   if (!p) return null;
   const base = "rounded-lg bg-[#1f3246]/90 px-2 py-[7px] text-[13px] font-medium text-white backdrop-blur transition hover:bg-[#28415b] active:scale-[0.98] disabled:cursor-default";
@@ -392,10 +491,10 @@ function Keyboard({ c, waiting, onTap }: { c: Card; waiting: boolean; onTap: (ch
     );
     return (
       <div className="mt-1 grid grid-cols-2 gap-1">
-        {b("✅ Allow", 0, true)}
-        {b("❌ Deny", 1)}
-        {b("🟢 Allow always", 2)}
-        {b("⏹ Stop", 3)}
+        {b(bot.allow, 0, true)}
+        {b(bot.deny, 1)}
+        {b(bot.always, 2)}
+        {b(bot.stop, 3)}
       </div>
     );
   }
@@ -410,14 +509,15 @@ function Keyboard({ c, waiting, onTap }: { c: Card; waiting: boolean; onTap: (ch
   );
 }
 
-const MENU_ICONS: Record<string, string> = {
-  Reply: "M9 14 4 9l5-5M4 9h7a6 6 0 0 1 6 6v3",
-  "Copy Text": "M9 9h10v10H9zM5 15V5h10",
-  Pin: "M12 17v4M8 3h8l-1 6 3 3v2H6v-2l3-3z",
-  Forward: "m15 10 5 5-5 5M20 15H9a6 6 0 0 1-6-6V6",
-  Select: "M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0M9 12l2 2 4-4",
-  Delete: "M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13",
-};
+/** Telegram's menu, in the order the dictionary lists it. */
+const MENU_ICONS: string[] = [
+  "M9 14 4 9l5-5M4 9h7a6 6 0 0 1 6 6v3",
+  "M9 9h10v10H9zM5 15V5h10",
+  "M12 17v4M8 3h8l-1 6 3 3v2H6v-2l3-3z",
+  "m15 10 5 5-5 5M20 15H9a6 6 0 0 1-6-6V6",
+  "M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0M9 12l2 2 4-4",
+  "M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13",
+];
 
 /** The menu Telegram opens on a message, with the item under the finger lit. */
 function ChatMenu({ items, on, out }: { items: string[]; on: number; out: boolean }) {
@@ -428,7 +528,7 @@ function ChatMenu({ items, on, out }: { items: string[]; on: number; out: boolea
       transition={{ type: "spring", stiffness: 520, damping: 32 }}
       style={{ transformOrigin: out ? "top right" : "top left" }}
       className={`absolute top-full z-40 mt-1 w-[168px] overflow-hidden rounded-[10px] border border-white/[0.07] bg-[#1c2733]/97 py-1 shadow-[0_18px_40px_-10px_rgb(0_0_0/0.9)] backdrop-blur-sm ${
-        out ? "right-0" : "left-0"
+        out ? "end-0" : "start-0"
       }`}
     >
       {items.map((label, i) => (
@@ -436,10 +536,10 @@ function ChatMenu({ items, on, out }: { items: string[]; on: number; out: boolea
           key={label}
           className={`flex items-center gap-2.5 px-3 py-[6px] text-[13px] transition-colors ${
             i === on ? "bg-white/[0.08] text-white" : "text-[#d6e0ea]"
-          } ${label === "Delete" ? "text-[#f2705d]" : ""}`}
+          } ${i === 5 ? "text-[#f2705d]" : ""}`}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d={MENU_ICONS[label] ?? "M5 12h14"} />
+            <path d={MENU_ICONS[i] ?? "M5 12h14"} />
           </svg>
           {label}
         </div>
@@ -450,6 +550,7 @@ function ChatMenu({ items, on, out }: { items: string[]; on: number; out: boolea
 
 function Bubble({
   m,
+  t,
   chat,
   prev,
   waiting,
@@ -458,6 +559,7 @@ function Bubble({
   menu,
 }: {
   m: Msg;
+  t: Dict;
   chat: Chat;
   prev: Msg | undefined;
   waiting: boolean;
@@ -479,12 +581,15 @@ function Bubble({
   const prevSender = prev && prev.kind !== "day" ? (prev.kind === "text" ? prev.from : "bot") : null;
   const firstOfRun = prevSender !== sender;
   const reacts = (m.kind === "text" || m.kind === "answer") && m.reaction !== undefined;
-  const bubble = `relative flow-root w-fit max-w-[82%] rounded-[14px] px-3 py-[7px] text-[13.5px] leading-[1.38] text-[#f1f5f9] shadow-[0_1px_1px_rgb(0_0_0/0.3)] ${
-    out ? "bg-[#2b5278] rounded-br-[5px]" : "bg-[#182533] rounded-bl-[5px]"
-  }`;
+  // A message still waiting in Claude's queue is held back the way Claude
+  // Code holds its own queued prompt: dim until it is taken, then white.
+  const queued = m.kind === "text" && m.queued === true;
+  const bubble = `relative flow-root w-fit max-w-[82%] rounded-[14px] px-3 py-[7px] text-[13.5px] leading-[1.38] shadow-[0_1px_1px_rgb(0_0_0/0.3)] transition-colors duration-[600ms] ${
+    out ? "rounded-ee-[5px]" : "rounded-es-[5px]"
+  } ${queued ? (out ? "bg-[#2b5278]/45 text-[#f1f5f9]/50" : "bg-[#182533]/60 text-[#f1f5f9]/50") : out ? "bg-[#2b5278] text-[#f1f5f9]" : "bg-[#182533] text-[#f1f5f9]"}`;
   const name = group && !out && firstOfRun ? (
     <div className="mb-0.5 text-[13px] font-semibold" style={{ color: PEOPLE[sender]?.color }}>
-      {PEOPLE[sender]?.name}
+      {sender === "me" ? t.demo.people.you : PEOPLE[sender]?.name}
     </div>
   ) : null;
 
@@ -494,12 +599,13 @@ function Bubble({
       <>
         {name}
         {m.reply && (
-          <div className="mb-1 rounded-md border-l-[3px] border-[#6ab3f3] bg-[#6ab3f3]/10 px-2 py-0.5">
+          <div className="mb-1 rounded-md border-s-[3px] border-[#6ab3f3] bg-[#6ab3f3]/10 px-2 py-0.5">
             <div className="text-[12.5px] font-semibold text-[#6ab3f3]">{m.reply.name}</div>
             <div className="truncate text-[12.5px] text-[#a9b8c6]">{m.reply.text}</div>
           </div>
         )}
-        <span className="whitespace-pre-wrap">{m.text}</span>
+        {/* a line from the bot carries Telegram's own <b>/<i>/<code> */}
+        <span dir="auto" className="whitespace-pre-wrap">{sender === "bot" ? <Rich html={m.text} /> : m.text}</span>
         <Meta time={m.time} ticks={m.ticks} out={out} />
         <Reaction r={m.reaction} out={out} />
       </>
@@ -517,10 +623,25 @@ function Bubble({
       <>
         {m.done ?? (
           <>
-            <div>{m.text}</div>
-            <div className="mt-0.5 text-[12.5px] italic text-[#a9b8c6]">{m.note}</div>
+            <div>
+              <Rich html={m.text} />
+            </div>
+            <div className="mt-0.5 text-[12.5px] italic text-[#a9b8c6]">
+              <Rich html={m.note} />
+            </div>
           </>
         )}
+        <Meta time={m.time} out={false} />
+      </>
+    );
+  } else if (m.kind === "queue") {
+    body = (
+      <>
+        <div className="mb-1 rounded-md border-s-[3px] border-[#6ab3f3] bg-[#6ab3f3]/10 px-2 py-0.5">
+          <div className="text-[12.5px] font-semibold text-[#6ab3f3]">{m.reply.name}</div>
+          <div className="truncate text-[12.5px] text-[#a9b8c6]">{m.reply.text}</div>
+        </div>
+        <span>{m.text}</span>
         <Meta time={m.time} out={false} />
       </>
     );
@@ -542,17 +663,24 @@ function Bubble({
   return (
     <div
       data-msg={m.id}
-      className={`relative flex items-end gap-2 ${out ? "justify-end pl-16" : "pr-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""} ${
+      className={`relative flex items-end gap-2 ${out ? "justify-end ps-16" : "pe-10"} ${firstOfRun ? "mt-2" : "mt-0.5"} ${reacts ? "mb-3.5" : ""} ${
         press ? "tg-press" : ""
       }`}
     >
       {group && !out && <span className="w-[30px] shrink-0">{firstOfRun && <PersonDot id={sender} />}</span>}
       {/* w-full on purpose: the bubble's own max-width is a share of the row,
           and a shrink-to-fit wrapper would resolve it against itself. */}
-      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : "w-full"}`}>
-        <div className={m.kind === "card" || (m.kind === "confirm" && m.done === null) ? `${bubble} !max-w-full` : bubble}>{body}</div>
+      <div className={`min-w-0 ${out ? "flex justify-end" : ""} ${m.kind === "card" ? "w-[78%] max-w-[420px]" : m.kind === "queue" ? "w-[76%] max-w-[400px]" : m.kind === "confirm" && m.done === null ? "w-[70%] max-w-[380px]" : "w-full"}`}>
+        <div className={m.kind === "card" || m.kind === "queue" || (m.kind === "confirm" && m.done === null) ? `${bubble} !max-w-full` : bubble}>{body}</div>
         {menu && <ChatMenu items={menu.items} on={menu.on} out={out} />}
         {m.kind === "card" && <Keyboard c={m} waiting={waiting} onTap={(choice) => onTap(m.id, choice)} />}
+        {m.kind === "queue" && (
+          <div className="mt-1 grid gap-1">
+            <button type="button" className="rounded-lg bg-[#1f3246]/90 px-2 py-[7px] text-[13px] font-medium text-white backdrop-blur transition hover:bg-[#28415b] active:scale-[0.98]">
+              {m.button}
+            </button>
+          </div>
+        )}
         {m.kind === "confirm" && m.done === null && (
           <div className="mt-1 grid grid-cols-2 gap-1">
             {m.buttons.map((b, i) => (
@@ -575,21 +703,49 @@ function Bubble({
 
 /* ---------------- the open chat ---------------- */
 
-function ChatView({ world, waiting, onTap }: { world: World; waiting: { chat: ChatId; msg: string } | null; onTap: (msg: string, choice: number) => void }) {
+/**
+ * The conversation on its own, with its header, its pinned bar and its
+ * composer. Inside the desk it is one column of the window; on a phone it is
+ * the whole screen, at the size Telegram actually draws it.
+ */
+export function ChatView({
+  world,
+  waiting,
+  onTap,
+  t,
+  onBack,
+}: {
+  world: World;
+  waiting: { chat: ChatId; msg: string } | null;
+  onTap: (msg: string, choice: number) => void;
+  t: Dict;
+  /** on a phone, the arrow back to the chat list */
+  onBack?: () => void;
+}) {
   const c = world.chats[world.open];
-  const subtitle = c.typing ? (c.kind === "group" ? `${PEOPLE[c.typing]?.name} is typing` : "typing") : c.subtitle;
+  const subtitle = c.typing ? (c.kind === "group" ? `${PEOPLE[c.typing]?.name} ${t.demo.isTyping}` : t.demo.typing) : c.subtitle;
   return (
-    <div className="relative flex min-w-0 flex-1 flex-col bg-[#0e1621]">
-      <div className="flex h-[54px] shrink-0 items-center gap-3 border-b border-black/40 bg-[#17212b] px-4">
+    // min-h-0 as well as min-w-0: on a phone this is the whole screen, and
+    // without it the feed pushes the composer off the bottom.
+    <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-[#0e1621]">
+      <div className={`flex h-[54px] shrink-0 items-center gap-3 border-b border-black/40 bg-[#17212b] ${onBack ? "pe-4 ps-1.5" : "px-4"}`}>
+        {onBack && (
+          <button type="button" onClick={onBack} aria-label={t.demo.folders.all} className="-me-1 grid h-9 w-8 shrink-0 place-items-center text-[#6ab3f3]">
+            {/* a chevron that points back, which is the other way in right-to-left */}
+            <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="rtl:-scale-x-100" aria-hidden>
+              <path d="M10 2 2 10l8 8" />
+            </svg>
+          </button>
+        )}
         <Avatar chat={c} size={38} />
         <div className="min-w-0 leading-tight">
           <div className="truncate text-[14.5px] font-semibold text-white">{c.name}</div>
-          <div className={`text-[12.5px] ${c.typing || c.subtitle === "online" ? "text-[#6ab3f3]" : "text-[#6d7f8f]"}`}>
+          <div className={`text-[12.5px] ${c.typing || c.online ? "text-[#6ab3f3]" : "text-[#6d7f8f]"}`}>
             {subtitle}
             {c.typing && <Typing />}
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-4 text-[#6d7f8f]">
+        <div className="ms-auto flex items-center gap-4 text-[#6d7f8f]">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" />
@@ -605,21 +761,21 @@ function ChatView({ world, waiting, onTap }: { world: World; waiting: { chat: Ch
         <div className="flex shrink-0 items-center gap-2.5 border-b border-black/40 bg-[#17212b] px-4 py-1.5">
           <span className="h-8 w-[3px] rounded-full bg-[#6ab3f3]" />
           <div className="min-w-0 leading-tight">
-            <div className="text-[12.5px] font-semibold text-[#6ab3f3]">Pinned message</div>
+            <div className="text-[12.5px] font-semibold text-[#6ab3f3]">{t.langs.pinned}</div>
             <Pop value={c.pinnedBar} className={`block truncate text-[13px] ${c.pinnedBar.startsWith("⏳") ? "text-[#ffc774]" : "text-[#d6e0ea]"}`}>
               {c.pinnedBar}
             </Pop>
           </div>
         </div>
       )}
-      <Feed world={world} c={c} waiting={waiting} onTap={onTap} />
+      <Feed world={world} c={c} waiting={waiting} onTap={onTap} t={t} />
       <div className="flex shrink-0 flex-col border-t border-black/40 bg-[#17212b]">
         {world.replyTo && (
           <div className="flex items-center gap-2.5 px-4 pt-2">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6ab3f3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M9 14 4 9l5-5M4 9h7a6 6 0 0 1 6 6v3" />
             </svg>
-            <div className="min-w-0 flex-1 border-l-2 border-[#6ab3f3] pl-2 leading-tight">
+            <div className="min-w-0 flex-1 border-s-2 border-[#6ab3f3] ps-2 leading-tight">
               <div className="text-[12.5px] font-semibold text-[#6ab3f3]">{world.replyTo.name}</div>
               <div className="truncate text-[12.5px] text-[#a9b8c6]">{world.replyTo.text}</div>
             </div>
@@ -631,7 +787,7 @@ function ChatView({ world, waiting, onTap }: { world: World; waiting: { chat: Ch
             <path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8" />
           </svg>
           <div className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-[14px] leading-[1.35] ${world.draft ? "text-white" : "text-[#6d7f8f]"}`}>
-            {world.draft ? <span className="caret">{world.draft}</span> : "Write a message…"}
+            {world.draft ? <span className="caret">{world.draft}</span> : t.demo.composer}
           </div>
           {world.draft ? (
             <svg className="mb-[-1px] shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="#6ab3f3" aria-hidden>
@@ -658,15 +814,16 @@ function Feed({
   c,
   waiting,
   onTap,
+  t,
 }: {
   world: World;
   c: Chat;
   waiting: { chat: ChatId; msg: string } | null;
   onTap: (msg: string, choice: number) => void;
+  t: Dict;
 }) {
-  const box = useRef<HTMLDivElement>(null);
+  const { ref: box, bind: dragBind, busy: dragging } = useDragScroll();
   const inner = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ y: number; top: number; moved: boolean } | null>(null);
   const look = useRef<string | null | undefined>(world.focus);
   look.current = world.focus;
 
@@ -675,7 +832,7 @@ function Feed({
   // not yank the view, and must not fight a drag in progress.
   useLayoutEffect(() => {
     const el = box.current;
-    if (!el || world.focus || drag.current) return;
+    if (!el || world.focus || dragging()) return;
     el.scrollTop = el.scrollHeight;
   }, [c.msgs.length, c.id, world.focus, Boolean(world.replyTo)]);
 
@@ -684,6 +841,41 @@ function Feed({
     box.current?.querySelector(`[data-msg="${world.focus}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [world.focus]);
 
+  // Messages that change place (a card re-sent at the bottom under the
+  // message Claude took) slide there. Measured against the content, not the
+  // viewport, so the feed's own scrolling is not counted twice.
+  const flip = useRef<{ chat: ChatId; tops: Map<string, number> }>({ chat: c.id, tops: new Map() });
+  useLayoutEffect(() => {
+    const content = inner.current;
+    if (!content) return;
+    // Another conversation is not a move: ids repeat between chats (every
+    // one opens on its own "Today"), and a slide from where the last chat
+    // had it is nonsense.
+    const same = flip.current.chat === c.id;
+    const next = new Map<string, number>();
+    const els = [...content.querySelectorAll<HTMLElement>("[data-flip]")];
+    // A message arriving is not a move. Everything above it shifts to make
+    // room, and sliding those from where they were drags them straight
+    // through the bubble that just appeared.
+    const arrived = !same || els.some((el) => !flip.current.tops.has(el.dataset.flip ?? ""));
+    for (const el of els) {
+      const id = el.dataset.flip ?? "";
+      next.set(id, el.offsetTop);
+      const was = arrived ? undefined : flip.current.tops.get(id);
+      if (was === undefined) continue;
+      const dy = was - el.offsetTop;
+      if (Math.abs(dy) < 3) continue;
+      el.animate([{ transform: `translateY(${dy}px)` }, { transform: "translateY(0px)" }], {
+        // a message making room for the next one is a short hop; a card
+        // re-sent at the bottom is a journey, and wants the time to read as
+        // one move rather than a jump
+        duration: Math.min(620, 230 + Math.abs(dy) * 2.3),
+        easing: "cubic-bezier(0.4, 0.02, 0.2, 1)",
+      });
+    }
+    flip.current = { chat: c.id, tops: next };
+  });
+
   // A card that edits itself into a prompt grows without a new message
   // arriving, and its buttons must not end up below the fold.
   useEffect(() => {
@@ -691,7 +883,7 @@ function Feed({
     const content = inner.current;
     if (!el || !content) return;
     const ro = new ResizeObserver(() => {
-      if (look.current || drag.current) return;
+      if (look.current || dragging()) return;
       el.scrollTop = el.scrollHeight;
     });
     ro.observe(content);
@@ -702,41 +894,31 @@ function Feed({
   return (
     <motion.div
       ref={box}
-      layoutScroll
-      onPointerDown={(e) => {
-        const el = box.current;
-        if (!el) return;
-        drag.current = { y: e.clientY, top: el.scrollTop, moved: false };
-      }}
-      onPointerMove={(e) => {
-        const d = drag.current;
-        const el = box.current;
-        if (!d || !el) return;
-        const dy = e.clientY - d.y;
-        if (!d.moved && Math.abs(dy) < 4) return;
-        d.moved = true;
-        el.scrollTop = d.top - dy;
-      }}
-      onPointerUp={() => {
-        drag.current = null;
-      }}
-      onPointerLeave={() => {
-        drag.current = null;
-      }}
-      className="tg-pattern relative flex min-h-0 flex-1 cursor-grab flex-col overflow-hidden px-4 pb-3 active:cursor-grabbing"
+      {...dragBind}
+      className={`tg-pattern relative flex min-h-0 flex-1 flex-col px-4 pb-3 ${DRAG_CLASS}`}
     >
       <div key={c.id} ref={inner} className="mt-auto">
         <AnimatePresence initial={false}>
           {c.msgs.map((m, i) => (
             <motion.div
               key={m.id}
-              layout="position"
+              data-flip={m.id}
+              // A message aipager deletes gives its height back as it goes:
+              // the feed is pinned to the bottom, and a height that vanishes
+              // in one frame yanks the whole conversation with it.
+              className={m.kind === "queue" ? "overflow-hidden" : undefined}
               initial={{ opacity: 0, y: 16, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={
+                m.kind === "queue"
+                  ? { opacity: 0, height: 0, transition: { duration: 0.26, ease: "easeInOut", opacity: { duration: 0.16 } } }
+                  : { opacity: 0, scale: 0.96, transition: { duration: 0.14, ease: "easeIn" } }
+              }
               transition={{ type: "spring", stiffness: 420, damping: 34 }}
             >
               <Bubble
                 m={m}
+                t={t}
                 chat={c}
                 prev={c.msgs[i - 1]}
                 waiting={!!waiting && waiting.chat === c.id && waiting.msg === m.id}
@@ -760,12 +942,14 @@ export function TelegramWindow({
   onOpen,
   onFolder,
   onTap,
+  t,
 }: {
   world: World;
   waiting: { chat: ChatId; msg: string } | null;
   onOpen: (id: ChatId) => void;
   onFolder: (f: Folder) => void;
   onTap: (msg: string, choice: number) => void;
+  t: Dict;
 }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-xl border border-white/10 bg-[#17212b] shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9)]">
@@ -776,9 +960,9 @@ export function TelegramWindow({
         <span className="absolute left-1/2 -translate-x-1/2 text-[12.5px] font-medium text-[#8a98a6]">Telegram</span>
       </div>
       <div className="flex min-h-0 flex-1">
-        <Folders world={world} onFolder={onFolder} />
-        <ChatList world={world} onOpen={onOpen} />
-        <ChatView world={world} waiting={waiting} onTap={onTap} />
+        <Folders world={world} onFolder={onFolder} t={t} />
+        <ChatList world={world} onOpen={onOpen} t={t} />
+        <ChatView world={world} waiting={waiting} onTap={onTap} t={t} />
       </div>
     </div>
   );

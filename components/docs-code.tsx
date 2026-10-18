@@ -5,8 +5,12 @@ import { useState, type ReactNode } from "react";
 /** A code block with its language and a copy button, like a real console. */
 export function DocsCode({ text, lang, children }: { text: string; lang: string; children: ReactNode }) {
   const [copied, setCopied] = useState(false);
+  // Code reads left to right in every language, but a fence is also how
+  // the docs show a Telegram transcript, and those are in the language.
+  // "auto" takes the direction from the first strong letter, so a shell
+  // command stays ltr and an Arabic chat mockup reads right to left.
   return (
-    <div className="code-block">
+    <div className="code-block" dir="auto">
       <div className="code-bar">
         <span className="lang">{lang || "text"}</span>
         <button

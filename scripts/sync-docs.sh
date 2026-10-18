@@ -20,6 +20,17 @@ fi
 mkdir -p "$DEST"
 cp -v "$SRC"/*.md "$DEST/"
 
+# Every language aipager's docs are translated into, each in its own folder
+# with the same file names. The site falls back to English for anything a
+# language is missing.
+for dir in "$SRC"/i18n/*/; do
+  [[ -d "$dir" ]] || continue
+  code=$(basename "$dir")
+  mkdir -p "$DEST/$code"
+  cp "$dir"/*.md "$DEST/$code/"
+  echo "✓ $code: $(ls "$dir"/*.md | wc -l | tr -d ' ') pages"
+done
+
 # The agent install guide is also served raw at aipager.run/agent.md (the
 # README tells people to point their coding agent there). An agent reads
 # it outside the docs site, so its links to other docs become absolute.
@@ -37,6 +48,9 @@ echo "  commit + push to deploy."
 PYPROJECT="${1:-../aipager}/pyproject.toml"
 if [[ -f "$PYPROJECT" ]]; then
   VER=$(grep -m1 '^version' "$PYPROJECT" | sed 's/.*"\(.*\)".*/\1/')
-  printf '{ "version": "%s" }\n' "$VER" > lib/version-fallback.json
-  echo "✓ version fallback set to $VER"
+  HAVE=$(sed 's/[^0-9.]//g' lib/version-fallback.json)
+  # a checkout can be behind the release the site already shows
+  NEWEST=$(printf '%s\n%s\n' "$VER" "$HAVE" | sort -V | tail -1)
+  printf '{ "version": "%s" }\n' "$NEWEST" > lib/version-fallback.json
+  echo "✓ version fallback: $NEWEST (checkout $VER, had $HAVE)"
 fi

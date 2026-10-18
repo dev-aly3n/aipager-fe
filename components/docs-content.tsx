@@ -33,11 +33,14 @@ function makeSlugger() {
   };
 }
 
-export function DocsContent({ source }: { source: string }) {
+export function DocsContent({ source, anchors = {} }: { source: string; anchors?: Record<string, string> }) {
   const slug = makeSlugger();
   const heading = (Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") =>
     function Heading({ node: _n, children, ...rest }: { node?: unknown; children?: ReactNode }) {
-      const id = slug(textOf(children));
+      // a translated page keeps the English heading's anchor
+      const text = textOf(children);
+      const own = slug(text);
+      const id = anchors[text] ?? own;
       return (
         <Tag id={id} {...rest}>
           {children}
@@ -60,11 +63,21 @@ export function DocsContent({ source }: { source: string }) {
           h5: heading("h5"),
           h6: heading("h6"),
           // react-markdown passes a `node` prop (the rehype AST node) to
-          // every component — destructure it out so it doesn't leak as a
+          // every component, so destructure it out and it cannot leak as a
           // DOM attribute. Intercept mermaid code blocks here too.
           // Reference tables (hook payloads, command lists) are wider than a
           // phone. Give each its own scroll container so the page itself
           // never scrolls sideways.
+          // An inline `code` span is a command, a path or a key: it reads
+          // left to right even inside Arabic or Persian prose. A fenced
+          // block is handled by DocsCode below.
+          code({ node: _n, children, ...rest }) {
+            return (
+              <code dir="ltr" {...rest}>
+                {children}
+              </code>
+            );
+          },
           table({ node: _n, children, ...rest }) {
             return (
               <div className="-mx-1 overflow-x-auto px-1">

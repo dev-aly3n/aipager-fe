@@ -35,12 +35,25 @@ export function GitHubIcon({ size = 15 }: { size?: number }) {
   );
 }
 
-export function CopyButton({ text, className = "", children }: { text: string; className?: string; children?: ReactNode }) {
+export function CopyButton({
+  text,
+  className = "",
+  children,
+  label = "Copy",
+  done = "Copied",
+}: {
+  text: string;
+  className?: string;
+  children?: ReactNode;
+  /** what the button says, in the page's language */
+  label?: string;
+  done?: string;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      aria-label="Copy command"
+      aria-label={label}
       className={className}
       onClick={() => {
         void navigator.clipboard?.writeText(text).then(() => {
@@ -49,8 +62,8 @@ export function CopyButton({ text, className = "", children }: { text: string; c
         });
       }}
     >
-      {children ?? (copied ? "Copied" : "Copy")}
-      {children && copied ? <span className="sr-only">Copied</span> : null}
+      {children ?? (copied ? done : label)}
+      {children && copied ? <span className="sr-only">{done}</span> : null}
     </button>
   );
 }

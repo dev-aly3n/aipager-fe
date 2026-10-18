@@ -9,7 +9,16 @@
  * leave the chat, your sessions carry on without you, and you come back
  * when something pings. Nobody sits watching a chat waiting for a reply.
  */
-import { arrive, card, msg, open, pane, pinBar, type ChatId, type Mode, type Spark, type World } from "./world";
+import { arrive, card, drop, moveCard, msg, open, pane, pinBar, type ChatId, type Mode, type Spark, type World } from "./world";
+import type { Dict } from "@/lib/i18n";
+import { botOf, fill, type BotStrings } from "@/lib/i18n/bot";
+
+/**
+ * Claude Code's own spinner, in Claude Code's own language. aipager
+ * translates the card it writes in Telegram, not the terminal it is
+ * watching, so the pane says Thinking while the card says Réflexion.
+ */
+const SPIN = botOf("en").spin;
 
 export interface Step {
   after: number;
@@ -57,7 +66,7 @@ function say(chat: ChatId, text: string, time: string, id: string, reacts = fals
 
 /**
  * Someone else writing, at their own pace. Their "typing…" shows in the
- * chat list even when you are looking somewhere else — which is usually
+ * chat list even when you are looking somewhere else, which is usually
  * where you are.
  */
 function from(chat: ChatId, who: string, text: string, time: string, id: string, typingFor = 2200, notify = true, reacts = false): Step[] {
@@ -77,76 +86,77 @@ function from(chat: ChatId, who: string, text: string, time: string, id: string,
 /* ─────────────────────────── the evening ─────────────────────────── */
 
 /** You glance at the session. It has moved on since you last looked. */
-const GLANCE: Step[] = [
+const GLANCE = (t: Dict, bot: BotStrings): Step[] => [
   {
     after: 900,
     open: "aipager",
-    wire: hook("PostToolUse", "card edited · Bash ×1"),
-    caption: "It runs the test a few times. Every step it takes edits the same card.",
+    wire: hook("PostToolUse", t.demo.wire.cardEdited),
+    caption: t.demo.captions.glance,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.items.push({ type: "row", text: "Bash: pnpm test e2e/login --repeat 5", done: true });
-      c.items.push({ type: "prose", text: "It fails about one run in five. Timing, not logic." });
+      c.items.push({ type: "prose", text: t.demo.claude.flaky });
       c.tally = "Read ×1 · Bash ×1";
       const p = pane(w, "api");
       p.lines.push({ text: "Bash(pnpm test e2e/login --repeat 5)", dot: "live", bold: true });
       p.lines.push({ text: "Tests: 1 failed, 4 passed", sub: true, tone: "amber" });
-      p.lines.push({ text: "It fails about one run in five. Timing, not logic.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.flaky, dot: "fg" });
     },
   },
 ];
 
 /** Mom asked twenty minutes ago. You answer her and put the phone down. */
-const MOM_1: Step[] = [
-  look("mom", 1500, "Mom asked twenty minutes ago. Nothing here needs you, so you answer her."),
-  ...say("mom", "yes! made pasta 🍝 you?", "21:04", "me1"),
-  look("aipager", 1100, "Sent. You leave the chat, the way anyone does."),
+const MOM_1 = (t: Dict, bot: BotStrings): Step[] => [
+  look("mom", 1500, t.demo.captions.momFirst),
+  ...say("mom", t.demo.says.youPasta, "21:04", "me1"),
+  look("aipager", 1100, t.demo.captions.sent),
 ];
 
 /** Auto mode: the safe calls run themselves and you never hear about them. */
-const WORK_AUTO: Step[] = [
+const WORK_AUTO = (t: Dict, bot: BotStrings): Step[] => [
   {
     after: 800,
-    wire: hook("PostToolUse", "two calls, nothing to tap"),
-    caption: "Auto mode, where every new session starts: Claude Code's own safety check ran the read and the test run itself. Neither came to you.",
+    wire: hook("PostToolUse", t.demo.wire.twoCalls),
+    caption: t.demo.captions.workAuto,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.items.push({ type: "row", text: "Read: src/auth/cookie.ts", done: true });
       c.items.push({ type: "row", text: "Bash: pnpm test e2e/login --trace on", done: true });
       c.tally = "Read ×2 · Bash ×2";
-      c.verb = "Investigating";
+      c.verb = bot.spin[9];
       const p = pane(w, "api");
       p.lines.push({ text: "Read(src/auth/cookie.ts)", dot: "live", bold: true });
       p.lines.push({ text: "Read 128 lines", sub: true, tone: "dim" });
       p.lines.push({ text: "Bash(pnpm test e2e/login --trace on)", dot: "live", bold: true });
-      p.spinner = "Investigating";
+      p.spinner = SPIN[9];
     },
   },
   {
     after: 2600,
-    wire: hook("PostToolUse", "the trace, and what it found"),
+    wire: hook("PostToolUse", t.demo.wire.trace),
     run: (w) => {
       const c = card(w, "aipager", "c1");
-      c.items.push({ type: "prose", text: "The test clicks before the session cookie is set. It sleeps 5s and hopes." });
+      c.items.push({ type: "prose", text: t.demo.claude.cookie });
       const p = pane(w, "api");
       p.lines.push({ text: "Trace: click at 5.0s, Set-Cookie at 5.3s", sub: true, tone: "dim" });
-      p.lines.push({ text: "The test clicks before the session cookie is set. It sleeps 5s and hopes.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.cookie, dot: "fg" });
     },
   },
 ];
 
 /** Ask mode: the same two calls, one tap each, and you are the bottleneck. */
-const WORK_ASK: Step[] = [
+const WORK_ASK = (t: Dict, bot: BotStrings): Step[] => [
   {
     after: 800,
-    wire: perm("PermissionRequest", "🔐 Permission needed"),
-    caption: "Ask mode: every call waits for you — this one only wants to read a file.",
+    wire: perm("PermissionRequest", t.demo.wire.permNeeded),
+    caption: t.demo.captions.askRead,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.mark = "🔐";
-      c.verb = "Permission needed";
-      c.prompt = { kind: "perm", tool: "Read", what: "Read the cookie helper", command: "src/auth/cookie.ts", answered: false };
-      w.chats.aipager.pinnedBar = pinBar(w, "Read: src/auth/cookie.ts");
+      c.verb = "";
+      // `ask.read` already names the tool the way the language says it
+      c.prompt = { kind: "perm", tool: "", what: t.modes.ask.read, command: "src/auth/cookie.ts", answered: false };
+      w.chats.aipager.pinnedBar = pinBar(w, bot, "Read: src/auth/cookie.ts");
       const p = pane(w, "api");
       p.spinner = null;
       p.lines.push({ text: "Read(src/auth/cookie.ts)", dot: "live", bold: true });
@@ -168,32 +178,32 @@ const WORK_ASK: Step[] = [
   },
   {
     after: 500,
-    wire: back("✅ Allow", "verdict · the read runs"),
+    wire: back(bot.allow, t.demo.wire.readRuns),
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.prompt = null;
       c.mark = "⏳";
-      c.verb = "Reading";
+      c.verb = bot.spin[8];
       c.items.push({ type: "row", text: "Read: src/auth/cookie.ts", done: true });
       c.tally = "Read ×2 · Bash ×1";
-      w.chats.aipager.pinnedBar = pinBar(w);
-      arrive(w, "aipager", { id: "ok0", kind: "text", from: "bot", text: "✅ api · Allowed · Read: src/auth/cookie.ts", time: "21:05" });
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
+      arrive(w, "aipager", { id: "ok0", kind: "text", from: "bot", text: fill(bot.tpl.answerLine, { icon: "✅", session: "api", verb: bot.line.verbAllow, detail: "Read: src/auth/cookie.ts" }), time: "21:05" });
       const p = pane(w, "api");
       p.lines = p.lines.filter((l) => l.text !== "Running PermissionRequest hook…");
       p.lines.push({ text: "Read 128 lines", sub: true, tone: "dim" });
-      p.spinner = "Pondering";
+      p.spinner = SPIN[2];
     },
   },
   {
     after: 1400,
-    wire: perm("PermissionRequest", "🔐 Permission needed"),
-    caption: "And again for the test run. In Auto mode neither of these would have asked at all.",
+    wire: perm("PermissionRequest", t.demo.wire.permNeeded),
+    caption: t.demo.captions.askTest,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.mark = "🔐";
-      c.verb = "Permission needed";
+      c.verb = "";
       c.prompt = { kind: "perm", tool: "Bash", what: "Run the login test with tracing", command: "pnpm test e2e/login --trace on", answered: false };
-      w.chats.aipager.pinnedBar = pinBar(w, "Bash: pnpm test e2e/login --trace on");
+      w.chats.aipager.pinnedBar = pinBar(w, bot, "Bash: pnpm test e2e/login --trace on");
       const p = pane(w, "api");
       p.spinner = null;
       p.lines.push({ text: "Bash(pnpm test e2e/login --trace on)", dot: "live", bold: true });
@@ -215,63 +225,64 @@ const WORK_ASK: Step[] = [
   },
   {
     after: 500,
-    wire: back("✅ Allow", "verdict · the test runs"),
+    wire: back(bot.allow, t.demo.wire.testRuns),
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.prompt = null;
       c.mark = "⏳";
-      c.verb = "Testing";
+      c.verb = bot.spin[5];
       c.items.push({ type: "row", text: "Bash: pnpm test e2e/login --trace on", done: true });
-      c.items.push({ type: "prose", text: "The test clicks before the session cookie is set. It sleeps 5s and hopes." });
+      c.items.push({ type: "prose", text: t.demo.claude.cookie });
       c.tally = "Read ×2 · Bash ×2";
-      w.chats.aipager.pinnedBar = pinBar(w);
-      arrive(w, "aipager", { id: "ok1", kind: "text", from: "bot", text: "✅ api · Allowed · Bash: pnpm test e2e/login --trace on", time: "21:06" });
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
+      arrive(w, "aipager", { id: "ok1", kind: "text", from: "bot", text: fill(bot.tpl.answerLine, { icon: "✅", session: "api", verb: bot.line.verbAllow, detail: "Bash: pnpm test e2e/login --trace on" }), time: "21:06" });
       const p = pane(w, "api");
       p.lines = p.lines.filter((l) => l.text !== "Running PermissionRequest hook…");
       p.lines.push({ text: "Trace: click at 5.0s, Set-Cookie at 5.3s", sub: true, tone: "dim" });
-      p.lines.push({ text: "The test clicks before the session cookie is set. It sleeps 5s and hopes.", dot: "fg" });
-      p.spinner = "Pondering";
+      p.lines.push({ text: t.demo.claude.cookie, dot: "fg" });
+      p.spinner = SPIN[2];
     },
   },
 ];
 
 /** Full access: no checks at all, so the same work goes by in one breath. */
-const WORK_FULL: Step[] = [
+const WORK_FULL = (t: Dict, bot: BotStrings): Step[] => [
   {
     after: 900,
-    wire: hook("PostToolUse", "three calls, no checks"),
-    caption: "Full access: Claude Code asks nothing and aipager has nothing to relay. You only see what it did.",
+    wire: hook("PostToolUse", t.demo.wire.threeCalls),
+    caption: t.demo.captions.workFull,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       c.items.push({ type: "row", text: "Read: src/auth/cookie.ts", done: true });
       c.items.push({ type: "row", text: "Bash: pnpm test e2e/login --trace on", done: true });
-      c.items.push({ type: "prose", text: "The test clicks before the session cookie is set. It sleeps 5s and hopes." });
+      c.items.push({ type: "prose", text: t.demo.claude.cookie });
       c.tally = "Read ×2 · Bash ×2";
-      c.verb = "Investigating";
+      c.verb = bot.spin[9];
       const p = pane(w, "api");
       p.lines.push({ text: "Read(src/auth/cookie.ts)", dot: "live", bold: true });
       p.lines.push({ text: "Bash(pnpm test e2e/login --trace on)", dot: "live", bold: true });
       p.lines.push({ text: "Trace: click at 5.0s, Set-Cookie at 5.3s", sub: true, tone: "dim" });
-      p.lines.push({ text: "The test clicks before the session cookie is set. It sleeps 5s and hopes.", dot: "fg" });
-      p.spinner = "Investigating";
+      p.lines.push({ text: t.demo.claude.cookie, dot: "fg" });
+      p.spinner = SPIN[9];
     },
   },
 ];
 
 /** Mom writes back while you are elsewhere. You go, answer, and leave again. */
-const MOM_2: Step[] = [
-  ...from("mom", "mom", "sunday lunch at 1? 😊", "21:07", "mom2", 2400),
-  look("mom", 1500, "Mom again. The session carries on behind you — it does not need a window open."),
-  ...say("mom", "1pm ❤️", "21:08", "me2"),
+const MOM_2 = (t: Dict, bot: BotStrings): Step[] => [
+  ...from("mom", "mom", t.demo.says.momLunch, "21:07", "mom2", 2400),
+  look("mom", 1500, t.demo.captions.momAgain),
+  ...say("mom", t.demo.says.youLunch, "21:08", "me2"),
   look("aipager", 1200),
 ];
 
 /** The team's group, where the bot answers to everyone by their own role. */
-const TEAM: Step[] = [
-  ...from("team", "sara", "@aipagerbot /web run the login e2e against staging", "21:09", "t3", 2300),
-  look("team", 1600, "The team's group. Anyone on the allow-list can mention the bot; each message runs with its sender's role."),
+const TEAM = (t: Dict, bot: BotStrings): Step[] => [
+  ...from("team", "sara", t.demo.says.teamRun, "21:09", "t3", 2300),
+  look("team", 1600, t.demo.captions.team),
   {
     after: 1100,
+    caption: t.demo.captions.teamSara,
     run: (w) => {
       arrive(w, "team", {
         id: "tc1",
@@ -279,7 +290,7 @@ const TEAM: Step[] = [
         session: "web",
         items: [{ type: "row", text: "Bash: pnpm e2e login --env staging", done: false }],
         mark: "⏳",
-        verb: "Testing",
+        verb: bot.spin[5],
         elapsed: 8,
         tally: "Bash ×1",
         prompt: null,
@@ -287,26 +298,28 @@ const TEAM: Step[] = [
       });
       w.term = "web";
       const web = pane(w, "web");
-      web.lines.push({ text: "run the login e2e against staging", user: true, via: "@sara" });
+      // A group prompt carries the sender and the role it runs as; in a DM
+      // the marker is just the handle.
+      web.lines.push({ text: t.demo.prompts.teamRun, user: true, via: "@sara", role: "admin" });
       web.lines.push({ text: "Bash(pnpm e2e login --env staging)", dot: "live", bold: true });
-      web.spinner = "Testing";
+      web.spinner = SPIN[5];
       web.secs = 8;
       web.status = "[web] Sonnet 5.5 | 6% ctx | $0.02";
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
-  ...from("team", "sam", "@aipagerbot /web kubectl rollout restart deploy/api", "21:10", "t4", 2000),
+  ...from("team", "sam", t.demo.says.teamKubectl, "21:10", "t4", 2000),
   {
     after: 1200,
-    caption: "Sam is a user in this group. Bash is off for his role, so the call is refused before it runs.",
+    caption: t.demo.captions.teamSam,
     run: (w) =>
       arrive(w, "team", {
         id: "t5",
         kind: "text",
         from: "bot",
-        text: "⛔ web · Bash blocked for @sam (role user)",
+        text: fill(bot.tpl.blocked, { session: "web", tool: "Bash", person: "@sam", role: "user" }),
         time: "21:10",
-        reply: { name: "Sam", text: "@aipagerbot /web kubectl rollout restart deploy/api" },
+        reply: { name: "Sam", text: t.demo.says.teamKubectl },
       }),
   },
   {
@@ -315,14 +328,14 @@ const TEAM: Step[] = [
       const c = card(w, "team", "tc1");
       c.items[0] = { type: "row", text: "Bash: pnpm e2e login --env staging", done: true };
       c.mark = "✅";
-      c.verb = "Finished";
+      c.verb = bot.line.verbDone;
       c.elapsed = 72;
-      arrive(w, "team", { id: "ta1", kind: "answer", session: "web", text: "18 of 18 login tests pass on staging. The flake doesn't show there.", time: "21:10", reaction: "" });
+      arrive(w, "team", { id: "ta1", kind: "answer", session: "web", text: t.demo.claude.teamTests, time: "21:10", reaction: "" });
       const p = pane(w, "web");
       p.spinner = null;
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
       p.lines.push({ text: "18 passed (41s)", sub: true, tone: "live" });
-      p.lines.push({ text: "18 of 18 login tests pass on staging.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.teamShort, dot: "fg" });
     },
   },
   {
@@ -334,29 +347,29 @@ const TEAM: Step[] = [
   },
 ];
 
-/** Claude has a decision to make. Not a permission — a question. */
-function decide(mode: Mode): Step[] {
+/** Claude has a decision to make. Not a permission: a question. */
+function decide(mode: Mode, t: Dict, bot: BotStrings): Step[] {
   return [
     {
       after: 1800,
-      wire: perm("PreToolUse", "❓ a question, with buttons"),
+      wire: perm("PreToolUse", t.demo.wire.question),
       caption:
         mode === "auto"
-          ? "Now something only you can answer. A mode decides what runs without asking; a question like this comes to you in every mode."
-          : "A question, not a permission: Claude's own decision, with a button per option.",
+          ? t.demo.captions.questionAuto
+          : t.demo.captions.questionAsk,
       run: (w) => {
         w.term = "api";
         const c = card(w, "aipager", "c1");
         c.mark = "❓";
-        c.verb = "Raise the timeout or wait for the cookie?";
-        c.prompt = { kind: "question", question: "Raise the timeout, or wait for the cookie?", options: ["Raise the timeout", "Wait for the cookie", "Both"], answered: null };
-        w.chats.aipager.pinnedBar = pinBar(w, "Raise the timeout, or wait for the cookie?");
+        c.verb = t.demo.question.verb;
+        c.prompt = { kind: "question", question: t.demo.question.question, options: [...t.demo.question.options], answered: null };
+        w.chats.aipager.pinnedBar = pinBar(w, bot, t.demo.question.question);
         const p = pane(w, "api");
         p.spinner = null;
-        p.dialog = { kind: "question", title: "Fix", body: ["The test sleeps 5s before clicking.", "Raise the timeout, or wait for the cookie?"], options: ["Raise the timeout", "Wait for the cookie", "Both"], selected: 0 };
+        p.dialog = { kind: "question", title: t.demo.question.title, body: [t.demo.question.body, t.demo.question.question], options: [...t.demo.question.options], selected: 0 };
       },
     },
-    look("aipager", 1600, "Your phone buzzed on the arm of the sofa. Three buttons, one tap."),
+    look("aipager", 1600, t.demo.captions.buzzed),
     {
       after: 400,
       gate: {
@@ -374,98 +387,102 @@ function decide(mode: Mode): Step[] {
     },
     {
       after: 700,
-      wire: back("Wait for the cookie", "answer typed in"),
-      caption: "Your answer is typed into the session as if you were at the keyboard.",
+      wire: back(t.demo.question.options[1], t.demo.wire.answerTyped),
+      caption: t.demo.captions.answerTyped,
       run: (w) => {
         const c = card(w, "aipager", "c1");
         const choice = c.prompt?.kind === "question" && c.prompt.answered !== null ? c.prompt.options[c.prompt.answered] : "Wait for the cookie";
         c.prompt = null;
         c.mark = "⏳";
-        c.verb = "Editing";
+        // the card's verb is always one of the product's own spinner words;
+        // the Edit row right below says which file
+        c.verb = bot.spin[11];
         // The run behind us settles into one line, the way a long card keeps
         // itself readable: its words stay, its tool calls fold.
         c.items = [
-          { type: "prose", text: "I'll run the login test a few times and look at where it fails." },
+          { type: "prose", text: t.demo.claude.plan },
           { type: "fold", n: 4 },
-          { type: "prose", text: "The test clicks before the session cookie is set. It sleeps 5s and hopes." },
+          { type: "prose", text: t.demo.claude.cookie },
           { type: "row", text: "Edit: e2e/login.spec.ts", done: true },
           { type: "row", text: "Bash: pnpm test e2e/login --repeat 10", done: false },
         ];
         c.tally = "Read ×2 · Bash ×2 · Edit ×1";
-        w.chats.aipager.pinnedBar = pinBar(w);
-        arrive(w, "aipager", { id: "ok3", kind: "text", from: "bot", text: `✓ api · Answered · ${choice}`, time: "21:12", reply: { name: "aipager", text: "❓ api · Raise the timeout, or wait for the cookie?" } });
+        w.chats.aipager.pinnedBar = pinBar(w, bot);
+        arrive(w, "aipager", { id: "ok3", kind: "text", from: "bot", text: fill(bot.tpl.answered, { session: "api", question: t.demo.question.question, option: choice }), time: "21:12", reply: { name: "aipager", text: `❓ api · ${t.demo.question.question}` } });
         const p = pane(w, "api");
         p.dialog = null;
         p.lines.push({ text: `User answered: ${choice}`, sub: true, tone: "dim" });
         p.lines.push({ text: "Update(e2e/login.spec.ts)", dot: "live", bold: true });
         p.lines.push({ text: "Updated e2e/login.spec.ts with 3 additions and 1 removal", sub: true, tone: "dim" });
         p.lines.push({ text: "Bash(pnpm test e2e/login --repeat 10)", dot: "live", bold: true });
-        p.spinner = "Testing";
+        p.spinner = SPIN[5];
       },
     },
   ];
 }
 
 /** Friday football, while the tests run ten times over. */
-const FRIENDS: Step[] = [
-  ...from("friends", "leo", "who's in friday? need 2 more ⚽", "21:13", "f4", 1800, false),
-  look("friends", 1700, "Family, friends, work and Claude: one app, the one you check anyway."),
-  ...say("friends", "in 🙋‍♂️", "21:13", "me3"),
+const FRIENDS = (t: Dict, bot: BotStrings): Step[] => [
+  ...from("friends", "leo", t.demo.says.friendsWho, "21:13", "f4", 1800, false),
+  look("friends", 1700, t.demo.captions.friends),
+  ...say("friends", t.demo.says.youIn, "21:13", "me3"),
   look("aipager", 1300),
 ];
 
 /** The turn ends the way every other message arrives. */
-const ANSWER: Step[] = [
+const ANSWER = (t: Dict, bot: BotStrings): Step[] => [
   {
     after: 1500,
-    wire: hook("Stop", "💬 Claude's answer"),
-    caption: "Done. The answer lands like any other message, and the pinned bar goes quiet.",
+    wire: hook("Stop", t.demo.wire.claudeAnswer),
+    caption: t.demo.captions.answerDone,
     run: (w) => {
       const c = card(w, "aipager", "c1");
       const r = c.items.find((x) => x.type === "row" && x.text.startsWith("Bash: pnpm test e2e/login --repeat 10"));
       if (r && r.type === "row") r.done = true;
       c.mark = "✅";
-      c.verb = "Finished";
+      c.verb = bot.line.verbDone;
       c.tally = "Read ×2 · Bash ×3 · Edit ×1";
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
       arrive(
         w,
         "aipager",
-        { id: "a1", kind: "answer", session: "api", text: "Fixed. The test now waits for the session cookie instead of sleeping 5s. 10 runs in a row, all green.", time: "21:15" },
-        { title: "aipager", body: "💬 api · Fixed. The test now waits for the session cookie…" },
+        { id: "a1", kind: "answer", session: "api", text: t.demo.claude.answer, time: "21:15" },
+        { title: t.demo.chats.aipager.name, body: `💬 api · ${t.demo.claude.answer.slice(0, 54)}…` },
       );
       const p = pane(w, "api");
       p.spinner = null;
       p.lines.push({ text: "Tests: 10 passed, 10 total", sub: true, tone: "live" });
-      p.lines.push({ text: "Fixed. The test waits for the session cookie now; 10 runs in a row, all green.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.answer, dot: "fg" });
     },
   },
-  { after: 3400, caption: "A flaky test fixed from the sofa, between a question from Mom and a game on Friday." },
+  { after: 3400, caption: t.demo.captions.evening },
 ];
 
 /* ─────────────────────── the second errand ───────────────────────
  * The work is done, and the next thing that pings is not work at all.
  * You start a second session for it from the same chat, it sends two
  * agents out to look, and while they are gone you still have the first
- * session to answer — which is where replying to a message earns its
+ * session to answer, which is where replying to a message earns its
  * keep: it is how aipager knows which session you mean.
  */
 
-const TRIP = "a week in Lisbon in March: check the weather first, then 3 hotels under €180 and flights from Berlin. If the weather looks bad, try Seville.";
+/** The one you send while it is still working, which Claude has to queue. */
+const morePrompt = (t: Dict) => t.demo.prompts.more;
+const tripPrompt = (t: Dict) => t.demo.prompts.trip;
 
-const ACT2: Step[] = [
-  ...from("sara", "sara", "did you decide for the vacation? 🏖", "21:20", "sv1", 2000),
-  look("sara", 1700, "Not everything that pings is work."),
-  ...say("sara", "two minutes 😄", "21:20", "me4"),
+const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
+  ...from("sara", "sara", t.demo.says.saraVacation, "21:20", "sv1", 2000),
+  look("sara", 1700, t.demo.captions.saraPing),
+  ...say("sara", t.demo.says.youTwoMinutes, "21:20", "me4"),
 
-  look("aipager", 1600, "A second session, started from the chat — no terminal, no ssh."),
+  look("aipager", 1600, t.demo.captions.second),
   ...say("aipager", "/new trip", "21:21", "u3"),
   {
     after: 900,
-    wire: back("/new trip", "a session in ~/travel"),
-    caption: "aipager starts it on your machine and hands it back, ready, in the mode new sessions start in.",
+    wire: back("/new trip", t.demo.wire.sessionIn),
+    caption: t.demo.captions.newReady,
     run: (w) => {
-      arrive(w, "aipager", { id: "nw", kind: "text", from: "bot", text: "🆕 trip · 🤖 Auto mode · ~/travel · ready", time: "21:21" });
+      arrive(w, "aipager", { id: "nw", kind: "text", from: "bot", text: `${fill(bot.tpl.ready, { session: "trip" })} · ${fill(bot.tpl.readySettings, { mode: bot.modes.auto, model: "Sonnet 5.5", folder: "~/travel" })}`, time: "21:21" });
       w.term = "trip";
       w.panes.push({
         id: "trip",
@@ -479,26 +496,26 @@ const ACT2: Step[] = [
         input: "",
         status: "[trip] Sonnet 5.5 | 1% ctx | $0.00",
       });
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
-  ...say("aipager", TRIP, "21:22", "u4", true),
+  ...say("aipager", tripPrompt(t), "21:22", "u4", true),
   {
     after: 700,
-    wire: back("your message", "typed into claude-trip"),
+    wire: back(t.demo.wire.yourMessage, t.demo.wire.typedTrip),
     run: (w) => {
       const m = msg(w, "aipager", "u4");
       if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "trip");
-      p.lines.push({ text: TRIP, user: true, via: "@owner" });
-      p.spinner = "Pondering";
+      p.lines.push({ text: tripPrompt(t), user: true, via: "@owner" });
+      p.spinner = SPIN[2];
       p.secs = 2;
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 1100,
-    wire: hook("UserPromptSubmit", "a new card · trip"),
+    wire: hook("UserPromptSubmit", t.demo.wire.newCardTrip),
     run: (w) => {
       const m = msg(w, "aipager", "u4");
       if (m.kind === "text") m.reaction = "👍";
@@ -506,60 +523,94 @@ const ACT2: Step[] = [
         id: "c3",
         kind: "card",
         session: "trip",
-        items: [{ type: "prose", text: "Weather first — no point pricing a week of rain." }],
+        items: [{ type: "prose", text: t.demo.claude.weather }],
         mark: "⏳",
-        verb: "Checking",
+        verb: bot.spin[8],
         elapsed: 3,
         tally: "",
         prompt: null,
         time: "21:22",
       });
       const p = pane(w, "trip");
-      p.lines.push({ text: "Weather first — no point pricing a week of rain.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.weather, dot: "fg" });
     },
   },
   {
     after: 2400,
-    wire: hook("PostToolUse", "Lisbon in March · 18°C"),
-    caption: "It checks the thing that decides the rest, and says what it found.",
+    wire: hook("PostToolUse", t.demo.wire.lisbon),
+    caption: t.demo.captions.weather,
     run: (w) => {
       const c = card(w, "aipager", "c3");
       c.items.push({ type: "row", text: "WebFetch: climate, Lisbon, March", done: true });
-      c.items.push({ type: "prose", text: "Lisbon in March: 18°C by day, rain on 2 of the 7. Good enough — no need for Seville." });
+      c.items.push({ type: "prose", text: t.demo.claude.lisbon });
       c.tally = "WebFetch ×1";
       const p = pane(w, "trip");
       p.lines.push({ text: "WebFetch(climate, Lisbon, March)", dot: "live", bold: true });
       p.lines.push({ text: "18°C by day · rain 2 of 7 days", sub: true, tone: "dim" });
-      p.lines.push({ text: "Lisbon in March: 18°C by day, rain on 2 of the 7. Good enough — no need for Seville.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.lisbon, dot: "fg" });
     },
   },
-  ...say(
-    "aipager",
-    "spawn a couple of agents for it: one on hotels under €180, one on flights from Berlin",
-    "21:23",
-    "u6",
-    true,
-  ),
+  ...say("aipager", morePrompt(t), "21:23", "u6", true),
   {
-    after: 800,
-    wire: back("your message", "typed into claude-trip"),
+    after: 650,
+    wire: hook(t.demo.wire.yourMessage, t.demo.wire.queued),
+    caption: t.demo.captions.queued,
     run: (w) => {
       const m = msg(w, "aipager", "u6");
-      if (m.kind === "text") m.reaction = "👍";
+      if (m.kind === "text") {
+        m.reaction = "👀";
+        m.queued = true;
+      }
       const p = pane(w, "trip");
-      p.lines.push({ text: "spawn a couple of agents for it: one on hotels under €180, one on flights from Berlin", user: true, via: "@owner" });
-      p.spinner = "Delegating";
+      p.lines.push({ text: morePrompt(t), user: true, via: "@owner", queued: true });
+    },
+  },
+  {
+    after: 800,
+    caption: t.demo.captions.queueLine,
+    run: (w) => {
+      arrive(w, "aipager", {
+        id: "q1",
+        kind: "queue",
+        text: bot.line.queued,
+        button: bot.btn.sendNow,
+        time: "21:23",
+        reply: { name: "You", text: morePrompt(t) },
+      });
+    },
+  },
+  {
+    after: 1500,
+    wire: back("claude-trip", t.demo.wire.tookIt),
+    caption: t.demo.captions.tookIt,
+    run: (w) => {
+      const m = msg(w, "aipager", "u6");
+      if (m.kind === "text") {
+        m.reaction = "👍";
+        m.queued = false;
+      }
+      drop(w, "aipager", "q1");
+      const p = pane(w, "trip");
+      for (const l of p.lines) if (l.queued) l.queued = false;
+      p.spinner = SPIN[10];
       p.tokens = "2.1k";
     },
   },
   {
+    // Telegram cannot move a message, so aipager sends the card again under
+    // the message Claude is now answering and deletes the old copy. Same
+    // card, same clock, one message lower.
+    after: 320,
+    run: (w) => moveCard(w, "aipager", "c3"),
+  },
+  {
     after: 1600,
-    wire: hook("SubagentStart", "🤖 two agents"),
-    caption: "It sends two out at once. Each gets a row of its own, and the card follows what each is doing.",
+    wire: hook("SubagentStart", t.demo.wire.twoAgents),
+    caption: t.demo.captions.agents,
     run: (w) => {
       const c = card(w, "aipager", "c3");
-      c.verb = "Delegating";
-      c.items.push({ type: "prose", text: "Two agents then: one on beds, one on seats." });
+      c.verb = bot.spin[10];
+      c.items.push({ type: "prose", text: t.demo.claude.twoAgents });
       // the parent's own Agent calls, then the agents themselves
       c.items.push({ type: "row", text: "Agent", done: true });
       c.items.push({ type: "row", text: "Agent", done: true });
@@ -568,7 +619,7 @@ const ACT2: Step[] = [
       c.tally = "WebFetch ×1 · Agent ×2";
       const p = pane(w, "trip");
       p.agents = 2;
-      p.lines.push({ text: "Two agents then: one on beds, one on seats.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.twoAgents, dot: "fg" });
       p.lines.push({
         text: "",
         agents: {
@@ -583,12 +634,12 @@ const ACT2: Step[] = [
         { name: "general-purpose", what: "Starting", clock: "0:02", tokens: "1.1k tokens" },
         { name: "general-purpose", what: "Starting", clock: "0:01", tokens: "0.9k tokens" },
       ];
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 7000,
-    caption: "They are off on their own now — a few tool calls each, and nothing for you to do.",
+    caption: t.demo.captions.agentsWork,
     run: (w) => {
       const c = card(w, "aipager", "c3");
       const [a1, a2] = c.items.filter((x) => x.type === "agent");
@@ -614,11 +665,11 @@ const ACT2: Step[] = [
       ];
     },
   },
-  // While they are out, the first session still needs an answer — and with
+  // While they are out, the first session still needs an answer, and with
   // two live in one chat, the reply is how you say which one you mean.
   {
     after: 1600,
-    caption: "Two sessions live in this chat now. A plain message goes to the one your messages are set to — to reach the other, you answer one of its own.",
+    caption: t.demo.captions.twoSessions,
     run: (w) => {
       w.focus = "a1";
     },
@@ -631,10 +682,10 @@ const ACT2: Step[] = [
   },
   {
     after: 650,
-    caption: "Hold it, and Telegram offers what you can do with it.",
+    caption: t.demo.captions.hold,
     run: (w) => {
       w.press = null;
-      w.menu = { msg: "a1", items: ["Reply", "Copy Text", "Pin", "Forward", "Select", "Delete"], on: -1 };
+      w.menu = { msg: "a1", items: [...t.demo.menu], on: -1 };
     },
   },
   {
@@ -645,34 +696,34 @@ const ACT2: Step[] = [
   },
   {
     after: 700,
-    caption: "Reply. The composer is answering that message, and aipager reads the aim from it.",
+    caption: t.demo.captions.reply,
     run: (w) => {
       w.menu = null;
       w.focus = null;
-      w.replyTo = { id: "a1", name: "aipager", text: "💬 api · Fixed. The test now waits for the session cookie…" };
+      w.replyTo = { id: "a1", name: t.demo.chats.aipager.name, text: `💬 api · ${t.demo.claude.answer.slice(0, 54)}…` };
     },
   },
-  ...say("aipager", "also push the fix branch and open the PR", "21:24", "u5", true, undefined, {
+  ...say("aipager", t.demo.prompts.push, "21:24", "u5", true, undefined, {
     name: "aipager",
-    text: "💬 api · Fixed. The test now waits for the session cookie…",
+    text: `💬 api · ${t.demo.claude.answer.slice(0, 54)}…`,
   }),
   {
     after: 800,
-    wire: back("a reply · api", "aimed at claude-api"),
-    caption: "Typed into api, not into trip.",
+    wire: back(t.demo.wire.aReply, t.demo.wire.aimed),
+    caption: t.demo.captions.aimed,
     run: (w) => {
       const m = msg(w, "aipager", "u5");
       if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "api");
-      p.lines.push({ text: "also push the fix branch and open the PR", user: true, via: "@owner" });
-      p.spinner = "Pushing";
+      p.lines.push({ text: t.demo.prompts.push, user: true, via: "@owner" });
+      p.spinner = SPIN[5];
       p.tokens = "1.4k";
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 1400,
-    wire: hook("UserPromptSubmit", "a card · api"),
+    wire: hook("UserPromptSubmit", t.demo.wire.cardApi),
     run: (w) => {
       const m = msg(w, "aipager", "u5");
       if (m.kind === "text") m.reaction = "👍";
@@ -682,7 +733,7 @@ const ACT2: Step[] = [
         session: "api",
         items: [{ type: "row", text: "Bash: git push -u origin fix/login-cookie", done: false }],
         mark: "⏳",
-        verb: "Pushing",
+        verb: bot.spin[5],
         elapsed: 2,
         tally: "Bash ×1",
         prompt: null,
@@ -694,17 +745,17 @@ const ACT2: Step[] = [
   },
   {
     after: 8000,
-    wire: hook("Stop", "💬 trip · an interim answer"),
-    caption: "The turn ends before they do — so the answer goes out with a live line under it for the work still running.",
+    wire: hook("Stop", t.demo.wire.interim),
+    caption: t.demo.captions.interim,
     run: (w) => {
       const c = card(w, "aipager", "c3");
       c.mark = "🔄";
-      c.verb = "2 agents (general-purpose) still working";
+      c.verb = bot.count.agents2;
       arrive(w, "aipager", {
         id: "a5",
         kind: "answer",
         session: "trip",
-        text: "Lisbon is on: 18°C, two wet days. Both agents are out looking; I'll come back with the shortlist.",
+        text: t.demo.claude.interim,
         time: "21:24",
         background: {
           agents: 2,
@@ -713,34 +764,34 @@ const ACT2: Step[] = [
             { name: "general-purpose", state: "run", what: "Fetching booking.com" },
             { name: "general-purpose", state: "run", what: "Searching the web for TAP direct BER LIS" },
           ],
-          promise: true,
+          promise: bot.line.promise,
         },
       });
       const p = pane(w, "trip");
       p.spinner = null;
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 2600,
-    wire: hook("Stop", "💬 api · the PR"),
-    caption: "api answers first — it only had the one thing to do.",
+    wire: hook("Stop", t.demo.wire.thePr),
+    caption: t.demo.captions.apiFirst,
     run: (w) => {
       const c = card(w, "aipager", "c4");
       const r = c.items[0];
       if (r.type === "row") r.done = true;
       c.mark = "✅";
-      c.verb = "Finished";
-      arrive(w, "aipager", { id: "a3", kind: "answer", session: "api", text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", time: "21:25" });
+      c.verb = bot.line.verbDone;
+      arrive(w, "aipager", { id: "a3", kind: "answer", session: "api", text: t.demo.claude.pr, time: "21:25" });
       const p = pane(w, "api");
       p.spinner = null;
-      p.lines.push({ text: "Pushed fix/login-cookie and opened PR #214. CI is running on it.", dot: "fg" });
-      w.chats.aipager.pinnedBar = pinBar(w);
+      p.lines.push({ text: t.demo.claude.pr, dot: "fg" });
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 9000,
-    caption: "aipager keeps that line up to date on its own while they work.",
+    caption: t.demo.captions.liveLine,
     run: (w) => {
       const m = msg(w, "aipager", "a5");
       if (m.kind === "answer" && m.background) {
@@ -773,7 +824,7 @@ const ACT2: Step[] = [
   },
   {
     after: 11000,
-    wire: hook("SubagentStop", "✅ flights · 7 tool calls"),
+    wire: hook("SubagentStop", t.demo.wire.flightsDone),
     run: (w) => {
       const c = card(w, "aipager", "c3");
       const a2 = c.items.filter((x) => x.type === "agent")[1];
@@ -793,13 +844,13 @@ const ACT2: Step[] = [
       const p = pane(w, "trip");
       p.agents = 1;
       p.panel = [{ name: "general-purpose", what: "6 reviews", clock: "2:38", tokens: "27.9k tokens" }];
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 10000,
-    wire: hook("SubagentStop", "✅ hotels · 11 tool calls"),
-    caption: "Both back. aipager folds the line into one and the job wakes Claude with what they found.",
+    wire: hook("SubagentStop", t.demo.wire.hotelsDone),
+    caption: t.demo.captions.bothBack,
     run: (w) => {
       const c = card(w, "aipager", "c3");
       const a1 = c.items.filter((x) => x.type === "agent")[0];
@@ -809,13 +860,13 @@ const ACT2: Step[] = [
         a1.secs = 192;
       }
       c.mark = "✅";
-      c.verb = "Finished";
+      c.verb = bot.line.verbDone;
       const m = msg(w, "aipager", "a5");
       if (m.kind === "answer" && m.background) {
         m.background.agents = 0;
         m.background.rows = [];
-        m.background.promise = false;
-        m.background.done = "✅ 2 agents done (3:12)";
+        m.background.promise = null;
+        m.background.done = fill(bot.count.agentsDone2, { clock: "3:12" });
       }
       const p = pane(w, "trip");
       p.agents = 0;
@@ -825,16 +876,16 @@ const ACT2: Step[] = [
         block.agents.rows[0] = { ...block.agents.rows[0], uses: 11, tokens: "31.6k", last: "Done (11 tool uses · 31.6k tokens · 3m 12s)" };
         block.agents.rows[1] = { ...block.agents.rows[1], uses: 7, tokens: "19.8k", last: "Done (7 tool uses · 19.8k tokens · 2m 41s)" };
       }
-      p.spinner = "Synthesizing";
+      p.spinner = SPIN[1];
       p.tokens = "34.2k";
       p.panel = undefined;
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 4200,
-    wire: hook("Stop", "💬 trip · the shortlist"),
-    caption: "What they found comes back as its own answer, written once Claude has read both reports.",
+    wire: hook("Stop", t.demo.wire.shortlist),
+    caption: t.demo.captions.shortlist,
     run: (w) => {
       arrive(
         w,
@@ -843,44 +894,44 @@ const ACT2: Step[] = [
           id: "a4",
           kind: "answer",
           session: "trip",
-          text: "Hotels: Casa Baleal €142 a night, Lx Boutique €165, Santa Justa €178 — all walkable to Baixa. Flights: TAP direct, €89 out on the 12th and €104 back on the 19th. Say the word and I'll hold both.",
+          text: t.demo.claude.shortlist,
           time: "21:27",
         },
-        { title: "aipager", body: "💬 trip · Hotels: Casa Baleal €142 a night…" },
+        { title: t.demo.chats.aipager.name, body: `💬 trip · ${t.demo.claude.shortlist.slice(0, 40)}…` },
       );
       const p = pane(w, "trip");
       p.spinner = null;
-      p.lines.push({ text: "Hotels: Casa Baleal €142 a night, Lx Boutique €165, Santa Justa €178 — all walkable to Baixa. Flights: TAP direct, €89 out on the 12th and €104 back on the 19th. Say the word and I’ll hold both.", dot: "fg" });
-      w.chats.aipager.pinnedBar = pinBar(w);
+      p.lines.push({ text: t.demo.claude.shortlist, dot: "fg" });
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
-  look("sara", 2200, "Which only leaves the part a machine should not do for you."),
-  ...say("sara", "Lisbon, 12–19 March ☀️ flights €193, hotel €142", "21:26", "me5"),
-  ...from("sara", "sara", "yes!! book it 🎉", "21:26", "sv2", 1600),
-  { after: 2600, caption: "Two sessions, three agents and a week in Lisbon, from a sofa. Nothing left running, nothing left to tap." },
+  look("sara", 2200, t.demo.captions.human),
+  ...say("sara", t.demo.says.youBook, "21:26", "me5"),
+  ...from("sara", "sara", t.demo.says.saraBook, "21:26", "sv2", 1600),
+  { after: 2600, caption: t.demo.captions.end },
 ];
 
 /* ───────────────────── full access: the way in ───────────────────── */
 
-const FULL_SWITCH: Step[] = [
-  look("aipager", 600, "This session is resting. Before you give it the next job, you take its checks off."),
+const FULL_SWITCH = (t: Dict, bot: BotStrings): Step[] => [
+  look("aipager", 600, t.demo.captions.resting),
   ...say("aipager", "/mode full", "21:00", "pm"),
   {
     after: 900,
-    wire: perm("/mode full", "switch to Full access?"),
+    wire: perm("/mode full", t.demo.wire.switchFull),
     run: (w) =>
       arrive(w, "aipager", {
         id: "cf",
         kind: "confirm",
-        text: "⚙️ Switch api to 🔓 Full access mode?",
-        note: "Every tool runs with no checks at all (--dangerously-skip-permissions). Ask and Auto switch in place; this one restarts the session.",
-        buttons: ["✅ Yes, switch", "↩️ Cancel"],
+        text: fill(bot.tpl.confirmFull, { session: "api", mode: bot.modes.full }).split("\n")[0],
+        note: fill(bot.tpl.confirmFull, { session: "api", mode: bot.modes.full }).split("\n").slice(1).join(" "),
+        buttons: [bot.btn.toFull, bot.btn.cancel],
         answered: null,
         done: null,
         time: "21:00",
       }),
   },
-  { after: 700, caption: "Full access is for admins — and for you, in your own private chat with the bot." },
+  { after: 700, caption: t.demo.captions.fullWho },
   {
     after: 300,
     gate: {
@@ -896,11 +947,11 @@ const FULL_SWITCH: Step[] = [
   },
   {
     after: 800,
-    wire: back("✅ Yes, switch", "restarting, conversation kept"),
-    caption: "Going to or from Full access restarts the session and keeps the conversation. Between Ask and Auto nothing restarts at all.",
+    wire: back(bot.btn.toFull, t.demo.wire.restarting),
+    caption: t.demo.captions.fullRestart,
     run: (w) => {
       const m = msg(w, "aipager", "cf");
-      if (m.kind === "confirm") m.done = "🔓 api is now in Full access mode.";
+      if (m.kind === "confirm") m.done = fill(bot.tpl.switched, { session: "api", mode: bot.modes.full });
       const p = pane(w, "api");
       p.lines = [
         { text: "~/work/api $ claude --resume 4f2a91c --dangerously-skip-permissions", tone: "dim" },
@@ -913,26 +964,26 @@ const FULL_SWITCH: Step[] = [
 ];
 
 /** Where every evening starts: you give the session its next job. */
-const TASK: Step[] = [
-  ...say("aipager", "fix the flaky login e2e test", "21:01", "u1", true, "The session is resting. You send it the next job from the sofa."),
+const TASK = (t: Dict, bot: BotStrings): Step[] => [
+  ...say("aipager", t.demo.prompts.fix, "21:01", "u1", true, t.demo.captions.restAuto),
   {
     after: 700,
-    wire: back("your message", "typed into claude-api"),
-    caption: "👀 means it arrived. aipager types it into the session, exactly as if you were at the keyboard.",
+    wire: back(t.demo.wire.yourMessage, t.demo.wire.typedApi),
+    caption: t.demo.captions.arrived,
     run: (w) => {
       const m = msg(w, "aipager", "u1");
       if (m.kind === "text") m.reaction = "👀";
       const p = pane(w, "api");
-      p.lines.push({ text: "fix the flaky login e2e test", user: true, via: "@owner" });
-      p.spinner = "Pondering";
+      p.lines.push({ text: t.demo.prompts.fix, user: true, via: "@owner" });
+      p.spinner = SPIN[2];
       p.secs = 1;
-      w.chats.aipager.pinnedBar = pinBar(w);
+      w.chats.aipager.pinnedBar = pinBar(w, bot);
     },
   },
   {
     after: 1100,
-    wire: hook("UserPromptSubmit", "a new card · api"),
-    caption: "👍 means Claude took it. From here it is one card, editing itself as the turn runs.",
+    wire: hook("UserPromptSubmit", t.demo.wire.newCardApi),
+    caption: t.demo.captions.took,
     run: (w) => {
       const m = msg(w, "aipager", "u1");
       if (m.kind === "text") m.reaction = "👍";
@@ -941,28 +992,40 @@ const TASK: Step[] = [
         kind: "card",
         session: "api",
         items: [
-          { type: "prose", text: "I'll run the login test a few times and look at where it fails." },
+          { type: "prose", text: t.demo.claude.plan },
           { type: "row", text: "Read: e2e/login.spec.ts", done: true },
         ],
         mark: "⏳",
-        verb: "Pondering",
+        verb: bot.spin[2],
         elapsed: 6,
         tally: "Read ×1",
         prompt: null,
         time: "21:02",
       });
       const p = pane(w, "api");
-      p.lines.push({ text: "I'll run the login test a few times and look at where it fails.", dot: "fg" });
+      p.lines.push({ text: t.demo.claude.plan, dot: "fg" });
       p.lines.push({ text: "Read(e2e/login.spec.ts)", dot: "live", bold: true });
       p.lines.push({ text: "Read 64 lines", sub: true, tone: "dim" });
     },
   },
 ];
 
-export function storyFor(mode: Mode): Step[] {
-  const work = mode === "ask" ? WORK_ASK : mode === "full" ? WORK_FULL : WORK_AUTO;
-  const start = mode === "full" ? FULL_SWITCH : [];
-  return [...start, ...TASK, ...GLANCE, ...MOM_1, ...work, ...MOM_2, ...TEAM, ...decide(mode), ...FRIENDS, ...ANSWER, ...ACT2];
+export function storyFor(mode: Mode, t: Dict, bot: BotStrings): Step[] {
+  const work = mode === "ask" ? WORK_ASK(t, bot) : mode === "full" ? WORK_FULL(t, bot) : WORK_AUTO(t, bot);
+  const start = mode === "full" ? FULL_SWITCH(t, bot) : [];
+  return [
+    ...start,
+    ...TASK(t, bot),
+    ...GLANCE(t, bot),
+    ...MOM_1(t, bot),
+    ...work,
+    ...MOM_2(t, bot),
+    ...TEAM(t, bot),
+    ...decide(mode, t, bot),
+    ...FRIENDS(t, bot),
+    ...ANSWER(t, bot),
+    ...ACT2(t, bot),
+  ];
 }
 
 export { open };

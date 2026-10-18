@@ -7,7 +7,7 @@ import type { Head } from "@/lib/docs-nav";
  * On this page. The heading nearest the top of the viewport is the one you
  * are reading, so it is the one marked.
  */
-export function DocsToc({ heads }: { heads: Head[] }) {
+export function DocsToc({ heads, label }: { heads: Head[]; label: string }) {
   const [here, setHere] = useState<string>(heads[0]?.id ?? "");
 
   useEffect(() => {
@@ -33,15 +33,15 @@ export function DocsToc({ heads }: { heads: Head[] }) {
   if (heads.length < 2) return null;
   return (
     <div className="text-[13.5px]">
-      <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-4">On this page</div>
-      <ul className="space-y-[3px] border-l border-white/[0.08]">
+      <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-fg-4">{label}</div>
+      <ul className="space-y-[3px] border-s border-white/[0.08]">
         {heads.map((h) => {
           const on = h.id === here;
           return (
             <li key={h.id}>
               <a
                 href={`#${h.id}`}
-                className={`-ml-px block border-l py-[3px] transition-colors ${h.level === 3 ? "pl-6" : "pl-3"} ${
+                className={`-ms-px block border-s py-[3px] transition-colors ${h.level === 3 ? "ps-6" : "ps-3"} ${
                   on ? "border-accent text-foreground" : "border-transparent text-fg-4 hover:text-fg-2"
                 }`}
               >

@@ -22,14 +22,14 @@ and on every session change.
 | `/stop [label]` | optional | Interrupt a session's current turn. Bare, it stops the one session of this chat that is working (even if your messages go to another one; a session whose background agent or shell is still running counts as working), asks which with a picker when several are, and says `Nothing is running.` when none is. `/stop x1` (or `/x1 stop`) stops x1 (or replies `x1 is not working.` when it is not). Also discards queued messages and replies with how many were discarded. |
 | `/now` | - | Send the messages Claude is holding in the active session's queue right now, instead of after the current step (Claude Code's own send-now keys, Ctrl+X Ctrl+S). Works any time, including while the chat is muted or in minimal mode; replies `Nothing is waiting in the queue` when Claude holds nothing. See [Send a queued message now](#send-a-queued-message-now). |
 | `/new [name] [first message]` | all optional | Start a session. `/new x1` starts it at once, and `/new x1 fix the tests` also sends "fix the tests" as its first message. Sent bare (for example tapped from the menu), `/new` asks for the name, and the next message you send is used exactly like the argument, so `/new` then `x1 fix the tests` gives the same result. In a group, reply to the card with the name (or mention the bot: `@aipagerbot x1`), since a plain message there does not reach the bot. Only that next message: if you do anything else first (a photo, another command, a reply to another message, a keyboard template, another button), it is handled as usual and the card closes; `/status`, `/settings` and the keyboard's menus leave it open. The card that asks also shows the mode, model and folder the session will get, with buttons to change them first. Every way ends in the same Ready card: what the session got, that your next message goes to it, and one-tap buttons to switch to another mode or change the model. New sessions start in Auto mode for everyone; change what /new uses in `/settings` → New sessions. A `!` before the name starts the session in Full access mode, for an admin (the `owner` and `admin` roles) or a person in their own private chat with the bot whose role may send prompts and answer Claude (`user`, not `read_only`); for anyone else it starts in Auto mode and the card says why. A name that is in use offers `↩️ Switch to it` (when that session runs) or `♻️ Resume` (when it ended), `🆕 Replace (fresh)` and `↩️ Cancel`, for the person who sent `/new` only. The card that asks for a name expires after 10 minutes unused (`⏱ This new-session card expired. Send /new again.`). A member whose role lacks `can_manage` (`user`, `read_only`) starts only inside the chat's [root folder](groups.md#root-folders): the card's folder is the root folder, the Folder page lists it and the folders directly inside it (no "Default folder" row), New folder creates inside the one picked, and Switch to it, Resume and Replace on a session working outside the root folder are refused ("This session works outside your folder ~/..., so your role can't resume, restart or switch it. Ask an admin."). |
-| `/resume [label]` | optional | Resume a previously-gone session by name, or open a picker. A session comes back in the mode it was in. A session that was in Full access mode comes back in Full access only for an admin or a person in their own private chat; for anyone else it comes back in Auto mode and the reply says so (`Resumed x1 in Auto mode: Full access mode needs an admin.`). A session saved by an older aipager in its old Auto (which ran with no checks) comes back in Full access mode, and one saved in Ask comes back in Ask mode. A session that ended stays listed for `GONE_SESSION_MAX_AGE_DAYS` (default 14) and then leaves the registry; its Claude transcript is untouched. A member whose role lacks `can_manage` cannot resume a session whose folder is outside the chat's [root folder](groups.md#root-folders) (owners and admins can); the same holds for Restart and every mode switch, the in-place one between Ask and Auto included. |
+| `/resume [label]` | optional | Resume a previously-gone session by name, or open a picker. A session comes back in the mode it was in. A session that was in Full access mode comes back in Full access only for an admin or a person in their own private chat; for anyone else it comes back in Auto mode and the reply says so (`♻️ Resumed x1 in Auto mode: Full access mode needs an admin.`). A session saved by an older aipager in its old Auto (which ran with no checks) comes back in Full access mode, and one saved in Ask comes back in Ask mode. A session that ended stays listed for `GONE_SESSION_MAX_AGE_DAYS` (default 14) and then leaves the registry; its Claude transcript is untouched. A member whose role lacks `can_manage` cannot resume a session whose folder is outside the chat's [root folder](groups.md#root-folders) (owners and admins can); the same holds for Restart and every mode switch, the in-place one between Ask and Auto included. |
 | `/kill [label]` | optional | End a session, always after a confirm: `⏹ End x1? Claude stops and the session closes.` with `[⏹ End] [Cancel]`. Bare, it goes to the confirm when this chat has one live session, else a picker of this chat's live sessions. Also in `/status` → `⋮` → `⏹ End session`. |
 | `/restart [label]` | optional | Restart a session after a confirm: Claude stops and starts again, keeping its conversation, in the mode aipager last started it in or switched it to. A session started in the terminal with `aipager session` comes back in Ask mode unless it was switched from Telegram since (aipager does not know the mode the terminal started it in, and never guesses a wider one); the same goes for resuming it from Telegram. |
 | `/rename [label] [new]` | optional | Give a session a new name (ended sessions too). `/rename x1 newname` renames at once. With fewer words it asks: straight for the new name when the command can only mean one session, else a picker (a single word after `/rename` does not pick the session, since it could be the old name or the new one). In a group, reply to the question with the name. |
 | `/delete [label]` | optional | Drop an ended session from the list, after a confirm. |
 | `/diff [label]` | optional | Show the session's working-directory git diff. Bare, it shows the session your messages go to. |
 | `/clearqueue` | - | Drop every not-yet-picked-up message for the active session - both messages aipager is holding and messages already queued inside Claude - without interrupting the running turn. Replies with the count cleared. |
-| `/mode [label] [ask\|auto\|full]` | optional | Show a session's permission mode with a button to switch to each other mode: `✍️ x1 is in 🤖 Auto mode.` `[💬 Switch to Ask mode]` `[🔓 Switch to Full access mode]`. There are three modes. **💬 Ask mode**: Claude asks before each action. **🤖 Auto mode** (the default): Claude Code's safety check runs safe actions and stops risky ones for you to decide. **🔓 Full access mode**: everything runs with no checks (`--dangerously-skip-permissions`); only an admin, or a person in their own private chat with the bot whose role may send prompts and answer Claude (`user`, not `read_only`), may choose it. Auto and Full access only change Claude Code's own permission prompts: aipager's hook still applies the member's role rules. `/mode ask`, `/mode auto`, `/mode full` or `/mode x1 ask` switch straight away; the mode's own one word in the chat's language works too, without the word for mode (`/mode x1 خودکار` for 🤖 مود خودکار, `/mode x1 کامل` for 🔓 مود دسترسی کامل). When a live session in this chat has exactly that name (a session called `demander`, say), the word names the session: `/mode demander` shows that session's mode, and `/mode x1 demander` still switches x1. `ask`, `auto` and `full` always mean the mode, in either word order (`/mode x1 ask` or `/mode ask x1`); only when both words are mode words and just one of them is a live session's name does that one name the session, so with a session called `full`, `/mode full ask` and `/mode ask full` both switch it to Ask mode, while `/mode full` alone is still the mode. Switching between Ask and Auto happens in place, with no restart and at any time (also while Claude works): aipager presses Shift+Tab in the session the way you would, the card says `⚙️ Switching x1 to 🤖 Auto mode without a restart.` until Claude Code reports the new mode with its next step, then shows the result. If Auto mode is not available for the session (its model or plan), the card says so and the session stays in Ask mode. Not while the session shows a question or permission prompt: answer it first. Going to Full access needs an admin (or a person in their own private chat) and a confirm, and restarts the session (the conversation is kept); leaving Full access restarts it too, at once. A session started in Full access restarts for every switch, also after it was switched to Ask or Auto in the terminal, and so does one that has reported Full access since it started (a terminal session started with `--dangerously-skip-permissions`): Shift+Tab there could cycle it back into Full access. On a busy session a restart offers `Stop task & switch` / `Not now`. A member whose role lacks `can_manage` cannot switch a session whose folder is outside the chat's [root folder](groups.md#root-folders), in place or with a restart. Tapping a switch changes the card itself instead of sending a second message. `/perms` is the old name and still works the same. |
+| `/mode [label] [ask\|auto\|full]` | optional | Show a session's permission mode with a button to switch to each other mode: `✍️ x1 is in 🤖 Auto mode.` `[💬 Switch to Ask mode]` `[🔓 Switch to Full access mode]`. There are three modes. **💬 Ask mode**: Claude asks before each action. **🤖 Auto mode** (the default): Claude Code's safety check runs safe actions and stops risky ones for you to decide. **🔓 Full access mode**: everything runs with no checks (`--dangerously-skip-permissions`); only an admin, or a person in their own private chat with the bot whose role may send prompts and answer Claude (`user`, not `read_only`), may choose it. Auto and Full access only change Claude Code's own permission prompts: aipager's hook still applies the member's role rules. `/mode ask`, `/mode auto`, `/mode full` or `/mode x1 ask` switch straight away; the mode's own one word in the chat's language works too, without the word for mode (`/mode x1 خودکار` for 🤖 مود خودکار, `/mode x1 کامل` for 🔓 مود دسترسی کامل). When a live session in this chat has exactly that name (a session called `demander`, say), the word names the session: `/mode demander` shows that session's mode, and `/mode x1 demander` still switches x1. `ask`, `auto` and `full` always mean the mode, in either word order (`/mode x1 ask` or `/mode ask x1`); only when both words are mode words and just one of them is a live session's name does that one name the session, so with a session called `full`, `/mode full ask` and `/mode ask full` both switch it to Ask mode, while `/mode full` alone is still the mode. Switching between Ask and Auto happens in place, with no restart and at any time (also while Claude works): aipager presses Shift+Tab in the session the way you would, the card says `⚙️ Switching x1 to 🤖 Auto mode without a restart.` until Claude Code reports the new mode with its next step, then shows the result. If Auto mode is not available for the session (its model or plan), the card says so and the session stays in Ask mode. Not while the session shows a question or permission prompt: answer it first. Going to Full access needs an admin (or a person in their own private chat) and a confirm, and restarts the session (the conversation is kept); leaving Full access restarts it too, at once. A session started in Full access restarts for every switch, also after it was switched to Ask or Auto in the terminal, and so does one that has reported Full access since it started (a terminal session started with `--dangerously-skip-permissions`): Shift+Tab there could cycle it back into Full access. On a busy session a restart offers `🛑 Stop task & switch` / `⏳ Not now`. A member whose role lacks `can_manage` cannot switch a session whose folder is outside the chat's [root folder](groups.md#root-folders), in place or with a restart. Tapping a switch changes the card itself instead of sending a second message. `/perms` is the old name and still works the same. |
 | `/settings` | - | How this chat's sessions look and reply: the language aipager uses, message layout, diff previews, long-turn card updates, formatting, answer length, vocabulary level; what `/new` starts a session with; per-session overrides; and, in the owner's private chat, problem report offers. See [Settings](#settings). In a group anyone can look, and changing a setting needs an admin. |
 | `/language` | - | The language aipager uses for its own messages and buttons in this chat (the same list as the first row of `/settings`). Each language is listed in its own name: English, then Español, Русский (Russian), Português (Brasil), 简体中文 (Chinese, Simplified), Français, Deutsch (German), 한국어 (Korean), العربية (Arabic), Bahasa Indonesia, Українська (Ukrainian), Italiano, Türkçe (Turkish), فارسی (Persian) and Tiếng Việt (Vietnamese). A private chat that starts after this release follows your Telegram app's language; one that existed before stays English until you choose (see [Languages](#languages)). In Spanish, Portuguese, French, Italian and Indonesian the reply keyboard's words stay `status`, `stop`, `new` and `kill`, the same as their commands. German and Turkish use `Status`, `Stop`, `Neu…` and `Beenden…`, and `Özet`, `Stop`, `Oluştur` and `Sonlandır`; the English words keep working when typed. In Persian and Arabic, aipager's text reads right to left with Persian or Arabic digits; session names, commands, model names and code stay as they are. The list says what it changes: only aipager's own text, here and in the Mini App; your Claude sessions don't change, and Claude answers in the language you write to it. In a group anyone can look, and changing it needs an admin. `language` is a reserved session name. |
 | `/whoami` | - | Show who you are here: in team mode your label, your role in this chat and the rules it gives you. |
@@ -152,7 +152,15 @@ Tiếng Việt, each listed in its own name.
   language for someone who joined after this release, else the group's
   language. See [groups](groups.md).
 - **Right to left.** In Persian and Arabic, aipager's text reads right to left
-  with Persian or Arabic digits.
+  with Persian or Arabic digits. The busy card follows the chat's language,
+  whatever language Claude writes in: in an English chat it reads left to
+  right, in a Persian or Arabic chat right to left, and a sentence of Claude's
+  on it that is written the other way still reads in its own direction.
+  Claude's answer follows Claude's text: when Claude answers in Persian or
+  Arabic in a chat whose language is written left to right, the whole answer
+  is a right-to-left message, and aipager's own lines in it (the agents under
+  the answer, and in the merged layout the finished card above it) sit on the
+  right like the rest and still read left to right.
 - **Mode words.** `/mode` takes the mode's word in your language (`/mode demander`),
   and `ask`, `auto` and `full` always work. If a live session has exactly that name, the
   word names the session instead (see `/mode` above).
@@ -389,7 +397,35 @@ above` as a reply to the prompt, once per wait.
 
 `AskUserQuestion` dialogs render the same way, with one button per
 option (the first four), and for a question that allows several answers
-⬜/☑ toggles and a `✅ Submit` button.
+⬜/☑ toggles and a `✅ Submit` button. The question and each option's
+description are shown whole, as in the terminal. Only a form too long for
+one Telegram message is shortened: the busy card first shows fewer of its
+tool rows, then the longest of the question and the descriptions end in
+`…` at a word.
+
+**More than one prompt.** Claude Code can wait on two prompts at once:
+a background agent asks for permission while Claude asks you a question,
+or the other way round. aipager shows each of them: the first on the
+busy card (or as its own message), each later one as its own message
+under the card, with its own buttons. The session shows as waiting until
+the last one is answered, and a message you send meanwhile is held until
+then. Answer them in any order. Allow and Deny go through the permission
+hook while it waits, which reaches that very prompt wherever it is. A tap
+that has to type keys (a question's option, or Allow and Deny once the
+hook stopped waiting) types them only into the prompt Claude Code shows
+first: Claude Code shows one dialog at a time, and keys reach the one on
+top. Otherwise the tap types nothing, keeps its buttons and says
+`Claude Code is showing another prompt first, so answer that one before
+this one.`, or, when aipager can't tell the order (an agent it did not
+see start, for example), `aipager can't tell which prompt Claude Code is
+showing first, so answer this one in the terminal.` When the card's own
+prompt is answered first, the card shows Waiting with Stop only, and the
+other prompts keep their buttons. If Claude ends its turn while an
+agent's prompt is still open, the answer comes as usual and the session
+keeps waiting on that prompt, sent again as its own message. A restart
+with two or more prompts open brings none of them back: their buttons
+answer `already answered` and type nothing, and the prompts can still be
+answered in the terminal. One open prompt comes back as before.
 
 At 80% context the chat gets `⚠️ name · Context at 82% - auto-compact
 soon` with **📦 Compact Now**, which sends `/compact` to that session. It
@@ -411,6 +447,10 @@ the `/mode` card under `⚠️ x1 moved on to new work, so nothing
 changed.`
 `/new`'s Replace says `x1 started working since. Send /new again to
 replace it.` when the session started a turn after its card was shown.
+
+A prompt's buttons are tied to that prompt. Once it is answered, in
+Telegram or in the terminal, they answer `already answered` and type
+nothing, also while another prompt of the session is still open.
 
 A `⚡ Send now` button acts only on the message it sits under: if
 Claude has already taken that message, the tap answers `Already taken`,
@@ -458,7 +498,10 @@ answers stays open for as long as Claude waits on it. aipager stops
 waiting on it only when Claude sends no news for 5 minutes and the
 saved conversation reads as past the prompt (the news of an answer
 lost); such a prompt is not known to be over, so its buttons still
-answer the dialog.
+answer the dialog. That news is Claude's own and the asking agent's: a
+background agent working on its own does not count, and the saved
+conversation says nothing about an agent's prompt, which waits for that
+agent's own news.
 
 A turn Claude starts **by itself** - a background agent reporting back
 with a `<task-notification>` when no job is open - gets its busy card
@@ -546,7 +589,7 @@ stands out:
 - 🤖 ship-developer · Editing state.py
 - 🤖 ship-developer › ship-reviewer · Collect line numbers
 
-⏸ 🤖 r2-runner · waiting for its own agents
+‖ 🤖 r2-runner · waiting for its own agents
 
 Results from the agents will follow here.
 ```
@@ -557,10 +600,13 @@ Results from the agents will follow here.
 - **One row per agent,** a 🤖 and its type in bold, then what it is
   doing now: its own latest line of text (Claude's words, shown as
   written, never translated), else its latest tool as a short phrase
-  (`Reading state.py`, `Writing final.md`, `Running a command`,
-  `Searching for …`), else the description Claude gave the agent when it
-  launched it, else just the type. An agent that has stopped to wait for
-  agents it started itself says `⏸ … waiting for its own agents`
+  that names what it works on (`Reading state.py`, `Writing final.md`,
+  `Searching for …`, or a command's own description), else the task
+  Claude gave the agent when it launched it, else its latest tool alone
+  (`Running a command`, `Using TodoWrite`), else just the type. So two
+  agents of one type running commands without a description still show
+  their own tasks. An agent that has stopped to wait for
+  agents it started itself says `‖ … waiting for its own agents`
   instead.
 - **Agents as a tree.** The agents the session started are the first
   level. Every agent one of them started, at any depth, is listed right
@@ -816,8 +862,12 @@ a newer aipager is installed and waiting, and on a one-time notice: when
 Claude Code's hooks (which start fresh on every event, from the
 installed aipager) already run a newer aipager than the daemon, the owner
 gets one silent message per newer version and daemon run, `⚠️ The
-aipager update is only half done: …`, with the button. It waits until no
-turn is running in the owner's private chat. In the Mini App,
+aipager update is only half done: …`, with the button. It waits two
+minutes from when the hooks first ran the newer version (a restart right
+after an install never shows it), then until no turn is running in the
+owner's private chat. After the restart into that version, the notice is
+edited into `✅ The aipager update is finished: aipager runs B now.`,
+without the button. In the Mini App,
 **Settings → Updates** shows the same state as a line above the card,
 with **Restart now** (it asks first).
 
@@ -1027,8 +1077,20 @@ call for its line; lines that go together are removed in one call.
 
 ### Files
 
-Uploaded files are downloaded to `/tmp/aipager-files/` (named
-`<time>_<file name>`) and the path is offered to claude: with a caption, the prompt is the
+Uploaded files are downloaded to a private folder of the chat they came
+from, `/tmp/aipager-files/<chat>/` (named `<time>_<file name>`; `<chat>`
+is a name made from the chat id and the bot token, which does not give
+the chat id away). The folders are readable only by the user aipager runs
+as (`0700`, files `0600`), and a member's turn in one chat cannot read,
+search or write another chat's uploads (see
+[security](security.md#team-mode-enforcement)). Files from before this
+change stay where they were, directly in `/tmp/aipager-files/`; nothing
+is moved or deleted, and aipager narrows the folder to `0700` when it
+starts, so only that user can reach them. A new bot token gives every
+chat a new folder; uploads from before it stay in the old ones, which a
+member's turn can no longer read. A download folder that is a symlink, or belongs to
+another user, is refused and the upload fails. The path is offered to
+claude: with a caption, the prompt is the
 caption followed by the path(s); without one it is just
 `check this: <path>` (or `check these: <paths>` for an album), so
 claude is pointed at the file without being told what to do with it.
@@ -1199,7 +1261,7 @@ instead (or start the daemon once, which reads and clears the backlog).
 | 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout` | Bad or missing input; `fix` names the flag. An unknown flag or a wrong word after `setup` is reported by the argument parser (plain text, no JSON), also exit 2. |
 | 3 | `deps_missing` | dtach, claude, aipager-hook or aipager-statusline is missing; `fix` has the commands. Nothing was written. |
 | 4 | `token_rejected` | Telegram rejected the token. |
-| 5 | `chat_not_started`, `bot_blocked` | The person has not pressed Start in the bot ("Open t.me/<bot> and press Start, then run this again."), or has blocked it. Nothing was written. |
+| 5 | `chat_not_started`, `bot_blocked` | The person has not pressed Start in the bot ("Open t.me/&lt;bot&gt; and press Start, then run this again."), or has blocked it. Nothing was written. |
 | 6 | `existing_install` | A different token, chat or role is already set up; add `--force`. |
 | 7 | `telegram_unreachable` | Network error, or Telegram answered 429 or 5xx. |
 | 8 | `detect_timeout` | detect-chat saw no private message before `--timeout` (with the warning `updates_backlog` when 100 old unread updates hide newer ones). |

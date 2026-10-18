@@ -1,11 +1,37 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* highlight.js — single theme that works inside our dark-bg pre
+/* highlight.js: a single theme that works inside our dark-bg pre
    blocks regardless of the page's light/dark mode. */
 @import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* One layout per size, the way aly3n.dev does it: the script in <head> sets
+   html[data-layout] before the first paint (lib/layout.ts), and these let any
+   element take a layout of its own for that size, from the first frame.
+   phone <600 · tablet 600-1023 · laptop 1024-1439 · desktop 1440+ */
+@custom-variant phone (&:where(html[data-layout="phone"] *));
+@custom-variant tablet (&:where(html[data-layout="tablet"] *));
+@custom-variant laptop (&:where(html[data-layout="laptop"] *));
+@custom-variant desktop (&:where(html[data-layout="desktop"] *));
+@custom-variant handheld (&:where(html[data-layout="phone"] *, html[data-layout="tablet"] *));
+
+/* The server sends the desk; in the hand it stays hidden until the phone
+   stack replaces it, and the stack's height is held for it meanwhile, so the
+   page below does not jump when it arrives. */
+html[data-layout="phone"] [data-version="wide"],
+html[data-layout="tablet"] [data-version="wide"] {
+  visibility: hidden;
+}
+html[data-layout="phone"] [data-demo="pending"] {
+  aspect-ratio: auto;
+  height: 1090px;
+}
+html[data-layout="tablet"] [data-demo="pending"] {
+  aspect-ratio: auto;
+  height: 1170px;
+}
 
 /* react-markdown wraps every fenced code block in <pre><code>…</code></pre>.
    For mermaid blocks we render an SVG inside a .mermaid-block div, so
@@ -19,7 +45,7 @@
 }
 
 /* ===========================
-   aipager.run — design tokens
+   aipager.run design tokens
    From the brand kit: ink #181C20, fg #F6F7F8, accent #3FA9F5, live #4FD693.
    =========================== */
 :root {
@@ -121,6 +147,16 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+/* Turkish uppercases i to İ, which is right for Turkish words and wrong for
+   the names that must never change: Linux, macOS, claude-api, @aipagerbot.
+   Turkish keeps these labels in their own case and its letter-spacing;
+   a label marked lang="en" is English already, so it still uppercases. */
+html[lang="tr"] .eyebrow,
+html[lang="tr"] .uppercase:not([lang="en"]),
+html[lang="tr"] .code-bar .lang {
+  text-transform: none;
 }
 
 /* ===========================
@@ -262,7 +298,7 @@ body {
   display: inline-block;
   width: 7px;
   height: 1.05em;
-  margin-left: 1px;
+  margin-inline-start: 1px;
   vertical-align: -2px;
   background: currentColor;
   animation: caret 1s steps(1) infinite;
@@ -408,7 +444,7 @@ body {
 }
 
 /* ===========================
-   docs — the reference pages
+   docs: the reference pages
    Typography of its own, rather than a plugin's defaults: a column that is
    comfortable to read, headings that separate without shouting, tables that
    look like tables, and fenced code that looks like a console.
@@ -452,7 +488,7 @@ body {
   margin-top: 0.7em;
 }
 .docs .anchor {
-  margin-left: 0.4em;
+  margin-inline-start: 0.4em;
   color: var(--fg-4);
   font-weight: 400;
   text-decoration: none;
@@ -480,17 +516,17 @@ body {
 }
 .docs ul,
 .docs ol {
-  padding-left: 1.35em;
+  padding-inline-start: 1.35em;
 }
 .docs ul {
   list-style: none;
-  padding-left: 1.15em;
+  padding-inline-start: 1.15em;
 }
 .docs ul > li::before {
   content: "•";
   display: inline-block;
   width: 1.15em;
-  margin-left: -1.15em;
+  margin-inline-start: -1.15em;
   color: var(--fg-4);
 }
 .docs ol {
@@ -514,10 +550,13 @@ body {
   border-radius: 5px;
   padding: 0.1em 0.38em;
   color: #cfe0f2;
-  white-space: nowrap;
+  /* A command stays on one line where it fits; one longer than the column
+     breaks rather than pushing the page sideways. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .docs blockquote {
-  border-left: 2px solid var(--accent);
+  border-inline-start: 2px solid var(--accent);
   background: rgb(63 169 245 / 0.055);
   border-radius: 0 10px 10px 0;
   padding: 0.75em 1.1em;

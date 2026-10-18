@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { storyFor, type Step } from "./story";
+import type { Dict } from "@/lib/i18n";
+import type { BotStrings } from "@/lib/i18n/bot";
 import { FLIGHT_MS } from "./cable";
 import { initialWorld, open, type ChatId, type Folder, type Mode, type Spark, type World } from "./world";
 
-const VERBS = ["Tinkering", "Pondering", "Investigating", "Deciphering", "Percolating", "Noodling", "Brewing", "Synthesizing"];
+
 /** How long the story holds still after the reader clicked something. */
 const HOLD_MS = 7000;
 const NOTE_MS = 5200;
@@ -26,8 +28,10 @@ export interface Story {
   spark: { id: number; s: Spark } | null;
 }
 
-export function useStory(active: boolean, mode: Mode): Story {
-  const [world, setWorld] = useState<World>(() => initialWorld(mode));
+export function useStory(active: boolean, mode: Mode, t: Dict, bot: BotStrings): Story {
+  // the words a card's spinner cycles through are the product's own
+  const VERBS = bot.spin;
+  const [world, setWorld] = useState<World>(() => initialWorld(t, bot, mode));
   const [waiting, setWaiting] = useState<Story["waiting"]>(null);
   const [held, setHeld] = useState(false);
   const [spark, setSpark] = useState<Story["spark"]>(null);
@@ -38,14 +42,14 @@ export function useStory(active: boolean, mode: Mode): Story {
   const lastUser = useRef(-1e9);
   const gateSince = useRef<number | null>(null);
   const noteBorn = useRef(new Map<string, number>());
-  const steps = useRef<Step[]>(storyFor(mode));
+  const steps = useRef<Step[]>(storyFor(mode, t, bot));
 
   // A new permission mode starts the evening again, in that mode.
   const shown = useRef(mode);
   useEffect(() => {
     if (shown.current === mode) return;
     shown.current = mode;
-    steps.current = storyFor(mode);
+    steps.current = storyFor(mode, t, bot);
     idx.current = 0;
     sparked.current = -1;
     lastStepAt.current = performance.now();
@@ -53,7 +57,7 @@ export function useStory(active: boolean, mode: Mode): Story {
     lastUser.current = -1e9;
     setWaiting(null);
     setHeld(false);
-    setWorld(initialWorld(mode));
+    setWorld(initialWorld(t, bot, mode));
   }, [mode]);
 
   const edit = useCallback((fn: (w: World) => void) => {
@@ -131,14 +135,14 @@ export function useStory(active: boolean, mode: Mode): Story {
                 if (it.type === "agent" && it.state !== "done") it.secs += 1;
                 if (it.type === "shell" && it.state === "run") it.secs += 1;
               }
-              if (n % 3 === 0 && !["Testing", "Running", "Editing"].includes(m.verb)) m.verb = VERBS[(VERBS.indexOf(m.verb) + 1) % VERBS.length];
+              if (n % 3 === 0 && VERBS.includes(m.verb)) m.verb = VERBS[(VERBS.indexOf(m.verb) + 1) % VERBS.length];
             }
           }
         }
         for (const p of w.panes) {
           if (!p.spinner) continue;
           p.secs += 1;
-          if (n % 3 === 0 && !["Testing", "Running"].includes(p.spinner)) p.spinner = VERBS[(VERBS.indexOf(p.spinner) + 1) % VERBS.length];
+          if (n % 3 === 0 && VERBS.includes(p.spinner)) p.spinner = VERBS[(VERBS.indexOf(p.spinner) + 1) % VERBS.length];
         }
         // Notifications fade away on their own.
         const now = performance.now();

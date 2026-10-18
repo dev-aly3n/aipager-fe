@@ -1,33 +1,130 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Spark, World } from "./world";
+import type { Dict } from "@/lib/i18n";
 
 /**
  * The cable between the terminal and Telegram.
  *
  * It is a real rope: a verlet chain of 40 links with gravity, the daemon
  * hanging on it as a weight, and your pointer able to shove it aside or
- * pick it up and drop it. Every hook event rides along it as a charge —
+ * pick it up and drop it. Every hook event rides along it as a charge:
  * the light travels on the cable, the words stay in the socket at each
  * end, so you read what left and what arrived without chasing anything.
  */
 
 export const STAGE = { w: 1200, h: 744 } as const;
-/** where the cable plugs in: the bottom of each window's socket */
-export const SOCKET = { top: 580, h: 52 };
-const A = { x: 204, y: SOCKET.top + SOCKET.h };
-const B = { x: 794, y: SOCKET.top + SOCKET.h };
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+/**
+ * A label plate at one end. "hang" sits under a window with the plug at its
+ * foot; "stand" sits on top of one with the plug on its head.
+ */
+interface Plate {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  edge: "hang" | "stand";
+}
+
+/**
+ * Where the cable runs. The rope, the charges and the daemon are the same
+ * everywhere; only these numbers change between the desk, where it runs
+ * sideways between two windows, and the phone, where it drops from the
+ * phone's foot to the terminal's head.
+ */
+export interface CableGeo {
+  stage: { w: number; h: number };
+  /** the terminal's end */
+  a: Point;
+  /** Telegram's end */
+  b: Point;
+  slack: number;
+  /** how far the rope bows before gravity takes it */
+  bow: number;
+  /** the lowest a link may hang */
+  floor: number;
+  plates: { l: Plate; r: Plate };
+  /** where the "flick it" hint sits, or nowhere on a touch screen */
+  flick: Point | null;
+  /** the daemon's name: under it on the desk, beside it where the plates are close */
+  tag: "below" | "side";
+  /** what each plate is labelled */
+  names: { l: string; r: string };
+  /** how far the cable leaves each plug in the plug's own line before it hangs free */
+  boot: number;
+}
+
+const SOCKET = { top: 580, h: 52 };
+
+export const DESK: CableGeo = {
+  stage: STAGE,
+  a: { x: 204, y: SOCKET.top + SOCKET.h },
+  b: { x: 794, y: SOCKET.top + SOCKET.h },
+  slack: 1.028,
+  bow: 70,
+  floor: STAGE.h - 13,
+  plates: {
+    l: { x: 204 - 122, y: SOCKET.top, w: 244, h: SOCKET.h, edge: "hang" },
+    r: { x: 794 - 165, y: SOCKET.top, w: 330, h: SOCKET.h, edge: "hang" },
+  },
+  flick: { x: 26, y: STAGE.h - 34 },
+  tag: "below",
+  names: { l: "claude-api · hooks", r: "telegram · @aipagerbot" },
+  boot: 0,
+};
+
+/** The phone's stage height, from the phone's foot to the terminal's head. */
+export const PHONE_H = 210;
+
+/**
+ * The phone's, for a column w wide: Telegram's plate hangs from the phone's
+ * foot, clear of its rounded corner, the terminal's stands on the terminal's
+ * head at the other side, and the rope drapes between them. Drawn at the
+ * column's own width rather than scaled, so the plates' words keep their
+ * size on a small phone.
+ */
+export function phoneGeo(w: number): CableGeo {
+  const ph = 48;
+  // wide enough to keep its words whole on a 320 phone
+  const pw = Math.round(Math.max(150, Math.min(210, w * 0.58)));
+  const hang = 46; // the phone's corner is 40 round
+  const stand = w - 18 - pw;
+  const a = { x: stand + pw / 2, y: PHONE_H - ph };
+  return {
+    stage: { w, h: PHONE_H },
+    a,
+    b: { x: hang + pw / 2, y: ph },
+    slack: 1.08,
+    bow: 16,
+    // never into the terminal's plate
+    floor: a.y - 6,
+    plates: {
+      l: { x: stand, y: PHONE_H - ph, w: pw, h: ph, edge: "stand" },
+      r: { x: hang, y: 0, w: pw, h: ph, edge: "hang" },
+    },
+    flick: null,
+    tag: "side",
+    // the phone above it already says Telegram
+    names: { l: "claude-api · hooks", r: "@aipagerbot" },
+    // a cable rising from a plug on the terminal's head leaves it upward
+    boot: 14,
+  };
+}
 
 const N = 40;
-const SLACK = 1.028;
 const GRAV = 1500;
 const DAMP = 0.955;
 const ITER = 16;
 const GRAB_R = 40;
 const PUSH_R = 74;
 const SLOTS = 6;
-const FLOOR = STAGE.h - 13;
 
 interface Node {
   x: number;
@@ -63,16 +160,31 @@ const TONE: Record<Wire["tone"], { core: string; glow: string; seg: number }> = 
   quiet: { core: "#c3ccd6", glow: "#7f8791", seg: 16 },
 };
 
-function rope(): Node[] {
+function rope(g: CableGeo): Node[] {
   const out: Node[] = [];
   for (let i = 0; i <= N; i++) {
     const t = i / N;
-    const x = A.x + (B.x - A.x) * t;
-    const y = A.y + Math.sin(Math.PI * t) * 70;
+    const x = g.a.x + (g.b.x - g.a.x) * t;
+    const y = g.a.y + (g.b.y - g.a.y) * t + Math.sin(Math.PI * t) * g.bow;
     out.push({ x, y, px: x, py: y, w: i === 0 || i === N ? 0 : 1 });
   }
   // the daemon hangs off the middle link, and it has weight
   out[N / 2].w = 0.4;
+  // the stiff boot behind each plug holds the first links on the plug's line
+  if (g.boot) {
+    for (const [end, step, p, plate] of [
+      [0, 1, g.a, g.plates.l],
+      [N, -1, g.b, g.plates.r],
+    ] as const) {
+      const away = plate.edge === "stand" ? -1 : 1;
+      for (let k = 1; k <= 2; k++) {
+        const n = out[end + step * k];
+        n.x = n.px = p.x;
+        n.y = n.py = p.y + (away * g.boot * k) / 2;
+        n.w = 0;
+      }
+    }
+  }
   return out;
 }
 
@@ -96,7 +208,11 @@ interface Face {
 export const FLIGHT_MS = 780;
 const SPEED = 1000 / FLIGHT_MS;
 
-export function Cable({ world, spark }: { world: World; spark: { id: number; s: Spark } | null }) {
+export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { id: number; s: Spark } | null; t: Dict; geo?: CableGeo }) {
+  const g = geo;
+  const { a: A, b: B, stage: ST } = g;
+  // two cables never share a page, but ids in an SVG are global, so each owns its own
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const root = useRef<HTMLDivElement>(null);
   const main = useRef<SVGPathElement>(null);
   const hit = useRef<SVGPathElement>(null);
@@ -107,16 +223,17 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
   const sparkB = useRef<SVGCircleElement>(null);
   const slots = useRef<(SVGGElement | null)[]>([]);
   const queue = useRef<Wire[]>([]);
-  const [left, setLeft] = useState<Face>({ text: "waiting for a turn", hot: false });
-  const [right, setRight] = useState<Face>({ text: "nothing new", hot: false });
+  // what each socket says before the evening starts, in the reader's language
+  const [left, setLeft] = useState<Face>({ text: t.demo.cable.idle, hot: false });
+  const [right, setRight] = useState<Face>({ text: t.demo.cable.quiet, hot: false });
   const [grabbing, setGrabbing] = useState(false);
   const [grabbed, setGrabbed] = useState(false);
 
   // ── the rope, the pointer and the charges, all driven by one loop ──
   useEffect(() => {
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ns = rope();
-    const rest = (Math.hypot(B.x - A.x, B.y - A.y) * SLACK) / N;
+    const ns = rope(g);
+    const rest = (Math.hypot(B.x - A.x, B.y - A.y) * g.slack) / N;
     const live: Live[] = [];
     let raf = 0;
     let last = performance.now();
@@ -126,13 +243,14 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
     const toStage = (e: PointerEvent): { x: number; y: number } | null => {
       const r = root.current?.getBoundingClientRect();
       if (!r || !r.width) return null;
-      const k = r.width / STAGE.w;
+      const k = r.width / ST.w;
       return { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k };
     };
     const nearest = (x: number, y: number): { i: number; d: number } => {
       let i = -1;
       let d = 1e9;
       for (let k = 1; k < ns.length - 1; k++) {
+        if (!ns[k].w) continue;
         const q = Math.hypot(ns[k].x - x, ns[k].y - y);
         if (q < d) {
           d = q;
@@ -202,7 +320,7 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
       if (!el) return;
       el.classList.remove("jolt");
       // getBoundingClientRect flushes layout for SVG too, where offsetWidth is
-      // undefined — without it the same class never restarts the animation.
+      // undefined; without it the same class never restarts the animation.
       el.getBoundingClientRect();
       el.classList.add("jolt");
     };
@@ -269,12 +387,12 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
       }
       for (const n of ns) {
         if (!n.w) continue;
-        if (n.y > FLOOR) {
-          n.y = FLOOR;
+        if (n.y > g.floor) {
+          n.y = g.floor;
           n.px += (n.x - n.px) * 0.35;
         }
         if (n.x < 10) n.x = 10;
-        if (n.x > STAGE.w - 10) n.x = STAGE.w - 10;
+        if (n.x > ST.w - 10) n.x = ST.w - 10;
       }
       m.vx *= 0.6;
       m.vy *= 0.6;
@@ -409,7 +527,7 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
       window.removeEventListener("blur", out);
       document.documentElement.style.userSelect = "";
     };
-  }, []);
+  }, [g, A, B, ST]);
 
   // ── what the evening sends down it ──
   useEffect(() => {
@@ -430,27 +548,29 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
 
   return (
     <div ref={root} className="pointer-events-none absolute inset-0 z-20">
-      {!grabbed && (
-        <div className="absolute font-mono text-[9.5px] uppercase tracking-[0.16em] text-fg-4" style={{ left: 26, top: STAGE.h - 34 }}>
-          ✥ the cable is real — flick it
+      {!grabbed && g.flick && (
+        <div className="absolute font-mono text-[9.5px] uppercase tracking-[0.16em] text-fg-4" style={{ left: g.flick.x, top: g.flick.y }}>
+          ✥ {t.demo.cable.flick}
         </div>
       )}
-      <Socket x={A.x} w={244} side="l" caption="claude-api · hooks" face={left} hot={left.hot} />
-      <Socket x={B.x} w={330} side="r" caption="telegram · @aipagerbot" face={right} hot={right.hot} />
+      <Socket plate={g.plates.l} side="l" caption={g.names.l} face={left} hot={left.hot} />
+      <Socket plate={g.plates.r} side="r" caption={g.names.r} face={right} hot={right.hot} />
       <svg
-        viewBox={`0 0 ${STAGE.w} ${STAGE.h}`}
+        viewBox={`0 0 ${ST.w} ${ST.h}`}
         className="absolute inset-0 h-full w-full"
-        style={{ cursor: grabbing ? "grabbing" : undefined }}
+        // the scene is drawn to coordinates, so an anchor's "end" is always its right
+        style={{ cursor: grabbing ? "grabbing" : undefined, direction: "ltr" }}
         aria-hidden
       >
         <defs>
-          <linearGradient id="cable-skin" gradientUnits="userSpaceOnUse" x1={A.x} y1="0" x2={B.x} y2="0">
+          {/* orange at the terminal, blue at Telegram, whichever way the cable runs */}
+          <linearGradient id={`${uid}-skin`} gradientUnits="userSpaceOnUse" x1={A.x} y1={A.y} x2={B.x} y2={B.y}>
             <stop offset="0" stopColor="#8c5440" />
             <stop offset="0.18" stopColor="#4a4f57" />
             <stop offset="0.82" stopColor="#3e5468" />
             <stop offset="1" stopColor="#2b6f96" />
           </linearGradient>
-          <filter id="cable-glow" x="-30%" y="-400%" width="160%" height="900%">
+          <filter id={`${uid}-glow`} x="-30%" y="-400%" width="160%" height="900%">
             <feGaussianBlur stdDeviation="4" result="b" />
             <feMerge>
               <feMergeNode in="b" />
@@ -459,19 +579,25 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
           </filter>
         </defs>
         {/* the plugs */}
-        {[A, B].map((p, i) => (
-          <g key={p.x} data-plug={i === 0 ? "l" : "r"} style={{ transformBox: "fill-box", transformOrigin: "center" }}>
-            <rect x={p.x - 11} y={p.y - 12} width="22" height="11" rx="2" fill="#2b323b" stroke="#454d58" strokeWidth="0.8" />
-            <rect x={p.x - 11} y={p.y - 12} width="22" height="3.4" rx="1.6" fill="#596472" opacity="0.5" />
-            <path d={`M${p.x - 7} ${p.y - 2}L${p.x + 7} ${p.y - 2}L${p.x + 5} ${p.y + 9}Q${p.x} ${p.y + 12} ${p.x - 5} ${p.y + 9}Z`} fill="#171c23" stroke="#353d47" strokeWidth="0.8" />
-            <circle cx={p.x} cy={p.y + 7} r="2.4" fill="#05080c" />
+        {([
+          [A, g.plates.l, "l"],
+          [B, g.plates.r, "r"],
+        ] as const).map(([p, plate, side]) => (
+          <g key={side} data-plug={side} style={{ transformBox: "fill-box", transformOrigin: "center" }}>
+            {/* drawn hanging down; a plug standing on a window is the same plug turned over */}
+            <g transform={plate.edge === "stand" ? `translate(0 ${2 * p.y}) scale(1 -1)` : undefined}>
+              <rect x={p.x - 11} y={p.y - 12} width="22" height="11" rx="2" fill="#2b323b" stroke="#454d58" strokeWidth="0.8" />
+              <rect x={p.x - 11} y={p.y - 12} width="22" height="3.4" rx="1.6" fill="#596472" opacity="0.5" />
+              <path d={`M${p.x - 7} ${p.y - 2}L${p.x + 7} ${p.y - 2}L${p.x + 5} ${p.y + 9}Q${p.x} ${p.y + 12} ${p.x - 5} ${p.y + 9}Z`} fill="#171c23" stroke="#353d47" strokeWidth="0.8" />
+              <circle cx={p.x} cy={p.y + 7} r="2.4" fill="#05080c" />
+            </g>
           </g>
         ))}
-        <circle ref={sparkA} cx={A.x} cy={A.y + 8} r="5" fill="none" stroke="#9ad8ff" strokeWidth="2" opacity="0" />
-        <circle ref={sparkB} cx={B.x} cy={B.y + 8} r="5" fill="none" stroke="#a8f0c6" strokeWidth="2" opacity="0" />
+        <circle ref={sparkA} cx={A.x} cy={g.plates.l.edge === "stand" ? A.y - 8 : A.y + 8} r="5" fill="none" stroke="#9ad8ff" strokeWidth="2" opacity="0" />
+        <circle ref={sparkB} cx={B.x} cy={g.plates.r.edge === "stand" ? B.y - 8 : B.y + 8} r="5" fill="none" stroke="#a8f0c6" strokeWidth="2" opacity="0" />
         <path ref={shade} fill="none" stroke="#04070b" strokeWidth="10" strokeLinecap="round" opacity="0.85" />
         <path ref={hit} fill="none" stroke="transparent" strokeWidth="30" strokeLinecap="round" style={{ pointerEvents: "stroke", cursor: grabbing ? "grabbing" : "grab" }} />
-        <path ref={main} fill="none" stroke="url(#cable-skin)" strokeWidth="6.5" strokeLinecap="round" />
+        <path ref={main} fill="none" stroke={`url(#${uid}-skin)`} strokeWidth="6.5" strokeLinecap="round" />
         <path ref={sheen} fill="none" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="1.5" strokeLinecap="round" transform="translate(0 -1.6)" />
         {Array.from({ length: SLOTS }, (_, i) => (
           <g
@@ -499,8 +625,14 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
             <circle cx="48" cy="20" r="6" fill="#3FA9F5" fillOpacity="0.22" />
             <circle cx="48" cy="20" r="3" fill="#3FA9F5" />
           </g>
-          <text y="30" textAnchor="middle" className="fill-[#6a7682] font-mono" fontSize="9">
-            aipager daemon
+          <text
+            x={g.tag === "side" ? -23 : 0}
+            y={g.tag === "side" ? 3 : 30}
+            textAnchor={g.tag === "side" ? "end" : "middle"}
+            className="fill-[#6a7682] font-mono"
+            fontSize="9"
+          >
+            {t.demo.cable.daemon}
           </text>
         </g>
       </svg>
@@ -508,17 +640,23 @@ export function Cable({ world, spark }: { world: World; spark: { id: number; s: 
   );
 }
 
-function Socket({ x, w, side, caption, face, hot }: { x: number; w: number; side: "l" | "r"; caption: string; face: Face; hot: boolean }) {
+function Socket({ plate, side, caption, face, hot }: { plate: Plate; side: "l" | "r"; caption: string; face: Face; hot: boolean }) {
+  // a plate under a window opens upward into it, with the plug at its foot;
+  // one standing on a window opens downward, with the plug on its head
+  const shape = plate.edge === "hang" ? "rounded-b-xl border-t-0 pb-4 pt-1.5" : "rounded-t-xl border-b-0 pb-1.5 pt-4";
   return (
-    <div data-socket={side} className="absolute" style={{ left: x - w / 2, top: SOCKET.top, width: w, height: SOCKET.h }}>
-      <div className={`h-full rounded-b-xl border border-t-0 px-3 pb-4 pt-1.5 transition-colors duration-200 ${hot ? "border-white/20 bg-[#121922]" : "border-white/10 bg-[#0c1117]"}`}>
+    <div data-socket={side} className="absolute" style={{ left: plate.x, top: plate.y, width: plate.w, height: plate.h }}>
+      <div className={`h-full border px-3 transition-colors duration-200 ${shape} ${hot ? "border-white/20 bg-[#121922]" : "border-white/10 bg-[#0c1117]"}`}>
         <div className="flex items-center gap-1.5">
           <span
             className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${
               hot ? (side === "l" ? "bg-[#9ad8ff] shadow-[0_0_8px_2px_rgb(42_171_238/0.8)]" : "bg-[#a8f0c6] shadow-[0_0_8px_2px_rgb(79_214_147/0.7)]") : "bg-white/15"
             }`}
           />
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-fg-4">{caption}</span>
+          {/* a session name and a @username: English, and cased as English */}
+          <span lang="en" dir="ltr" className="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-fg-4">
+            {caption}
+          </span>
         </div>
         <div className={`truncate font-mono text-[12px] transition-colors duration-200 ${hot ? "text-white" : "text-fg-3"}`}>{face.text}</div>
       </div>

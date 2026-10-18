@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
 import { motion } from "framer-motion";
 import { fmtElapsed, type Pane, type TAgent, type TDialog, type TLine, type Tone } from "./world";
 
@@ -79,14 +80,17 @@ function Agents({ block }: { block: { done: boolean; rows: TAgent[] } }) {
 function Line({ line }: { line: TLine }) {
   if (line.agents) return <Agents block={line.agents} />;
   // What you typed sits in a block of its own, dimmer than Claude's own
-  // words — the way Claude Code separates the two in the terminal.
+  // words, the way Claude Code separates the two in the terminal.
   if (line.user) {
+    // One Claude has not taken yet sits here in its dim colour, the way
+    // Claude Code shows a queued prompt, and turns white when it does.
+    const q = line.queued === true;
     return (
-      <div className="-mx-4 my-[3px] flex gap-2 bg-white/[0.2] px-4 py-[3px]">
-        <span className="shrink-0 text-[#aeb6bf]">›</span>
+      <div className={`-mx-4 my-[3px] flex gap-2 px-4 py-[3px] transition-colors duration-[600ms] ${q ? "bg-white/[0.07]" : "bg-white/[0.2]"}`}>
+        <span className={`shrink-0 transition-colors duration-[600ms] ${q ? "text-[#6f777f]" : "text-[#aeb6bf]"}`}>›</span>
         <span className="min-w-0">
-          {line.via && <span className="block text-[#aeb6bf]">[via Telegram · {line.via}]</span>}
-          <span className="block text-[#f1f3f5]">{line.text}</span>
+          {line.via && <span className={`block transition-colors duration-[600ms] ${q ? "text-[#6f777f]" : "text-[#aeb6bf]"}`}>[via Telegram · {line.via}{line.role ? ` · role:${line.role}` : ""}]</span>}
+          <span className={`block transition-colors duration-[600ms] ${q ? "text-[#80878f]" : "text-[#f1f3f5]"}`}>{line.text}</span>
         </span>
       </div>
     );
@@ -134,15 +138,29 @@ function Dialog({ d }: { d: TDialog }) {
 
 function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
   // Claude Code draws inline: the conversation from the top, the input box
-  // right under it, and the view follows the newest line once it fills.
-  const body = useRef<HTMLDivElement>(null);
+  // right under it, and the view follows the newest line once it fills,
+  // unless you have taken hold of it, scrollback being the one thing a
+  // reader may want to go back through.
+  const { ref: body, bind, busy } = useDragScroll();
+  const inner = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = body.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  });
+    const content = inner.current;
+    if (!el || !content) return;
+    const tail = () => {
+      if (!busy()) el.scrollTop = el.scrollHeight;
+    };
+    tail();
+    // Anything new (a line, a dialog, the agents panel) brings the view
+    // back to the newest line, as it does in a terminal you are watching.
+    const ro = new ResizeObserver(tail);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [body, busy, p.id]);
   return (
     <div className="pane flex min-h-0 flex-1 flex-col">
-      <div ref={body} className="min-h-0 flex-1 overflow-hidden px-4 pb-2 pt-3">
+      <div ref={body} {...bind} className={`min-h-0 flex-1 px-4 pb-2 pt-3 ${DRAG_CLASS}`}>
+       <div ref={inner}>
         <div className="space-y-1">
           {p.lines.map((l, i) => (
             <Line key={i} line={l} />
@@ -200,6 +218,7 @@ function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
             )}
           </div>
         ) : null}
+       </div>
       </div>
     </div>
   );
@@ -259,7 +278,7 @@ export function Terminal({
   const multi = panes.length > 1;
   const shown = panes.find((p) => p.id === active) ?? panes[0];
   return (
-    <div className={`term flex h-full flex-col overflow-hidden ${detached ? "detached" : ""}`}>
+    <div dir="ltr" className={`term flex h-full flex-col overflow-hidden ${detached ? "detached" : ""}`}>
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-2.5">
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#ff5f57]/80" />
         <span className="h-3 w-3 shrink-0 rounded-full bg-[#febc2e]/80" />

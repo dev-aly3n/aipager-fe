@@ -208,7 +208,7 @@ one that has not, and it earns its speed back over the following hours.
 
 If a chat's rate falls below 0.2 calls/s - or its hourly budget's share
 for cards and bubbles is spent - it enters **minimal mode**: busy cards
-stop animating and show one static `⏳ working (updates paused)` line,
+stop animating and show one static `⏳ x1 · working (updates paused)` line,
 the typing bubble stops, and the pinned status bar shows
 `⏸ card updates paused (hourly limit)` (or `(rate limit)` when the rate
 is what put the chat there) and otherwise stops changing until it lifts.
@@ -265,7 +265,7 @@ so it cannot extend the ban:
   and including 0.7.14 the prompt went to Claude while the error
   message and its button stayed, so a second tap sent it again.
 - The main keyboard is held back too, including the one a restart sends
-  (up to 0.7.14 it was lost until something else refreshed it). It is
+  (up to and including 0.7.14 it was lost until something else refreshed it). It is
   sent after the ban lifts.
 
 After the ban lifts, things arrive in this order: held answers, then
@@ -331,7 +331,9 @@ aipager session <label> --continue # fresh dtach, the folder's last conversation
 
 If a session waits on a permission prompt or a question and Claude Code
 sends no news for 5 minutes, aipager reads the session's saved
-conversation. Only if it shows the prompt is over (answered in the
+conversation. Only Claude's own news and that of the agent that asked
+count: a background agent that keeps working does not keep this check
+from running. Only if it shows the prompt is over (answered in the
 terminal, and the news of it lost) does aipager stop waiting on it and
 count the session as working again. Otherwise the prompt stays open
 however long it takes: the card and the pinned bar keep saying the
@@ -641,8 +643,11 @@ start` in a terminal or tmux, Docker, launchd) installs an update but
 keeps running the old code until it restarts. `/update` then says `aipager B is installed and
 waiting for a restart (running A).`, and Claude Code's hooks, which
 start fresh on every event, may already run B: the owner gets one notice
-that the update is only half done (once no turn is running in the
-owner's private chat). Tap **🔄 Restart now** (in the update
+that the update is only half done (two minutes after the hooks first ran
+B, so a restart that follows the install at once never shows it, and
+once no turn is running in the owner's private chat). Once aipager runs
+B, that notice turns into `✅ The aipager update is finished: aipager
+runs B now.`, without its button. Tap **🔄 Restart now** (in the update
 message, the notice, or the Mini App's **Settings → Updates**). aipager
 waits until no turn is running, stops cleanly and starts the new version
 in place: the same process in the same terminal, tmux window or

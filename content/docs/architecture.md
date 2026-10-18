@@ -148,7 +148,7 @@ behaviour.
 | `/tmp/claude-policy-<name>.json` | Canonical permission snapshot for the running turn | `aipager-hook` (written at pick-up), read by the `PreToolUse` check |
 | `/tmp/claude-policy-.floor-<uid>.json` | The safety floor, built-in list plus your `safety:` section, for the hook's fallbacks | aipager daemon |
 | `/tmp/claude-reply-<name>.txt` | The message you replied to, when you reply to an older message | aipager daemon |
-| `/tmp/aipager-files/` | Files and voice notes sent from Telegram | aipager daemon |
+| `/tmp/aipager-files/<chat>/` | Files and voice notes sent from Telegram, one private folder per chat (`0700`, files `0600`) | aipager daemon |
 | `/tmp/aipager.log` | Output of a self-restart when there is no service | aipager daemon |
 | `~/.claude/aipager-sessions.json` | Durable registry state | aipager daemon |
 | `~/.claude/aipager-audit.jsonl` | Allow / Deny / answer log | aipager daemon (append-only) |
@@ -158,7 +158,7 @@ behaviour.
 | `~/aipager-users/<label>/` | Members' default [root folders](groups.md#root-folders) (mode 0700), where `user` and `read_only` members start their sessions; kept by `aipager uninstall` | aipager daemon (created on a member's first `/new` or Mini App New session) |
 | `~/.claude/settings.json` | Claude Code hook config | `aipager config` / `aipager setup`; at every start the daemon adds any missing aipager hook or status line and sets `skipDangerousModePermissionPrompt` ([security](security.md#who-decides-whether-a-tool-call-runs)) |
 | `~/.claude/settings.json.bak.*` | Backups before each rewrite | `aipager config`, `aipager setup`, `aipager uninstall` |
-| `~/.claude.json` | Claude Code's own file: at start aipager marks its default session folder (the daemon's working directory, or `AIPAGER_WORK_DIR`) as trusted, so Claude Code's trust question does not block a session started from Telegram in that folder | aipager daemon |
+| `~/.claude.json` | Claude Code's own file: aipager marks the folder a session starts in as trusted right before it starts (the home folder included, never `/` or a folder above home), so Claude Code's trust question does not block a session started from Telegram. Nothing is marked at daemon start. Never rewritten when it cannot be read whole or a running Claude changed it meanwhile | aipager daemon |
 | `~/.claude/.credentials.json` → `.credentials.json.stale` | Claude Code's login file, moved aside when a session starts with `CLAUDE_CODE_OAUTH_TOKEN` set and the file holds only an expired or empty login (it would otherwise win over the token); move it back to undo | aipager daemon |
 | `~/.config/aipager/aipager.yaml` | Bot token, chats, members + roles, Mini App settings | `aipager config` (mode 600); the daemon moves a group's entry when Telegram upgrades it to a supergroup, and keeps an `aipager.yaml.bak.<time>` copy when it moves old Mini App settings into it |
 | `~/.config/aipager/policy.yaml` | Per-role rules + safety overrides | user (checked via `aipager policy validate`); a commented starter is written once when an old install is migrated |
