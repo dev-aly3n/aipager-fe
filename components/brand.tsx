@@ -15,6 +15,31 @@ export function Mark({ size = 24, className = "" }: { size?: number; className?:
   );
 }
 
+/**
+ * The bot as Telegram shows it: the mark laid out for a circle, on a full
+ * square of its own dark (Telegram crops every avatar round, and paints
+ * anything transparent white), the same artwork as the bot's profile
+ * picture. The square Mark stays the site's logo.
+ */
+export function BotAvatar({ size = 42, className = "" }: { size?: number; className?: string }) {
+  return (
+    <span
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-full ${className}`}
+      style={{ width: size, height: size, background: "radial-gradient(circle at 32% 26%, #2a3441 0%, #1a1f25 57%, #121519 95%)" }}
+      aria-hidden
+    >
+      <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+        <g transform="translate(32 32) scale(0.98) translate(-34.1 -27.9)">
+          <path d="M16 24 L26 32 L16 40" stroke="#F6F7F8" strokeWidth="4.2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="29.6" y="28.6" width="9" height="6.8" rx="1.2" fill="#F6F7F8" />
+          <circle cx="48" cy="20" r="6.2" fill="#3FA9F5" fillOpacity="0.24" />
+          <circle cx="48" cy="20" r="3.2" fill="#3FA9F5" />
+        </g>
+      </svg>
+    </span>
+  );
+}
+
 /** "aipager.run" in Geist 500, the dot in the accent colour. */
 export function Wordmark({ className = "" }: { className?: string }) {
   return (

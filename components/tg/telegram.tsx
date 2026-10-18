@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mark } from "@/components/brand";
+import { BotAvatar } from "@/components/brand";
 import type { Dict } from "@/lib/i18n";
 import { digits } from "@/lib/i18n/locales";
 import { botOf, fill } from "@/lib/i18n/bot";
@@ -16,7 +16,7 @@ type Card = Extract<Msg, { kind: "card" }>;
 /* ---------------- small pieces ---------------- */
 
 function Avatar({ chat, size = 42 }: { chat: Pick<Chat, "kind" | "color" | "initials">; size?: number }) {
-  if (chat.kind === "bot") return <Mark size={size} className="shrink-0 rounded-full" />;
+  if (chat.kind === "bot") return <BotAvatar size={size} />;
   if (chat.kind === "saved")
     return (
       <span className="grid shrink-0 place-items-center rounded-full bg-[#3f8ae0] text-white" style={{ width: size, height: size }}>
@@ -37,7 +37,7 @@ function Avatar({ chat, size = 42 }: { chat: Pick<Chat, "kind" | "color" | "init
 
 function PersonDot({ id, size = 30 }: { id: string; size?: number }) {
   const p = PEOPLE[id];
-  if (id === "bot") return <Mark size={size} className="shrink-0 rounded-full" />;
+  if (id === "bot") return <BotAvatar size={size} />;
   return (
     <span className="grid shrink-0 place-items-center rounded-full font-semibold text-white" style={{ width: size, height: size, fontSize: size * 0.4, background: p?.color ?? "#65aadd" }}>
       {(p?.name ?? id)[0]}

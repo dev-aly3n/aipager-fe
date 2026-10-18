@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CopyButton, Mark } from "@/components/brand";
+import { BotAvatar, CopyButton } from "@/components/brand";
 import { Ticks } from "./telegram";
 import { Bidi, Rich } from "./rich";
 import { MiniApp } from "./miniapp";
@@ -50,7 +50,7 @@ export function Places({ t, locale }: { t: Dict; locale: Locale }) {
               {/* a phone's narrower row keeps a chat's whole name on one line */}
               <div className="flex min-w-0 items-center gap-5 phone:gap-4">
                 {p.bot ? (
-                  <Mark size={68} className="shrink-0 rounded-full phone:h-[52px] phone:w-[52px]" />
+                  <BotAvatar size={68} className="phone:h-[52px] phone:w-[52px]" />
                 ) : (
                   <span className="grid h-[68px] w-[68px] shrink-0 place-items-center rounded-full text-[22px] font-semibold text-white phone:h-[52px] phone:w-[52px] phone:text-[18px]" style={{ background: `linear-gradient(160deg, ${p.color}, color-mix(in oklab, ${p.color} 65%, #000))` }}>
                     {p.initials}
@@ -428,7 +428,7 @@ export function Ask({ t }: { t: Dict }) {
         {/* it follows you down the list of questions */}
         <div className="flex h-[440px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] sm:h-[520px] tablet:sticky tablet:top-20 tablet:self-start lg:sticky lg:top-20 lg:self-start phone:h-auto">
           <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3">
-            <Mark size={40} className="rounded-full" />
+            <BotAvatar size={40} />
             <div className="leading-tight">
               <div className="text-[15px] font-semibold text-white">aipager</div>
               <div className="text-[12.5px] text-[#6ab3f3]">{typing ? `${t.demo.typing}…` : t.demo.chats.aipager.subtitle}</div>
@@ -602,7 +602,7 @@ function MiniChat({ title, tag, note, subtitle, children }: { title: string; tag
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621]">
       <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3">
-        <Mark size={34} className="rounded-full" />
+        <BotAvatar size={34} />
         <div className="leading-tight">
           <div className="text-[14.5px] font-semibold text-white">aipager</div>
           <div className="text-[12px] text-[#6ab3f3]">{subtitle}</div>
@@ -839,7 +839,7 @@ export function Languages({ t }: { t: Dict }) {
           </div>
           <div dir={L.rtl ? "rtl" : "ltr"} lang={L.code} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] max-[719px]:order-2">
             <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3" dir="ltr">
-              <Mark size={34} className="rounded-full" />
+              <BotAvatar size={34} />
               <div className="leading-tight">
                 <div className="text-[14.5px] font-semibold text-white">aipager</div>
                 <div className="text-[12px] text-[#6ab3f3]">{t.demo.chats.aipager.subtitle}</div>
@@ -969,34 +969,46 @@ function FileBack({ t, locale }: { t: Dict; locale: Locale }) {
       <div className="flex justify-end">
         <span className="rounded-[14px] rounded-ee-[5px] bg-[#2b5278] px-3 py-1.5 text-[13px] text-white">{t.day.ask}</span>
       </div>
-      <div className="relative min-h-[150px]">
-        <AnimatePresence mode="wait" initial={false}>
-          {step === 1 && (
-            <motion.div key="sending" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.25 }} className="inline-flex rounded-[14px] rounded-es-[5px] bg-[#182533] px-3 py-1.5 text-[12.5px] text-[#c9d6e3]">
-              <span className="animate-pulse">{bot.count.sending1}</span>
-            </motion.div>
-          )}
-          {step === 2 && (
-            <motion.div key="photo" initial={{ opacity: 0, scale: 0.94, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 380, damping: 28 }} className="w-[230px] overflow-hidden rounded-[14px] rounded-es-[5px] bg-[#182533]">
-              {/* the screenshot itself: a test runner's window, which is English in every language */}
-              <div dir="ltr" lang="en" className="m-1 overflow-hidden rounded-[10px] bg-[#0d1117] p-2 font-mono text-[9.5px] leading-[1.5] text-[#8b949e]">
-                <div className="mb-1.5 flex gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f57]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#febc2e]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#28c840]" />
-                </div>
-                <div className="text-[#e6edf3]">e2e/login.spec.ts</div>
-                <div><span className="text-[#3fb950]">✓</span> opens the sign-in page</div>
-                <div><span className="text-[#f85149]">✗</span> signs in and lands on /home</div>
-                <div className="mt-1 rounded bg-[#f85149]/10 px-1.5 py-1 text-[#ffa198]">click 5.0s · Set-Cookie 5.3s</div>
-              </div>
-              <div className="px-2.5 pb-2 pt-1 text-[12.5px] leading-snug text-[#e6edf5]">
-                <div>💬 <b className="font-semibold">api</b></div>
-                <div dir="auto" className="text-[#c9d6e3]">{t.modes.auto.quote}</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* The photo is always laid out, invisible until it arrives, and the
+          "Sending" line sits over the top of the same space: the height is
+          the photo's from the first frame, whatever its caption wraps to in
+          this language, so nothing under the card moves when it lands. */}
+      <div className="grid">
+        <motion.div
+          initial={false}
+          animate={step === 2 ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.94, y: 8 }}
+          transition={step === 2 ? { type: "spring", stiffness: 380, damping: 28 } : { duration: 0.15 }}
+          aria-hidden={step !== 2}
+          className="w-[230px] origin-bottom-left overflow-hidden rounded-[14px] rounded-es-[5px] bg-[#182533] [grid-area:1/1] rtl:origin-bottom-right"
+        >
+          {/* the screenshot itself: a test runner's window, which is English in every language */}
+          <div dir="ltr" lang="en" className="m-1 overflow-hidden rounded-[10px] bg-[#0d1117] p-2 font-mono text-[9.5px] leading-[1.5] text-[#8b949e]">
+            <div className="mb-1.5 flex gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#febc2e]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#28c840]" />
+            </div>
+            <div className="text-[#e6edf3]">e2e/login.spec.ts</div>
+            <div><span className="text-[#3fb950]">✓</span> opens the sign-in page</div>
+            <div><span className="text-[#f85149]">✗</span> signs in and lands on /home</div>
+            <div className="mt-1 rounded bg-[#f85149]/10 px-1.5 py-1 text-[#ffa198]">click 5.0s · Set-Cookie 5.3s</div>
+          </div>
+          <div className="px-2.5 pb-2 pt-1 text-[12.5px] leading-snug text-[#e6edf5]">
+            <div>💬 <b className="font-semibold">api</b></div>
+            <div dir="auto" className="text-[#c9d6e3]">{t.modes.auto.quote}</div>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={false}
+          animate={step === 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: step === 2 ? -4 : 6 }}
+          transition={{ duration: 0.25 }}
+          aria-hidden={step !== 1}
+          className="self-start justify-self-start [grid-area:1/1]"
+        >
+          <span className="inline-flex rounded-[14px] rounded-es-[5px] bg-[#182533] px-3 py-1.5 text-[12.5px] text-[#c9d6e3]">
+            <span className="animate-pulse">{bot.count.sending1}</span>
+          </span>
+        </motion.div>
       </div>
     </div>
   );
