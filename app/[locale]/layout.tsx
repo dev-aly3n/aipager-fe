@@ -48,6 +48,9 @@ const PRELOAD: Partial<Record<string, string[]>> = {
     "/fonts/be-vietnam-pro-vietnamese-400.woff2",
     "/fonts/be-vietnam-pro-latin-600.woff2",
     "/fonts/be-vietnam-pro-vietnamese-600.woff2",
+    // the buttons and the bar are medium
+    "/fonts/be-vietnam-pro-latin-500.woff2",
+    "/fonts/be-vietnam-pro-vietnamese-500.woff2",
   ],
 };
 
