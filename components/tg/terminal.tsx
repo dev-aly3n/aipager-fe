@@ -34,7 +34,7 @@ function Agents({ block }: { block: { done: boolean; rows: TAgent[] } }) {
   return (
     <div className="my-[3px]">
       <div className="flex gap-2">
-        <span className="text-[#e8ebee]">⏺</span>
+        <span className="text-[#e8ebee]">●</span>
         <span className="text-[#e8ebee]">
           {block.done ? (
             <>
@@ -106,7 +106,9 @@ function Line({ line }: { line: TLine }) {
   if (line.dot) {
     return (
       <div className="flex gap-2">
-        <span className={DOT[line.dot]}>⏺</span>
+        {/* Claude Code prints ⏺ here; a phone draws that as a red record
+            button, so the terminal uses the plain dot it looks like */}
+        <span className={DOT[line.dot]}>●</span>
         <span className={`min-w-0 ${line.bold ? "font-semibold text-[#e8ebee]" : TONE[line.tone ?? "fg"]}`}>{line.text}</span>
       </div>
     );

@@ -221,21 +221,35 @@ export function MobileStage({
   t: Dict;
 }) {
   return (
-    <div className={`mx-auto w-full ${tablet ? "max-w-[440px]" : "max-w-[400px]"}`}>
+    <div className={`relative mx-auto w-full ${tablet ? "max-w-[440px]" : "max-w-[400px]"}`}>
+      {/* Telegram's light behind the phone and Claude's behind the terminal,
+          the cable's two colours, so the stack reads as one thing lit from
+          both ends */}
+      <div aria-hidden className="pointer-events-none absolute -inset-x-20 top-6 h-[540px] bg-[radial-gradient(50%_50%_at_50%_45%,rgb(42_171_238/0.34),transparent_72%)] blur-2xl" />
+      <div aria-hidden className="pointer-events-none absolute -inset-x-20 -bottom-12 h-[400px] bg-[radial-gradient(50%_50%_at_50%_55%,rgb(217_119_87/0.24),transparent_72%)] blur-2xl" />
+      {/* the phone: a metal band round the glass, with its buttons on the band */}
       <div
-        className={`relative flex flex-col overflow-hidden rounded-[40px] border-[6px] border-[#1b222b] bg-[#0e1621] shadow-[0_0_0_1px_rgb(255_255_255/0.07),0_50px_100px_-40px_rgb(0_0_0/0.95)] ${tablet ? "h-[640px]" : "h-[580px]"}`}
+        className={`relative rounded-[46px] bg-[linear-gradient(155deg,#59636f,#20262e_22%,#151a20_60%,#3b4450)] p-[6px] shadow-[0_0_0_1px_rgb(0_0_0/0.6),0_40px_90px_-30px_rgb(0_0_0/0.95),0_0_80px_-24px_rgb(42_171_238/0.4)] ${tablet ? "h-[640px]" : "h-[580px]"}`}
       >
-        <StatusBar clock={clock} />
-        <Screens world={world} waiting={waiting} story={story} onTap={onTap} playing={playing} t={t} />
-        <Notes world={world} onOpen={story.openChat} onDismiss={story.dismiss} className="pointer-events-none absolute inset-x-2.5 top-10 z-30 flex flex-col gap-2" />
-        {hint && (
-          <div className="absolute inset-x-3 bottom-16 z-30 flex justify-center">
-            <div className="rounded-2xl bg-black/80 px-4 py-2.5 text-center text-[13px] leading-snug text-white backdrop-blur">{hint}</div>
-          </div>
-        )}
+        <span aria-hidden className="absolute -start-[3px] top-[104px] h-[26px] w-[3px] rounded-s-[2px] bg-[#3a434f]" />
+        <span aria-hidden className="absolute -start-[3px] top-[148px] h-[46px] w-[3px] rounded-s-[2px] bg-[#3a434f]" />
+        <span aria-hidden className="absolute -start-[3px] top-[204px] h-[46px] w-[3px] rounded-s-[2px] bg-[#3a434f]" />
+        <span aria-hidden className="absolute -end-[3px] top-[168px] h-[74px] w-[3px] rounded-e-[2px] bg-[#3a434f]" />
+        <div className="relative flex h-full flex-col overflow-hidden rounded-[40px] bg-[#0e1621] ring-1 ring-black/80">
+          <StatusBar clock={clock} />
+          <Screens world={world} waiting={waiting} story={story} onTap={onTap} playing={playing} t={t} />
+          <Notes world={world} onOpen={story.openChat} onDismiss={story.dismiss} className="pointer-events-none absolute inset-x-2.5 top-10 z-30 flex flex-col gap-2" />
+          {hint && (
+            <div className="absolute inset-x-3 bottom-16 z-30 flex justify-center">
+              <div className="rounded-2xl bg-black/80 px-4 py-2.5 text-center text-[13px] leading-snug text-white backdrop-blur">{hint}</div>
+            </div>
+          )}
+          {/* the glass catches a little light */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 z-40 bg-[linear-gradient(120deg,rgb(255_255_255/0.055),transparent_30%)]" />
+        </div>
       </div>
       <CableWell world={world} spark={story.spark} t={t} />
-      <div className={tablet ? "h-[320px]" : "h-[300px]"}>
+      <div className={`relative ${tablet ? "h-[320px]" : "h-[300px]"}`}>
         <Terminal panes={world.panes} detached={false} active={world.term} onTab={story.setTerm} />
       </div>
     </div>

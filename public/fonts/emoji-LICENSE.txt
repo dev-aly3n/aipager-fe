@@ -1,0 +1,8 @@
+emoji.woff2 is a subset of Twemoji Mozilla (https://github.com/mozilla/twemoji-colr),
+made by scripts/emoji-font.py.
+
+The emoji artwork is Twemoji, Copyright 2020 Twitter, Inc and other contributors,
+licensed under CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
+
+The font build is Copyright 2016-2018 Mozilla Foundation, licensed under the
+Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0

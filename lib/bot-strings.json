@@ -90,6 +90,451 @@
    "agentsDone2": "✅ 2 agents done ({clock})",
    "agentDone11": "🤖 {agent} · 11 tool calls · {clock}",
    "agentDone7": "🤖 {agent} · 7 tool calls · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sessions",
+    "settings": "Settings"
+   },
+   "uptime": "up 141m",
+   "pulse": {
+    "need1": "1 needs you",
+    "working2": "2 working",
+    "working3": "3 working",
+    "resting1": "1 resting",
+    "finished12": "12 finished",
+    "spent": "{cost} spent"
+   },
+   "needsYou": "Needs you",
+   "answerInChat": "Answer in chat",
+   "answerSent": "Sent to the chat. Answer it there.",
+   "newSession": "New session",
+   "state": {
+    "busy": "working",
+    "idle": "resting",
+    "waiting": "needs you",
+    "gone": "finished"
+   },
+   "finished12": "Finished (12)",
+   "line": {
+    "resting": "Resting, last active {age}",
+    "working": "Working for {clock}",
+    "needs": "Needs you (permission)",
+    "finished": "Finished"
+   },
+   "age": {
+    "s2": "2s ago",
+    "s14": "14s ago",
+    "m10": "10m ago",
+    "m40": "40m ago",
+    "h3": "3h ago",
+    "d2": "2d ago"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Latest reply",
+    "sessionSettings": "Session settings"
+   },
+   "fact": {
+    "model": "Model",
+    "context": "Context",
+    "cost": "Cost",
+    "lastActive": "Last active",
+    "mode": "Mode",
+    "cwd": "Directory",
+    "working": "Working for"
+   },
+   "modelTitle": "Model",
+   "resetDefaults": "Reset to defaults",
+   "resetDone": "Reset to defaults.",
+   "saved": "Saved.",
+   "changed3": "Changed files (3)",
+   "changedNone": "Changed files (none)",
+   "change": {
+    "added": "added",
+    "modified": "modified",
+    "deleted": "deleted"
+   },
+   "timeline5": "Timeline (5)",
+   "timelineEmpty": "Timeline (empty)",
+   "timelineNote": "The timeline only covers the current daemon run. It isn't saved across restarts, so an older session shows nothing here.",
+   "action": {
+    "stop": "Stop",
+    "restart": "Restart",
+    "compact": "Compact now",
+    "rename": "Rename",
+    "kill": "Kill",
+    "resume": "Resume",
+    "delete": "Delete"
+   },
+   "done": {
+    "stop": "Stopped.",
+    "restart": "Restarted.",
+    "compact": "Compacting…",
+    "rename": "Renamed.",
+    "kill": "Killed.",
+    "resume": "Resumed.",
+    "delete": "Deleted."
+   },
+   "update": {
+    "title": "Updates",
+    "upToDate": "Everything is up to date.",
+    "check": "Check for updates",
+    "checking": "Checking…"
+   },
+   "language": {
+    "title": "App language",
+    "hint": "Only aipager's own text. Claude's answers don't change.",
+    "auto": "Automatic (your Telegram language)"
+   },
+   "chatPrefs": "Chat preferences",
+   "prefsIntro": "These apply to every session in this chat.",
+   "appearance": "Appearance",
+   "appearanceIntro": "How aipager's buttons look in this chat.",
+   "defaultTag": "default",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Message layout",
+     "options": [
+      {
+       "value": "card",
+       "label": "Busy card + result",
+       "lead": "Busy card + result",
+       "help": "Busy card stays, the answer arrives as its own message."
+      },
+      {
+       "value": "merged",
+       "label": "Merged into busy message",
+       "lead": "Merged into busy message",
+       "help": "The answer replaces the busy card's body in place."
+      },
+      {
+       "value": "replace",
+       "label": "Replace with result",
+       "lead": "Replace with result",
+       "help": "The busy card is replaced by the answer alone."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Diff previews",
+     "options": [
+      {
+       "value": false,
+       "label": "Off - busy card only",
+       "lead": "Off",
+       "help": "File edits show only as rows on the busy card."
+      },
+      {
+       "value": true,
+       "label": "On - a diff message per edit",
+       "lead": "On",
+       "help": "Each Write/Edit is also posted as its own diff message under the busy card."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Long-turn card updates",
+     "options": [
+      {
+       "value": true,
+       "label": "On - slow down as a turn gets long",
+       "lead": "On",
+       "help": "The card refreshes less often as a turn runs on (every 10 s after 2 min, every 30 s after 10 min) and its clock then moves in 30 s steps, so it never looks frozen. A state change still shows at once."
+      },
+      {
+       "value": false,
+       "label": "Off - same pace for the whole turn",
+       "lead": "Off",
+       "help": "The card refreshes at the same pace for the whole turn, however long."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Simple formatting",
+     "options": [
+      {
+       "value": false,
+       "label": "Off - default formatting",
+       "lead": "Off",
+       "help": "Claude formats replies however it likes."
+      },
+      {
+       "value": true,
+       "label": "On - plain prose only",
+       "lead": "On",
+       "help": "Plain prose and dashed lists only - no tables or code blocks."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Answer length",
+     "options": [
+      {
+       "value": "none",
+       "label": "Don't apply any rule",
+       "lead": "Don't apply any rule",
+       "help": "No length guidance at all."
+      },
+      {
+       "value": "xshort",
+       "label": "Extra short",
+       "lead": "Extra short",
+       "help": "One or two sentences. No preamble, no summary."
+      },
+      {
+       "value": "short",
+       "label": "Short",
+       "lead": "Short",
+       "help": "A few sentences."
+      },
+      {
+       "value": "medium",
+       "label": "Medium",
+       "lead": "Medium",
+       "help": "A couple of paragraphs."
+      },
+      {
+       "value": "long",
+       "label": "Long",
+       "lead": "Long",
+       "help": "Full detail when the answer needs it."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Vocabulary level",
+     "options": [
+      {
+       "value": "none",
+       "label": "Don't apply any rule",
+       "lead": "Don't apply any rule",
+       "help": "No vocabulary guidance at all."
+      },
+      {
+       "value": "simple",
+       "label": "Simple words",
+       "lead": "Simple words",
+       "help": "Everyday words, short sentences."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Ordinary technical writing."
+      },
+      {
+       "value": "advanced",
+       "label": "Advanced",
+       "lead": "Advanced",
+       "help": "Assumes expertise; no hand-holding."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Stop button",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram's own look, like every other button.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blue",
+       "lead": "Blue",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Green",
+       "lead": "Green",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Red",
+       "lead": "Red",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Allow and Deny buttons",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram's own look, like every other button.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Coloured - Allow green, Deny red",
+       "lead": "Coloured",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "App button",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram's own look, like every other button.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blue",
+       "lead": "Blue",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Green",
+       "lead": "Green",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Red",
+       "lead": "Red",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Settings menu",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Only ✅ marks the current choice.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Current choice in blue",
+       "lead": "Current choice in blue",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Report a problem",
+    "card": "Tell the maintainer what went wrong. You see the whole report before anything is sent.",
+    "title": "Report a problem",
+    "privacy": "It holds versions, counts and places in aipager's code. Never your chats, prompts, names or paths.",
+    "noteLabel": "Your note (optional)",
+    "notePlaceholder": "What were you doing when it went wrong?",
+    "asWritten": "Sent exactly as written.",
+    "whatSent": "What gets sent",
+    "system": "System",
+    "setup": "Setup",
+    "setupLine": "Multi-chat setup, 2 private chats, running 1 to 24 hours",
+    "errors": "Errors (2)",
+    "err1": "TimeoutError in the busy card",
+    "err1Sub": "3 times, last seen 2026-10-17",
+    "err2": "Logged error in message delivery",
+    "err2Sub": "once, last seen 2026-10-16",
+    "foot": "Nothing is sent until you tap Send report. It goes to the maintainer's error inbox, without your name.",
+    "send": "Send report",
+    "sending": "Sending...",
+    "sent": "Report sent",
+    "thanks": "Thank you. If you open a GitHub issue, quote this reference:"
+   },
+   "new": {
+    "title": "New session",
+    "sub": "Name it, pick a folder, and Claude starts there.",
+    "name": "Name",
+    "where": "Where",
+    "recent": "Recent",
+    "suggested": "Suggested",
+    "cwdTitle": "Working directory",
+    "newFolder": "New folder",
+    "newFolderHelp": "Inside the directory selected above",
+    "default": "Default",
+    "defaultModelHelp": "Whatever the CLI is configured to use",
+    "otherModel": "Other model",
+    "otherModelHelp": "Type a full name, e.g. claude-opus-5",
+    "modelName": "Model name",
+    "modelNeeded": "Type a model name to continue.",
+    "more": "More options",
+    "modeTitle": "Permission mode",
+    "modes": {
+     "ask": "Ask",
+     "auto": "Auto",
+     "full": "Full access"
+    },
+    "modeHelp": {
+     "ask": "Claude asks before running tools",
+     "auto": "A safety check runs safe actions and stops risky ones",
+     "full": "Everything runs with no checks"
+    },
+    "summary": {
+     "ask": "Starts Claude in {where}, in Ask mode, using {model}.",
+     "auto": "Starts Claude in {where}, in Auto mode, using {model}.",
+     "full": "Starts Claude in {where}, in Full access mode, using {model}."
+    },
+    "summaryNamed": {
+     "ask": "Starts Claude as {name} in {where}, in Ask mode, using {model}.",
+     "auto": "Starts Claude as {name} in {where}, in Auto mode, using {model}.",
+     "full": "Starts Claude as {name} in {where}, in Full access mode, using {model}."
+    },
+    "cliModel": "the CLI's own default model",
+    "start": "Start session",
+    "creating": "Creating…",
+    "created": "Session created."
+   }
   }
  },
  {
@@ -183,6 +628,451 @@
    "agentsDone2": "✅ 2 agentes terminaron ({clock})",
    "agentDone11": "🤖 {agent} · 11 herramientas usadas · {clock}",
    "agentDone7": "🤖 {agent} · 7 herramientas usadas · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sesiones",
+    "settings": "Ajustes"
+   },
+   "uptime": "en marcha 141 min",
+   "pulse": {
+    "need1": "1 te necesita",
+    "working2": "2 trabajando",
+    "working3": "3 trabajando",
+    "resting1": "1 lista",
+    "finished12": "12 terminadas",
+    "spent": "{cost} gastados"
+   },
+   "needsYou": "Te necesitan",
+   "answerInChat": "Responder en el chat",
+   "answerSent": "Enviada al chat. Respóndela allí.",
+   "newSession": "Nueva sesión",
+   "state": {
+    "busy": "trabajando",
+    "idle": "lista",
+    "waiting": "te necesita",
+    "gone": "terminada"
+   },
+   "finished12": "Terminadas (12)",
+   "line": {
+    "resting": "Lista, última actividad {age}",
+    "working": "Trabajando ({clock})",
+    "needs": "Te necesita (permiso)",
+    "finished": "Terminada"
+   },
+   "age": {
+    "s2": "hace 2 s",
+    "s14": "hace 14 s",
+    "m10": "hace 10 min",
+    "m40": "hace 40 min",
+    "h3": "hace 3 h",
+    "d2": "hace 2 d"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Última respuesta",
+    "sessionSettings": "Ajustes de la sesión"
+   },
+   "fact": {
+    "model": "Modelo",
+    "context": "Contexto",
+    "cost": "Costo",
+    "lastActive": "Última actividad",
+    "mode": "Modo",
+    "cwd": "Carpeta",
+    "working": "Tiempo trabajando"
+   },
+   "modelTitle": "Modelo",
+   "resetDefaults": "Volver a los valores por defecto",
+   "resetDone": "Volvió a los valores por defecto.",
+   "saved": "Guardado.",
+   "changed3": "Archivos cambiados (3)",
+   "changedNone": "Archivos cambiados (ninguno)",
+   "change": {
+    "added": "añadido",
+    "modified": "modificado",
+    "deleted": "eliminado"
+   },
+   "timeline5": "Cronología (5)",
+   "timelineEmpty": "Cronología (vacía)",
+   "timelineNote": "La cronología solo cubre desde el último arranque de aipager. No se guarda entre reinicios, así que una sesión más antigua no muestra nada aquí.",
+   "action": {
+    "stop": "Detener",
+    "restart": "Reiniciar",
+    "compact": "Compactar ahora",
+    "rename": "Cambiar nombre",
+    "kill": "Terminar",
+    "resume": "Continuar",
+    "delete": "Eliminar"
+   },
+   "done": {
+    "stop": "Detenida.",
+    "restart": "Reiniciada.",
+    "compact": "Compactando…",
+    "rename": "Nombre cambiado.",
+    "kill": "Terminada.",
+    "resume": "Reanudada.",
+    "delete": "Eliminada."
+   },
+   "update": {
+    "title": "Actualizaciones",
+    "upToDate": "Todo está actualizado.",
+    "check": "Buscar actualizaciones",
+    "checking": "Comprobando…"
+   },
+   "language": {
+    "title": "Idioma de la app",
+    "hint": "Solo el texto de aipager. Las respuestas de Claude no cambian.",
+    "auto": "Automático (tu idioma de Telegram)"
+   },
+   "chatPrefs": "Ajustes del chat",
+   "prefsIntro": "Se aplican a todas las sesiones de este chat.",
+   "appearance": "Apariencia",
+   "appearanceIntro": "Cómo se ven los botones de aipager en este chat.",
+   "defaultTag": "por defecto",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Cómo se ve la respuesta",
+     "options": [
+      {
+       "value": "card",
+       "label": "Tarjeta + respuesta aparte",
+       "lead": "Tarjeta + respuesta aparte",
+       "help": "La tarjeta de actividad se queda y la respuesta llega en un mensaje aparte."
+      },
+      {
+       "value": "merged",
+       "label": "Respuesta dentro de la tarjeta",
+       "lead": "Respuesta dentro de la tarjeta",
+       "help": "La respuesta ocupa el lugar del texto de la tarjeta de actividad, en el mismo mensaje."
+      },
+      {
+       "value": "replace",
+       "label": "Solo la respuesta (sin tarjeta)",
+       "lead": "Solo la respuesta (sin tarjeta)",
+       "help": "La tarjeta de actividad se borra y solo queda la respuesta."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Vistas previas de diff",
+     "options": [
+      {
+       "value": false,
+       "label": "Desactivado - solo la tarjeta",
+       "lead": "Desactivado",
+       "help": "Las ediciones de archivos solo aparecen como filas en la tarjeta de actividad."
+      },
+      {
+       "value": true,
+       "label": "Activado - un diff por edición",
+       "lead": "Activado",
+       "help": "Cada Write/Edit también aparece como su propio mensaje de diff debajo de la tarjeta de actividad."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Actualizar tarjeta en tareas largas",
+     "options": [
+      {
+       "value": true,
+       "label": "Activado - más lento en tareas largas",
+       "lead": "Activado",
+       "help": "La tarjeta se actualiza menos a medida que la tarea avanza (cada 10 s tras 2 min, cada 30 s tras 10 min) y su reloj va de 30 en 30 s, así nunca parece colgada. Un cambio de estado se ve al instante."
+      },
+      {
+       "value": false,
+       "label": "Desactivado - mismo ritmo toda la tarea",
+       "lead": "Desactivado",
+       "help": "La tarjeta se actualiza al mismo ritmo durante toda la tarea, dure lo que dure."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Formato simple",
+     "options": [
+      {
+       "value": false,
+       "label": "Desactivado - formato normal",
+       "lead": "Desactivado",
+       "help": "Claude formatea las respuestas como quiera."
+      },
+      {
+       "value": true,
+       "label": "Activado - solo texto simple",
+       "lead": "Activado",
+       "help": "Solo texto simple y listas con guiones, sin tablas ni bloques de código."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Longitud de respuesta",
+     "options": [
+      {
+       "value": "none",
+       "label": "Sin ninguna regla",
+       "lead": "Sin ninguna regla",
+       "help": "Sin ninguna indicación de longitud."
+      },
+      {
+       "value": "xshort",
+       "label": "Extra corta",
+       "lead": "Extra corta",
+       "help": "Una o dos frases. Sin preámbulo ni resumen."
+      },
+      {
+       "value": "short",
+       "label": "Corta",
+       "lead": "Corta",
+       "help": "Unas pocas frases."
+      },
+      {
+       "value": "medium",
+       "label": "Media",
+       "lead": "Media",
+       "help": "Un par de párrafos."
+      },
+      {
+       "value": "long",
+       "label": "Larga",
+       "lead": "Larga",
+       "help": "Todo el detalle cuando la respuesta lo necesite."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Nivel de vocabulario",
+     "options": [
+      {
+       "value": "none",
+       "label": "Sin ninguna regla",
+       "lead": "Sin ninguna regla",
+       "help": "Sin ninguna indicación de vocabulario."
+      },
+      {
+       "value": "simple",
+       "label": "Palabras sencillas",
+       "lead": "Palabras sencillas",
+       "help": "Palabras cotidianas, frases cortas."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Redacción técnica corriente."
+      },
+      {
+       "value": "advanced",
+       "label": "Avanzado",
+       "lead": "Avanzado",
+       "help": "Da por hecho que sabes del tema; sin explicaciones básicas."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Botón Detener",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "El aspecto propio de Telegram, como el resto de botones.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Azul",
+       "lead": "Azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rojo",
+       "lead": "Rojo",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Botones Permitir y Rechazar",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "El aspecto propio de Telegram, como el resto de botones.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Color - Permitir verde, Rechazar rojo",
+       "lead": "Color",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Botón App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "El aspecto propio de Telegram, como el resto de botones.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Azul",
+       "lead": "Azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rojo",
+       "lead": "Rojo",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menú de ajustes",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Solo ✅ marca la opción actual.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Opción actual en azul",
+       "lead": "Opción actual en azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Informar de un problema",
+    "card": "Cuéntale al creador de aipager qué salió mal. Ves el informe completo antes de que se envíe nada.",
+    "title": "Informar de un problema",
+    "privacy": "Contiene versiones, recuentos y lugares del código de aipager. Nunca tus chats, mensajes, nombres ni rutas.",
+    "noteLabel": "Tu nota (opcional)",
+    "notePlaceholder": "¿Qué estabas haciendo cuando falló?",
+    "asWritten": "Se envía tal como la escribes.",
+    "whatSent": "Qué se envía",
+    "system": "Sistema",
+    "setup": "Configuración",
+    "setupLine": "Varios chats, 2 chats privados, activo de 1 a 24 horas",
+    "errors": "Errores (2)",
+    "err1": "TimeoutError en la tarjeta de actividad",
+    "err1Sub": "3 veces, visto por última vez el 2026-10-17",
+    "err2": "Error registrado en el envío de mensajes a Telegram",
+    "err2Sub": "una vez, visto por última vez el 2026-10-16",
+    "foot": "No se envía nada hasta que tocas «Enviar informe». Va al buzón de errores del creador de aipager, sin tu nombre.",
+    "send": "Enviar informe",
+    "sending": "Enviando...",
+    "sent": "Informe enviado",
+    "thanks": "Gracias. Si abres un issue en GitHub, incluye esta referencia:"
+   },
+   "new": {
+    "title": "Nueva sesión",
+    "sub": "Ponle un nombre, elige una carpeta y Claude empieza allí.",
+    "name": "Nombre",
+    "where": "Dónde",
+    "recent": "Recientes",
+    "suggested": "Sugeridos",
+    "cwdTitle": "Carpeta",
+    "newFolder": "Nueva carpeta",
+    "newFolderHelp": "Dentro de la carpeta elegida arriba",
+    "default": "Por defecto",
+    "defaultModelHelp": "Lo que tenga configurado Claude Code",
+    "otherModel": "Otro modelo",
+    "otherModelHelp": "Escribe un nombre completo, p. ej., claude-opus-5",
+    "modelName": "Nombre del modelo",
+    "modelNeeded": "Escribe un nombre de modelo para continuar.",
+    "more": "Más opciones",
+    "modeTitle": "Modo de permisos",
+    "modes": {
+     "ask": "Preguntar",
+     "auto": "Automático",
+     "full": "Acceso total"
+    },
+    "modeHelp": {
+     "ask": "Claude pregunta antes de ejecutar herramientas",
+     "auto": "Una comprobación de seguridad ejecuta las acciones seguras y detiene las riesgosas",
+     "full": "Todo se ejecuta sin ninguna comprobación"
+    },
+    "summary": {
+     "ask": "Arranca Claude en {where}, en Modo Preguntar, con {model}.",
+     "auto": "Arranca Claude en {where}, en Modo Automático, con {model}.",
+     "full": "Arranca Claude en {where}, en Modo Acceso total, con {model}."
+    },
+    "summaryNamed": {
+     "ask": "Arranca Claude como {name} en {where}, en Modo Preguntar, con {model}.",
+     "auto": "Arranca Claude como {name} en {where}, en Modo Automático, con {model}.",
+     "full": "Arranca Claude como {name} en {where}, en Modo Acceso total, con {model}."
+    },
+    "cliModel": "el modelo por defecto de Claude Code",
+    "start": "Crear sesión",
+    "creating": "Creando…",
+    "created": "Sesión creada."
+   }
   }
  },
  {
@@ -276,6 +1166,451 @@
    "agentsDone2": "✅ Готово: 2 агента ({clock})",
    "agentDone11": "🤖 {agent} · 11 инструментов · {clock}",
    "agentDone7": "🤖 {agent} · 7 инструментов · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Сессии",
+    "settings": "Настройки"
+   },
+   "uptime": "работает 141 мин",
+   "pulse": {
+    "need1": "1 ждёт тебя",
+    "working2": "2 работают",
+    "working3": "3 работают",
+    "resting1": "1 готова",
+    "finished12": "12 завершено",
+    "spent": "потрачено {cost}"
+   },
+   "needsYou": "Ждут тебя",
+   "answerInChat": "Ответить в чате",
+   "answerSent": "Отправлено в чат. Ответь там.",
+   "newSession": "Новая сессия",
+   "state": {
+    "busy": "работает",
+    "idle": "готова",
+    "waiting": "ждёт тебя",
+    "gone": "завершена"
+   },
+   "finished12": "Завершённые (12)",
+   "line": {
+    "resting": "Готова, последняя активность {age}",
+    "working": "Работает ({clock})",
+    "needs": "Ждёт тебя (разрешение)",
+    "finished": "Завершена"
+   },
+   "age": {
+    "s2": "2 с назад",
+    "s14": "14 с назад",
+    "m10": "10 мин назад",
+    "m40": "40 мин назад",
+    "h3": "3 ч назад",
+    "d2": "2 дн. назад"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Последний ответ",
+    "sessionSettings": "Настройки сессии"
+   },
+   "fact": {
+    "model": "Модель",
+    "context": "Контекст",
+    "cost": "Стоимость",
+    "lastActive": "Последняя активность",
+    "mode": "Режим",
+    "cwd": "Папка",
+    "working": "Время работы"
+   },
+   "modelTitle": "Модель",
+   "resetDefaults": "Вернуть по умолчанию",
+   "resetDone": "Настройки по умолчанию возвращены.",
+   "saved": "Сохранено.",
+   "changed3": "Изменённые файлы (3)",
+   "changedNone": "Изменённые файлы (нет)",
+   "change": {
+    "added": "добавлен",
+    "modified": "изменён",
+    "deleted": "удалён"
+   },
+   "timeline5": "Хронология (5)",
+   "timelineEmpty": "Хронология (пусто)",
+   "timelineNote": "Хронология охватывает только текущий запуск aipager. Между перезапусками она не сохраняется, поэтому у старой сессии здесь пусто.",
+   "action": {
+    "stop": "Остановить",
+    "restart": "Перезапустить",
+    "compact": "Сжать сейчас",
+    "rename": "Переименовать",
+    "kill": "Завершить",
+    "resume": "Продолжить",
+    "delete": "Удалить"
+   },
+   "done": {
+    "stop": "Остановлено.",
+    "restart": "Перезапущено.",
+    "compact": "Сжимаю переписку…",
+    "rename": "Переименовано.",
+    "kill": "Завершено.",
+    "resume": "Снова работает.",
+    "delete": "Удалено."
+   },
+   "update": {
+    "title": "Обновления",
+    "upToDate": "Всё обновлено.",
+    "check": "Проверить обновления",
+    "checking": "Проверяю…"
+   },
+   "language": {
+    "title": "Язык приложения",
+    "hint": "Только собственный текст aipager. Ответы Claude не меняются.",
+    "auto": "Автоматически (язык твоего Telegram)"
+   },
+   "chatPrefs": "Настройки чата",
+   "prefsIntro": "Они действуют для каждой сессии в этом чате.",
+   "appearance": "Оформление",
+   "appearanceIntro": "Как выглядят кнопки aipager в этом чате.",
+   "defaultTag": "по умолчанию",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Вид сообщений",
+     "options": [
+      {
+       "value": "card",
+       "label": "Карточка + ответ отдельно",
+       "lead": "Карточка + ответ отдельно",
+       "help": "Рабочая карточка остаётся, ответ приходит отдельным сообщением."
+      },
+      {
+       "value": "merged",
+       "label": "Ответ внутри карточки",
+       "lead": "Ответ внутри карточки",
+       "help": "Ответ встаёт на место текста рабочей карточки, в том же сообщении."
+      },
+      {
+       "value": "replace",
+       "label": "Только ответ (без карточки)",
+       "lead": "Только ответ (без карточки)",
+       "help": "Рабочая карточка удаляется, остаётся только ответ."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Предпросмотр изменений",
+     "options": [
+      {
+       "value": false,
+       "label": "Выкл - только рабочая карточка",
+       "lead": "Выкл",
+       "help": "Правки файлов видны только строками в рабочей карточке."
+      },
+      {
+       "value": true,
+       "label": "Вкл - diff на каждую правку",
+       "lead": "Вкл",
+       "help": "Каждый Write/Edit также приходит отдельным сообщением с diff под рабочей карточкой."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Обновление карточки в долгих задачах",
+     "options": [
+      {
+       "value": true,
+       "label": "Вкл - реже в долгих задачах",
+       "lead": "Вкл",
+       "help": "Чем дольше задача, тем реже обновляется карточка (каждые 10 с после 2 мин, каждые 30 с после 10 мин), а её часы шагают по 30 с и не выглядят зависшими. Смена состояния видна сразу."
+      },
+      {
+       "value": false,
+       "label": "Выкл - один темп всю задачу",
+       "lead": "Выкл",
+       "help": "Карточка обновляется в одном темпе всю задачу, сколько бы она ни длилась."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Простое оформление",
+     "options": [
+      {
+       "value": false,
+       "label": "Выкл - обычное оформление",
+       "lead": "Выкл",
+       "help": "Claude оформляет ответы как хочет."
+      },
+      {
+       "value": true,
+       "label": "Вкл - только простой текст",
+       "lead": "Вкл",
+       "help": "Только простой текст и списки через дефис, без таблиц и блоков кода."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Длина ответа",
+     "options": [
+      {
+       "value": "none",
+       "label": "Без правил",
+       "lead": "Без правил",
+       "help": "Никаких указаний о длине."
+      },
+      {
+       "value": "xshort",
+       "label": "Очень короткий",
+       "lead": "Очень короткий",
+       "help": "Одно-два предложения. Без вступления и итогов."
+      },
+      {
+       "value": "short",
+       "label": "Короткий",
+       "lead": "Короткий",
+       "help": "Несколько предложений."
+      },
+      {
+       "value": "medium",
+       "label": "Средний",
+       "lead": "Средний",
+       "help": "Пара абзацев."
+      },
+      {
+       "value": "long",
+       "label": "Длинный",
+       "lead": "Длинный",
+       "help": "Все подробности, когда ответу они нужны."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Уровень словаря",
+     "options": [
+      {
+       "value": "none",
+       "label": "Без правил",
+       "lead": "Без правил",
+       "help": "Никаких указаний о словах."
+      },
+      {
+       "value": "simple",
+       "label": "Простые слова",
+       "lead": "Простые слова",
+       "help": "Повседневные слова, короткие предложения."
+      },
+      {
+       "value": "normal",
+       "label": "Обычный",
+       "lead": "Обычный",
+       "help": "Обычный технический текст."
+      },
+      {
+       "value": "advanced",
+       "label": "Продвинутый",
+       "lead": "Продвинутый",
+       "help": "Для знающих; без разжёвывания."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Кнопка «Остановить»",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Обычный",
+       "lead": "Обычный",
+       "help": "Обычный вид Telegram, как у остальных кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Синий",
+       "lead": "Синий",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Зелёный",
+       "lead": "Зелёный",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Красный",
+       "lead": "Красный",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Кнопки «Разрешить» и «Отклонить»",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Обычный",
+       "lead": "Обычный",
+       "help": "Обычный вид Telegram, как у остальных кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Зелёная «Разрешить», красная «Отклонить»",
+       "lead": "Зелёная «Разрешить», красная «Отклонить»",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Кнопка App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Обычный",
+       "lead": "Обычный",
+       "help": "Обычный вид Telegram, как у остальных кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Синий",
+       "lead": "Синий",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Зелёный",
+       "lead": "Зелёный",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Красный",
+       "lead": "Красный",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Меню «Настройки»",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Обычный",
+       "lead": "Обычный",
+       "help": "Текущий выбор отмечен только ✅.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Текущий выбор синим",
+       "lead": "Текущий выбор синим",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Сообщить о проблеме",
+    "card": "Расскажи разработчику aipager, что пошло не так. Перед отправкой ты увидишь весь отчёт.",
+    "title": "Сообщить о проблеме",
+    "privacy": "Здесь версии, счётчики и места в коде aipager. Никогда твои чаты, сообщения, имена или пути.",
+    "noteLabel": "Твоя заметка (необязательно)",
+    "notePlaceholder": "Что происходило, когда всё сломалось?",
+    "asWritten": "Отправится ровно так, как ты её напишешь.",
+    "whatSent": "Что отправится",
+    "system": "Система",
+    "setup": "Настройка",
+    "setupLine": "Несколько чатов, 2 личных чата, работает от 1 до 24 часов",
+    "errors": "Ошибки (2)",
+    "err1": "TimeoutError в рабочая карточка",
+    "err1Sub": "3 раза, последний раз 2026-10-17",
+    "err2": "Ошибка в журнале: отправка сообщений в Telegram",
+    "err2Sub": "один раз, последний раз 2026-10-16",
+    "foot": "Ничего не отправится, пока ты не нажмёшь «Отправить отчёт». Отчёт уйдёт в ящик ошибок разработчика aipager, без твоего имени.",
+    "send": "Отправить отчёт",
+    "sending": "Отправляю...",
+    "sent": "Отчёт отправлен",
+    "thanks": "Спасибо. Если откроешь issue на GitHub, укажи этот номер:"
+   },
+   "new": {
+    "title": "Новая сессия",
+    "sub": "Дай ей имя, выбери папку, и Claude начнёт там работу.",
+    "name": "Имя",
+    "where": "Где",
+    "recent": "Недавние",
+    "suggested": "Советуем",
+    "cwdTitle": "Папка",
+    "newFolder": "Новая папка",
+    "newFolderHelp": "Внутри папки, выбранной выше",
+    "default": "По умолчанию",
+    "defaultModelHelp": "Та, что настроена в Claude Code",
+    "otherModel": "Другая модель",
+    "otherModelHelp": "Введи полное имя, например claude-opus-5",
+    "modelName": "Имя модели",
+    "modelNeeded": "Введи имя модели, чтобы продолжить.",
+    "more": "Ещё параметры",
+    "modeTitle": "Режим разрешений",
+    "modes": {
+     "ask": "Спрашивать",
+     "auto": "Авто",
+     "full": "Полный доступ"
+    },
+    "modeHelp": {
+     "ask": "Claude спрашивает, прежде чем использовать инструменты",
+     "auto": "Проверка безопасности пропускает безопасные действия, а рискованные останавливает",
+     "full": "Всё выполняется без каких-либо проверок"
+    },
+    "summary": {
+     "ask": "Запустит Claude в {where}, режим «Спрашивать», модель {model}.",
+     "auto": "Запустит Claude в {where}, режим Авто, модель {model}.",
+     "full": "Запустит Claude в {where}, режим «Полный доступ», модель {model}."
+    },
+    "summaryNamed": {
+     "ask": "Запустит Claude с именем {name} в {where}, режим «Спрашивать», модель {model}.",
+     "auto": "Запустит Claude с именем {name} в {where}, режим Авто, модель {model}.",
+     "full": "Запустит Claude с именем {name} в {where}, режим «Полный доступ», модель {model}."
+    },
+    "cliModel": "модель по умолчанию из Claude Code",
+    "start": "Запустить сессию",
+    "creating": "Создаю…",
+    "created": "Сессия создана."
+   }
   }
  },
  {
@@ -369,6 +1704,451 @@
    "agentsDone2": "✅ 2 agentes terminaram ({clock})",
    "agentDone11": "🤖 {agent} · 11 ferramentas usadas · {clock}",
    "agentDone7": "🤖 {agent} · 7 ferramentas usadas · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sessões",
+    "settings": "Configurações"
+   },
+   "uptime": "rodando há 141 min",
+   "pulse": {
+    "need1": "1 precisa de você",
+    "working2": "2 trabalhando",
+    "working3": "3 trabalhando",
+    "resting1": "1 pronta",
+    "finished12": "12 encerradas",
+    "spent": "{cost} gastos"
+   },
+   "needsYou": "Precisam de você",
+   "answerInChat": "Responder no chat",
+   "answerSent": "Enviado para o chat. Responda lá.",
+   "newSession": "Nova sessão",
+   "state": {
+    "busy": "trabalhando",
+    "idle": "pronta",
+    "waiting": "precisa de você",
+    "gone": "encerrada"
+   },
+   "finished12": "Encerradas (12)",
+   "line": {
+    "resting": "Pronta, última atividade {age}",
+    "working": "Trabalhando ({clock})",
+    "needs": "Precisa de você (permissão)",
+    "finished": "Encerrada"
+   },
+   "age": {
+    "s2": "há 2 s",
+    "s14": "há 14 s",
+    "m10": "há 10 min",
+    "m40": "há 40 min",
+    "h3": "há 3 h",
+    "d2": "há 2 d"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Última resposta",
+    "sessionSettings": "Configurações da sessão"
+   },
+   "fact": {
+    "model": "Modelo",
+    "context": "Contexto",
+    "cost": "Custo",
+    "lastActive": "Última atividade",
+    "mode": "Modo",
+    "cwd": "Pasta",
+    "working": "Tempo trabalhando"
+   },
+   "modelTitle": "Modelo",
+   "resetDefaults": "Voltar ao padrão",
+   "resetDone": "Voltou ao padrão.",
+   "saved": "Salvo.",
+   "changed3": "Arquivos alterados (3)",
+   "changedNone": "Arquivos alterados (nenhum)",
+   "change": {
+    "added": "adicionado",
+    "modified": "modificado",
+    "deleted": "excluído"
+   },
+   "timeline5": "Linha do tempo (5)",
+   "timelineEmpty": "Linha do tempo (vazia)",
+   "timelineNote": "A linha do tempo só cobre desde a última vez que o aipager iniciou. Ela não é salva entre reinícios, então uma sessão mais antiga não mostra nada aqui.",
+   "action": {
+    "stop": "Parar",
+    "restart": "Reiniciar",
+    "compact": "Compactar agora",
+    "rename": "Renomear",
+    "kill": "Encerrar",
+    "resume": "Continuar",
+    "delete": "Excluir"
+   },
+   "done": {
+    "stop": "Interrompida.",
+    "restart": "Reiniciada.",
+    "compact": "Compactando…",
+    "rename": "Nome alterado.",
+    "kill": "Encerrada.",
+    "resume": "Retomada.",
+    "delete": "Excluída."
+   },
+   "update": {
+    "title": "Atualizações",
+    "upToDate": "Tudo está atualizado.",
+    "check": "Verificar atualizações",
+    "checking": "Verificando…"
+   },
+   "language": {
+    "title": "Idioma do app",
+    "hint": "Só o texto do aipager. As respostas do Claude não mudam.",
+    "auto": "Automático (seu idioma do Telegram)"
+   },
+   "chatPrefs": "Configurações do chat",
+   "prefsIntro": "Valem para todas as sessões deste chat.",
+   "appearance": "Aparência",
+   "appearanceIntro": "Como os botões do aipager aparecem neste chat.",
+   "defaultTag": "padrão",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Como a resposta aparece",
+     "options": [
+      {
+       "value": "card",
+       "label": "Cartão + resposta separada",
+       "lead": "Cartão + resposta separada",
+       "help": "O cartão de atividade fica, e a resposta chega em uma mensagem separada."
+      },
+      {
+       "value": "merged",
+       "label": "Resposta dentro do cartão",
+       "lead": "Resposta dentro do cartão",
+       "help": "A resposta ocupa o lugar do texto do cartão de atividade, na mesma mensagem."
+      },
+      {
+       "value": "replace",
+       "label": "Só a resposta (sem cartão)",
+       "lead": "Só a resposta (sem cartão)",
+       "help": "O cartão de atividade é apagado e fica só a resposta."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Prévias de diff",
+     "options": [
+      {
+       "value": false,
+       "label": "Desligado - só o cartão",
+       "lead": "Desligado",
+       "help": "As edições de arquivos aparecem só como linhas no cartão de atividade."
+      },
+      {
+       "value": true,
+       "label": "Ligado - um diff por edição",
+       "lead": "Ligado",
+       "help": "Cada Write/Edit também aparece como uma mensagem de diff própria abaixo do cartão de atividade."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Atualizar cartão em tarefas longas",
+     "options": [
+      {
+       "value": true,
+       "label": "Ligado - mais lento em tarefas longas",
+       "lead": "Ligado",
+       "help": "O cartão atualiza menos conforme a tarefa avança (a cada 10 s após 2 min, a cada 30 s após 10 min) e o relógio anda de 30 em 30 s, então nunca parece travado. Uma mudança de estado aparece na hora."
+      },
+      {
+       "value": false,
+       "label": "Desligado - mesmo ritmo na tarefa toda",
+       "lead": "Desligado",
+       "help": "O cartão é atualizado no mesmo ritmo durante toda a tarefa, por mais longa que seja."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Formatação simples",
+     "options": [
+      {
+       "value": false,
+       "label": "Desligado - formatação normal",
+       "lead": "Desligado",
+       "help": "O Claude formata as respostas como quiser."
+      },
+      {
+       "value": true,
+       "label": "Ligado - só texto simples",
+       "lead": "Ligado",
+       "help": "Só texto simples e listas com hífens, sem tabelas nem blocos de código."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Tamanho da resposta",
+     "options": [
+      {
+       "value": "none",
+       "label": "Sem nenhuma regra",
+       "lead": "Sem nenhuma regra",
+       "help": "Sem nenhuma orientação de tamanho."
+      },
+      {
+       "value": "xshort",
+       "label": "Extra curta",
+       "lead": "Extra curta",
+       "help": "Uma ou duas frases. Sem introdução nem resumo."
+      },
+      {
+       "value": "short",
+       "label": "Curta",
+       "lead": "Curta",
+       "help": "Algumas frases."
+      },
+      {
+       "value": "medium",
+       "label": "Média",
+       "lead": "Média",
+       "help": "Um ou dois parágrafos."
+      },
+      {
+       "value": "long",
+       "label": "Longa",
+       "lead": "Longa",
+       "help": "Todo o detalhe quando a resposta precisar."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Nível de vocabulário",
+     "options": [
+      {
+       "value": "none",
+       "label": "Sem nenhuma regra",
+       "lead": "Sem nenhuma regra",
+       "help": "Sem nenhuma orientação de vocabulário."
+      },
+      {
+       "value": "simple",
+       "label": "Palavras simples",
+       "lead": "Palavras simples",
+       "help": "Palavras do dia a dia, frases curtas."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Escrita técnica comum."
+      },
+      {
+       "value": "advanced",
+       "label": "Avançado",
+       "lead": "Avançado",
+       "help": "Parte do princípio de que você entende do assunto; sem explicações básicas."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Botão Parar",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "A aparência do próprio Telegram, como os outros botões.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Azul",
+       "lead": "Azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Vermelho",
+       "lead": "Vermelho",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Botões Permitir e Negar",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "A aparência do próprio Telegram, como os outros botões.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Cor - Permitir verde, Negar vermelho",
+       "lead": "Cor",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Botão App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "A aparência do próprio Telegram, como os outros botões.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Azul",
+       "lead": "Azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Vermelho",
+       "lead": "Vermelho",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menu de configurações",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Só ✅ marca a opção atual.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Opção atual em azul",
+       "lead": "Opção atual em azul",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Relatar um problema",
+    "card": "Conte ao criador do aipager o que deu errado. Você vê o relatório inteiro antes de qualquer envio.",
+    "title": "Relatar um problema",
+    "privacy": "Tem versões, contagens e locais no código do aipager. Nunca seus chats, mensagens, nomes ou caminhos.",
+    "noteLabel": "Sua nota (opcional)",
+    "notePlaceholder": "O que você estava fazendo quando deu errado?",
+    "asWritten": "Enviada exatamente como foi escrita.",
+    "whatSent": "O que é enviado",
+    "system": "Sistema",
+    "setup": "Configuração",
+    "setupLine": "Vários chats, 2 chats privados, ativo de 1 a 24 horas",
+    "errors": "Erros (2)",
+    "err1": "TimeoutError em no cartão de atividade",
+    "err1Sub": "3 vezes, visto pela última vez em 2026-10-17",
+    "err2": "Erro registrado em no envio de mensagens ao Telegram",
+    "err2Sub": "uma vez, visto pela última vez em 2026-10-16",
+    "foot": "Nada é enviado até você tocar em “Enviar relatório”. Vai para a caixa de erros do criador do aipager, sem o seu nome.",
+    "send": "Enviar relatório",
+    "sending": "Enviando...",
+    "sent": "Relatório enviado",
+    "thanks": "Obrigado. Se você abrir uma issue no GitHub, inclua esta referência:"
+   },
+   "new": {
+    "title": "Nova sessão",
+    "sub": "Dê um nome, escolha uma pasta, e o Claude começa lá.",
+    "name": "Nome",
+    "where": "Onde",
+    "recent": "Recentes",
+    "suggested": "Sugeridos",
+    "cwdTitle": "Pasta",
+    "newFolder": "Nova pasta",
+    "newFolderHelp": "Dentro da pasta escolhida acima",
+    "default": "Padrão",
+    "defaultModelHelp": "O que estiver configurado no Claude Code",
+    "otherModel": "Outro modelo",
+    "otherModelHelp": "Digite um nome completo, ex.: claude-opus-5",
+    "modelName": "Nome do modelo",
+    "modelNeeded": "Digite um nome de modelo para continuar.",
+    "more": "Mais opções",
+    "modeTitle": "Modo de permissão",
+    "modes": {
+     "ask": "Perguntar",
+     "auto": "Automático",
+     "full": "Acesso total"
+    },
+    "modeHelp": {
+     "ask": "O Claude pergunta antes de executar ferramentas",
+     "auto": "Uma verificação de segurança deixa rodar o que é seguro e interrompe o que é arriscado",
+     "full": "Tudo roda sem nenhuma verificação"
+    },
+    "summary": {
+     "ask": "Inicia o Claude em {where}, no Modo Perguntar, com {model}.",
+     "auto": "Inicia o Claude em {where}, no Modo Automático, com {model}.",
+     "full": "Inicia o Claude em {where}, no Modo Acesso total, com {model}."
+    },
+    "summaryNamed": {
+     "ask": "Inicia o Claude como {name} em {where}, no Modo Perguntar, com {model}.",
+     "auto": "Inicia o Claude como {name} em {where}, no Modo Automático, com {model}.",
+     "full": "Inicia o Claude como {name} em {where}, no Modo Acesso total, com {model}."
+    },
+    "cliModel": "o modelo padrão do Claude Code",
+    "start": "Criar sessão",
+    "creating": "Criando…",
+    "created": "Sessão criada."
+   }
   }
  },
  {
@@ -462,6 +2242,451 @@
    "agentsDone2": "✅ 2 个代理已完成（{clock}）",
    "agentDone11": "🤖 {agent} · 用了 11 次工具 · {clock}",
    "agentDone7": "🤖 {agent} · 用了 7 次工具 · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "会话",
+    "settings": "设置"
+   },
+   "uptime": "已运行 141 分钟",
+   "pulse": {
+    "need1": "1 个在等你回复",
+    "working2": "2 个工作中",
+    "working3": "3 个工作中",
+    "resting1": "1 个就绪",
+    "finished12": "12 个已结束",
+    "spent": "已花费 {cost}"
+   },
+   "needsYou": "等你回复",
+   "answerInChat": "在聊天中回答",
+   "answerSent": "已发到聊天中。请在那里回答。",
+   "newSession": "新建会话",
+   "state": {
+    "busy": "工作中",
+    "idle": "就绪",
+    "waiting": "等你回复",
+    "gone": "已结束"
+   },
+   "finished12": "已结束（12）",
+   "line": {
+    "resting": "就绪，上次活动 {age}",
+    "working": "工作中（{clock}）",
+    "needs": "等你回复（权限）",
+    "finished": "已结束"
+   },
+   "age": {
+    "s2": "2 秒前",
+    "s14": "14 秒前",
+    "m10": "10 分钟前",
+    "m40": "40 分钟前",
+    "h3": "3 小时前",
+    "d2": "2 天前"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "最新回复",
+    "sessionSettings": "会话设置"
+   },
+   "fact": {
+    "model": "模型",
+    "context": "上下文",
+    "cost": "费用",
+    "lastActive": "上次活动",
+    "mode": "模式",
+    "cwd": "文件夹",
+    "working": "已工作"
+   },
+   "modelTitle": "模型",
+   "resetDefaults": "恢复默认设置",
+   "resetDone": "已恢复默认。",
+   "saved": "已保存。",
+   "changed3": "改动的文件（3）",
+   "changedNone": "改动的文件（无）",
+   "change": {
+    "added": "新增",
+    "modified": "已修改",
+    "deleted": "已删除"
+   },
+   "timeline5": "时间线（5）",
+   "timelineEmpty": "时间线（空）",
+   "timelineNote": "时间线只包含 aipager 这次启动以来的内容。aipager 重启后不会保留，所以较早的会话在这里不显示任何内容。",
+   "action": {
+    "stop": "停止",
+    "restart": "重启",
+    "compact": "立即压缩",
+    "rename": "重命名",
+    "kill": "结束",
+    "resume": "恢复",
+    "delete": "删除"
+   },
+   "done": {
+    "stop": "已停止。",
+    "restart": "已重启。",
+    "compact": "正在压缩对话…",
+    "rename": "已重命名。",
+    "kill": "已结束。",
+    "resume": "已重新打开。",
+    "delete": "已删除。"
+   },
+   "update": {
+    "title": "更新",
+    "upToDate": "一切都是最新的。",
+    "check": "检查更新",
+    "checking": "正在检查…"
+   },
+   "language": {
+    "title": "应用语言",
+    "hint": "只影响 aipager 自己的文字。Claude 的回答不变。",
+    "auto": "自动（你的 Telegram 语言）"
+   },
+   "chatPrefs": "聊天设置",
+   "prefsIntro": "这些设置适用于这个聊天中的每个会话。",
+   "appearance": "外观",
+   "appearanceIntro": "aipager 的按钮在这个聊天里的样子。",
+   "defaultTag": "默认",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "消息布局",
+     "options": [
+      {
+       "value": "card",
+       "label": "工作卡片 + 单独的回答",
+       "lead": "工作卡片 + 单独的回答",
+       "help": "工作卡片保留，回答作为单独的消息发出。"
+      },
+      {
+       "value": "merged",
+       "label": "回答放在卡片里",
+       "lead": "回答放在卡片里",
+       "help": "回答会在同一条消息里替换工作卡片的正文。"
+      },
+      {
+       "value": "replace",
+       "label": "只留回答，删除卡片",
+       "lead": "只留回答，删除卡片",
+       "help": "工作卡片会被删除，只留下回答。"
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "改动预览（diff）",
+     "options": [
+      {
+       "value": false,
+       "label": "关 - 仅工作卡片",
+       "lead": "关",
+       "help": "文件编辑只会作为工作卡片上的行显示。"
+      },
+      {
+       "value": true,
+       "label": "开 - 每次编辑一条 diff 消息",
+       "lead": "开",
+       "help": "每次 Write/Edit 还会在工作卡片下方单独发一条 diff 消息。"
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "长任务的卡片更新",
+     "options": [
+      {
+       "value": true,
+       "label": "开 - 任务变长时放慢",
+       "lead": "开",
+       "help": "任务越长，卡片刷新越少（2 分钟后每 10 秒一次，10 分钟后每 30 秒一次），计时也改为每 30 秒跳一次，所以不会看起来卡住。状态变化仍会立即显示。"
+      },
+      {
+       "value": false,
+       "label": "关 - 整个任务保持相同频率",
+       "lead": "关",
+       "help": "无论任务多长，卡片都以相同频率刷新。"
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "简单格式",
+     "options": [
+      {
+       "value": false,
+       "label": "关 - 默认格式",
+       "lead": "关",
+       "help": "Claude 按自己的方式设置回复格式。"
+      },
+      {
+       "value": true,
+       "label": "开 - 只用普通文字",
+       "lead": "开",
+       "help": "只用普通文字和短横线列表，不用表格或代码块。"
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "回答长度",
+     "options": [
+      {
+       "value": "none",
+       "label": "不设规则",
+       "lead": "不设规则",
+       "help": "不限制长度。"
+      },
+      {
+       "value": "xshort",
+       "label": "特短",
+       "lead": "特短",
+       "help": "一两句话。不要开场白，不要总结。"
+      },
+      {
+       "value": "short",
+       "label": "短",
+       "lead": "短",
+       "help": "几句话。"
+      },
+      {
+       "value": "medium",
+       "label": "中等",
+       "lead": "中等",
+       "help": "两段左右。"
+      },
+      {
+       "value": "long",
+       "label": "长",
+       "lead": "长",
+       "help": "回答需要时给出完整细节。"
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "词汇水平",
+     "options": [
+      {
+       "value": "none",
+       "label": "不设规则",
+       "lead": "不设规则",
+       "help": "不限制用词。"
+      },
+      {
+       "value": "simple",
+       "label": "简单用词",
+       "lead": "简单用词",
+       "help": "日常用词，句子简短。"
+      },
+      {
+       "value": "normal",
+       "label": "普通",
+       "lead": "普通",
+       "help": "普通的技术写作。"
+      },
+      {
+       "value": "advanced",
+       "label": "进阶",
+       "lead": "进阶",
+       "help": "默认你是行家，不做额外解释。"
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "停止按钮",
+     "options": [
+      {
+       "value": "normal",
+       "label": "普通",
+       "lead": "普通",
+       "help": "Telegram 自带的样式，和其他按钮一样。",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "蓝色",
+       "lead": "蓝色",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "绿色",
+       "lead": "绿色",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "红色",
+       "lead": "红色",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "允许和拒绝按钮",
+     "options": [
+      {
+       "value": "normal",
+       "label": "普通",
+       "lead": "普通",
+       "help": "Telegram 自带的样式，和其他按钮一样。",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "彩色 - 允许为绿色，拒绝为红色",
+       "lead": "彩色",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "App 按钮",
+     "options": [
+      {
+       "value": "normal",
+       "label": "普通",
+       "lead": "普通",
+       "help": "Telegram 自带的样式，和其他按钮一样。",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "蓝色",
+       "lead": "蓝色",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "绿色",
+       "lead": "绿色",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "红色",
+       "lead": "红色",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "设置菜单",
+     "options": [
+      {
+       "value": "normal",
+       "label": "普通",
+       "lead": "普通",
+       "help": "只用 ✅ 标出当前选项。",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "当前选项显示为蓝色",
+       "lead": "当前选项显示为蓝色",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "报告问题",
+    "card": "告诉 aipager 开发者哪里出了问题。发送之前，你会看到完整的报告。",
+    "title": "报告问题",
+    "privacy": "其中只有版本、次数和 aipager 代码中的位置。绝不包含你的聊天、消息、名称或路径。",
+    "noteLabel": "你的备注（可选）",
+    "notePlaceholder": "出问题时你正在做什么？",
+    "asWritten": "按你写的原样发送。",
+    "whatSent": "会发送什么",
+    "system": "系统",
+    "setup": "使用方式",
+    "setupLine": "多个聊天中使用，2 个私聊，运行时长：1 到 24 小时",
+    "errors": "错误（2）",
+    "err1": "工作卡片 中的 TimeoutError",
+    "err1Sub": "3 次，最后一次出现于 2026-10-17",
+    "err2": "向 Telegram 发送消息 中记录的错误",
+    "err2Sub": "一次，最后一次出现于 2026-10-16",
+    "foot": "在你点按“发送报告”之前，不会发送任何内容。报告会匿名发送到 aipager 开发者的错误收件箱。",
+    "send": "发送报告",
+    "sending": "正在发送…",
+    "sent": "报告已发送",
+    "thanks": "谢谢。如果你在 GitHub 上提 issue，请附上这个参考编号："
+   },
+   "new": {
+    "title": "新建会话",
+    "sub": "起个名字，选个文件夹，Claude 就会在那里开始工作。",
+    "name": "名称",
+    "where": "位置",
+    "recent": "最近",
+    "suggested": "推荐",
+    "cwdTitle": "文件夹",
+    "newFolder": "新建文件夹",
+    "newFolderHelp": "位于上面所选的文件夹中",
+    "default": "默认",
+    "defaultModelHelp": "Claude Code 中设置的模型",
+    "otherModel": "其他模型",
+    "otherModelHelp": "请输入完整名称，例如 claude-opus-5",
+    "modelName": "模型名称",
+    "modelNeeded": "请输入模型名称以继续。",
+    "more": "更多选项",
+    "modeTitle": "权限模式",
+    "modes": {
+     "ask": "询问",
+     "auto": "自动",
+     "full": "完全访问"
+    },
+    "modeHelp": {
+     "ask": "Claude 会在运行工具前询问",
+     "auto": "安全检查会运行安全的操作并停止有风险的操作",
+     "full": "所有操作都不经任何检查直接运行"
+    },
+    "summary": {
+     "ask": "将在 {where} 以询问模式启动 Claude，使用 {model}。",
+     "auto": "将在 {where} 以自动模式启动 Claude，使用 {model}。",
+     "full": "将在 {where} 以完全访问模式启动 Claude，使用 {model}。"
+    },
+    "summaryNamed": {
+     "ask": "将以 {name} 的名称在 {where} 以询问模式启动 Claude，使用 {model}。",
+     "auto": "将以 {name} 的名称在 {where} 以自动模式启动 Claude，使用 {model}。",
+     "full": "将以 {name} 的名称在 {where} 以完全访问模式启动 Claude，使用 {model}。"
+    },
+    "cliModel": "Claude Code 自己的默认模型",
+    "start": "启动会话",
+    "creating": "正在创建…",
+    "created": "会话已创建。"
+   }
   }
  },
  {
@@ -555,6 +2780,451 @@
    "agentsDone2": "✅ 2 agents ont terminé ({clock})",
    "agentDone11": "🤖 {agent} · 11 outils utilisés · {clock}",
    "agentDone7": "🤖 {agent} · 7 outils utilisés · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sessions",
+    "settings": "Paramètres"
+   },
+   "uptime": "en marche depuis 141 min",
+   "pulse": {
+    "need1": "1 a besoin de vous",
+    "working2": "2 au travail",
+    "working3": "3 au travail",
+    "resting1": "1 prête",
+    "finished12": "12 terminées",
+    "spent": "{cost} dépensés"
+   },
+   "needsYou": "Ont besoin de vous",
+   "answerInChat": "Répondre dans la discussion",
+   "answerSent": "Envoyée dans la discussion. Répondez-y là-bas.",
+   "newSession": "Nouvelle session",
+   "state": {
+    "busy": "au travail",
+    "idle": "prête",
+    "waiting": "a besoin de vous",
+    "gone": "terminée"
+   },
+   "finished12": "Terminées (12)",
+   "line": {
+    "resting": "Prête, dernière activité {age}",
+    "working": "Au travail ({clock})",
+    "needs": "A besoin de vous (autorisation)",
+    "finished": "Terminée"
+   },
+   "age": {
+    "s2": "il y a 2 s",
+    "s14": "il y a 14 s",
+    "m10": "il y a 10 min",
+    "m40": "il y a 40 min",
+    "h3": "il y a 3 h",
+    "d2": "il y a 2 j"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Dernière réponse",
+    "sessionSettings": "Paramètres de la session"
+   },
+   "fact": {
+    "model": "Modèle",
+    "context": "Contexte",
+    "cost": "Coût",
+    "lastActive": "Dernière activité",
+    "mode": "Mode",
+    "cwd": "Dossier",
+    "working": "Au travail depuis"
+   },
+   "modelTitle": "Modèle",
+   "resetDefaults": "Revenir aux valeurs par défaut",
+   "resetDone": "Revenu aux valeurs par défaut.",
+   "saved": "Enregistré.",
+   "changed3": "Fichiers modifiés (3)",
+   "changedNone": "Fichiers modifiés (aucun)",
+   "change": {
+    "added": "ajouté",
+    "modified": "modifié",
+    "deleted": "supprimé"
+   },
+   "timeline5": "Chronologie (5)",
+   "timelineEmpty": "Chronologie (vide)",
+   "timelineNote": "La chronologie ne couvre que depuis le dernier démarrage d'aipager. Elle n'est pas gardée entre les redémarrages, donc une session plus ancienne n'affiche rien ici.",
+   "action": {
+    "stop": "Arrêter",
+    "restart": "Redémarrer",
+    "compact": "Compacter maintenant",
+    "rename": "Renommer",
+    "kill": "Terminer",
+    "resume": "Reprendre",
+    "delete": "Supprimer"
+   },
+   "done": {
+    "stop": "Arrêtée.",
+    "restart": "Redémarrée.",
+    "compact": "Compactage…",
+    "rename": "Nom changé.",
+    "kill": "Terminée.",
+    "resume": "Reprise.",
+    "delete": "Supprimée."
+   },
+   "update": {
+    "title": "Mises à jour",
+    "upToDate": "Tout est à jour.",
+    "check": "Rechercher des mises à jour",
+    "checking": "Vérification…"
+   },
+   "language": {
+    "title": "Langue de l'app",
+    "hint": "Seulement le texte d'aipager. Les réponses de Claude ne changent pas.",
+    "auto": "Automatique (langue de Telegram)"
+   },
+   "chatPrefs": "Paramètres de la discussion",
+   "prefsIntro": "Ils s'appliquent à toutes les sessions de cette discussion.",
+   "appearance": "Apparence",
+   "appearanceIntro": "L'aspect des boutons d'aipager dans cette discussion.",
+   "defaultTag": "par défaut",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Affichage de la réponse",
+     "options": [
+      {
+       "value": "card",
+       "label": "Carte + réponse à part",
+       "lead": "Carte + réponse à part",
+       "help": "La carte d'activité reste, et la réponse arrive dans un message à part."
+      },
+      {
+       "value": "merged",
+       "label": "Réponse dans la carte",
+       "lead": "Réponse dans la carte",
+       "help": "La réponse prend la place du texte de la carte d'activité, dans le même message."
+      },
+      {
+       "value": "replace",
+       "label": "Réponse seule (sans carte)",
+       "lead": "Réponse seule (sans carte)",
+       "help": "La carte d'activité est effacée et seule la réponse reste."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Aperçus des diffs",
+     "options": [
+      {
+       "value": false,
+       "label": "Désactivé - carte seule",
+       "lead": "Désactivé",
+       "help": "Les modifications de fichiers n'apparaissent que comme lignes sur la carte d'activité."
+      },
+      {
+       "value": true,
+       "label": "Activé - un diff par modification",
+       "lead": "Activé",
+       "help": "Chaque Write/Edit est aussi publié dans son propre message de diff sous la carte d'activité."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Mise à jour de carte (tâches longues)",
+     "options": [
+      {
+       "value": true,
+       "label": "Activé - plus lent si la tâche dure",
+       "lead": "Activé",
+       "help": "La carte se met à jour moins souvent quand la tâche dure (10 s après 2 min, 30 s après 10 min) et son horloge avance par 30 s, sans jamais paraître bloquée. Un changement d'état s'affiche aussitôt."
+      },
+      {
+       "value": false,
+       "label": "Désactivé - même rythme toute la tâche",
+       "lead": "Désactivé",
+       "help": "La carte se met à jour au même rythme pendant toute la tâche, quelle que soit sa durée."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Mise en forme simple",
+     "options": [
+      {
+       "value": false,
+       "label": "Désactivé - mise en forme normale",
+       "lead": "Désactivé",
+       "help": "Claude met en forme ses réponses comme il veut."
+      },
+      {
+       "value": true,
+       "label": "Activé - texte simple uniquement",
+       "lead": "Activé",
+       "help": "Texte simple et listes à tirets uniquement, sans tableaux ni blocs de code."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Longueur des réponses",
+     "options": [
+      {
+       "value": "none",
+       "label": "Aucune règle",
+       "lead": "Aucune règle",
+       "help": "Aucune consigne de longueur."
+      },
+      {
+       "value": "xshort",
+       "label": "Très courte",
+       "lead": "Très courte",
+       "help": "Une ou deux phrases. Sans préambule ni résumé."
+      },
+      {
+       "value": "short",
+       "label": "Courte",
+       "lead": "Courte",
+       "help": "Quelques phrases."
+      },
+      {
+       "value": "medium",
+       "label": "Moyenne",
+       "lead": "Moyenne",
+       "help": "Un ou deux paragraphes."
+      },
+      {
+       "value": "long",
+       "label": "Longue",
+       "lead": "Longue",
+       "help": "Tous les détails quand la réponse le demande."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Niveau de vocabulaire",
+     "options": [
+      {
+       "value": "none",
+       "label": "Aucune règle",
+       "lead": "Aucune règle",
+       "help": "Aucune consigne de vocabulaire."
+      },
+      {
+       "value": "simple",
+       "label": "Mots simples",
+       "lead": "Mots simples",
+       "help": "Mots courants, phrases courtes."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Rédaction technique ordinaire."
+      },
+      {
+       "value": "advanced",
+       "label": "Avancé",
+       "lead": "Avancé",
+       "help": "Part du principe que vous connaissez le sujet ; pas d'explications de base."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Bouton Arrêter",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "L'aspect habituel de Telegram, comme les autres boutons.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Bleu",
+       "lead": "Bleu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Vert",
+       "lead": "Vert",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rouge",
+       "lead": "Rouge",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Boutons Autoriser et Refuser",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "L'aspect habituel de Telegram, comme les autres boutons.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Couleurs - Autoriser vert, Refuser rouge",
+       "lead": "Couleurs",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Bouton App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "L'aspect habituel de Telegram, comme les autres boutons.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Bleu",
+       "lead": "Bleu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Vert",
+       "lead": "Vert",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rouge",
+       "lead": "Rouge",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menu des paramètres",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Seul ✅ marque le choix actuel.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Choix actuel en bleu",
+       "lead": "Choix actuel en bleu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Signaler un problème",
+    "card": "Dites au créateur d'aipager ce qui n'a pas marché. Vous voyez tout le rapport avant le moindre envoi.",
+    "title": "Signaler un problème",
+    "privacy": "Il contient des versions, des comptes et des endroits du code d'aipager. Jamais vos discussions, messages, noms ou chemins.",
+    "noteLabel": "Votre note (facultatif)",
+    "notePlaceholder": "Que faisiez-vous quand le problème est survenu ?",
+    "asWritten": "Envoyée telle que vous l'écrivez.",
+    "whatSent": "Ce qui est envoyé",
+    "system": "Système",
+    "setup": "Configuration",
+    "setupLine": "Plusieurs discussions, 2 discussions privées, en marche : 1 à 24 heures",
+    "errors": "Erreurs (2)",
+    "err1": "TimeoutError dans la carte d'activité",
+    "err1Sub": "3 fois, vu pour la dernière fois le 2026-10-17",
+    "err2": "Erreur enregistrée dans l'envoi des messages à Telegram",
+    "err2Sub": "une fois, vu pour la dernière fois le 2026-10-16",
+    "foot": "Rien n'est envoyé tant que vous ne touchez pas « Envoyer le rapport ». Il part dans la boîte d'erreurs du créateur d'aipager, sans votre nom.",
+    "send": "Envoyer le rapport",
+    "sending": "Envoi...",
+    "sent": "Rapport envoyé",
+    "thanks": "Merci. Si vous ouvrez une issue sur GitHub, indiquez cette référence :"
+   },
+   "new": {
+    "title": "Nouvelle session",
+    "sub": "Nommez-la, choisissez un dossier, et Claude y démarre.",
+    "name": "Nom",
+    "where": "Où",
+    "recent": "Récents",
+    "suggested": "Suggérés",
+    "cwdTitle": "Dossier",
+    "newFolder": "Nouveau dossier",
+    "newFolderHelp": "Dans le dossier choisi ci-dessus",
+    "default": "Par défaut",
+    "defaultModelHelp": "Ce que Claude Code a dans sa configuration",
+    "otherModel": "Autre modèle",
+    "otherModelHelp": "Tapez un nom complet, par ex. claude-opus-5",
+    "modelName": "Nom du modèle",
+    "modelNeeded": "Tapez un nom de modèle pour continuer.",
+    "more": "Plus d'options",
+    "modeTitle": "Mode d'autorisation",
+    "modes": {
+     "ask": "Demander",
+     "auto": "Automatique",
+     "full": "Accès complet"
+    },
+    "modeHelp": {
+     "ask": "Claude demande avant d'exécuter des outils",
+     "auto": "Une vérification de sécurité laisse passer ce qui est sûr et arrête ce qui est risqué",
+     "full": "Tout s'exécute sans aucune vérification"
+    },
+    "summary": {
+     "ask": "Lance Claude dans {where}, en Mode Demander, avec {model}.",
+     "auto": "Lance Claude dans {where}, en Mode Automatique, avec {model}.",
+     "full": "Lance Claude dans {where}, en Mode Accès complet, avec {model}."
+    },
+    "summaryNamed": {
+     "ask": "Lance Claude sous le nom {name} dans {where}, en Mode Demander, avec {model}.",
+     "auto": "Lance Claude sous le nom {name} dans {where}, en Mode Automatique, avec {model}.",
+     "full": "Lance Claude sous le nom {name} dans {where}, en Mode Accès complet, avec {model}."
+    },
+    "cliModel": "le modèle par défaut de Claude Code",
+    "start": "Lancer la session",
+    "creating": "Création…",
+    "created": "Session créée."
+   }
   }
  },
  {
@@ -648,6 +3318,451 @@
    "agentsDone2": "✅ 2 Agenten fertig ({clock})",
    "agentDone11": "🤖 {agent} · 11 Tools genutzt · {clock}",
    "agentDone7": "🤖 {agent} · 7 Tools genutzt · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sitzungen",
+    "settings": "Einstellungen"
+   },
+   "uptime": "läuft seit 141 Min.",
+   "pulse": {
+    "need1": "1 braucht dich",
+    "working2": "2 arbeiten",
+    "working3": "3 arbeiten",
+    "resting1": "1 bereit",
+    "finished12": "12 beendet",
+    "spent": "{cost} ausgegeben"
+   },
+   "needsYou": "Brauchen dich",
+   "answerInChat": "Im Chat antworten",
+   "answerSent": "In den Chat gesendet. Beantworte sie dort.",
+   "newSession": "Neue Sitzung",
+   "state": {
+    "busy": "arbeitet",
+    "idle": "bereit",
+    "waiting": "braucht dich",
+    "gone": "beendet"
+   },
+   "finished12": "Beendet (12)",
+   "line": {
+    "resting": "Bereit, zuletzt aktiv {age}",
+    "working": "Arbeitet ({clock})",
+    "needs": "Braucht dich (Berechtigung)",
+    "finished": "Beendet"
+   },
+   "age": {
+    "s2": "vor 2 s",
+    "s14": "vor 14 s",
+    "m10": "vor 10 Min.",
+    "m40": "vor 40 Min.",
+    "h3": "vor 3 Std.",
+    "d2": "vor 2 T."
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Letzte Antwort",
+    "sessionSettings": "Sitzungseinstellungen"
+   },
+   "fact": {
+    "model": "Modell",
+    "context": "Kontext",
+    "cost": "Kosten",
+    "lastActive": "Zuletzt aktiv",
+    "mode": "Modus",
+    "cwd": "Ordner",
+    "working": "Arbeitszeit"
+   },
+   "modelTitle": "Modell",
+   "resetDefaults": "Auf Standard zurücksetzen",
+   "resetDone": "Auf Standard zurückgesetzt.",
+   "saved": "Gespeichert.",
+   "changed3": "Geänderte Dateien (3)",
+   "changedNone": "Geänderte Dateien (keine)",
+   "change": {
+    "added": "hinzugefügt",
+    "modified": "geändert",
+    "deleted": "gelöscht"
+   },
+   "timeline5": "Zeitverlauf (5)",
+   "timelineEmpty": "Zeitverlauf (leer)",
+   "timelineNote": "Der Zeitverlauf beginnt mit dem letzten Start von aipager. Er wird über Neustarts hinweg nicht gespeichert, daher zeigt eine ältere Sitzung hier nichts.",
+   "action": {
+    "stop": "Stoppen",
+    "restart": "Neu starten",
+    "compact": "Jetzt komprimieren",
+    "rename": "Umbenennen",
+    "kill": "Beenden",
+    "resume": "Fortsetzen",
+    "delete": "Löschen"
+   },
+   "done": {
+    "stop": "Gestoppt.",
+    "restart": "Neu gestartet.",
+    "compact": "Wird komprimiert…",
+    "rename": "Umbenannt.",
+    "kill": "Beendet.",
+    "resume": "Fortgesetzt.",
+    "delete": "Gelöscht."
+   },
+   "update": {
+    "title": "Updates",
+    "upToDate": "Alles ist aktuell.",
+    "check": "Nach Updates suchen",
+    "checking": "Wird geprüft…"
+   },
+   "language": {
+    "title": "App-Sprache",
+    "hint": "Nur der eigene Text von aipager. Claudes Antworten bleiben gleich.",
+    "auto": "Automatisch (deine Telegram-Sprache)"
+   },
+   "chatPrefs": "Chat-Einstellungen",
+   "prefsIntro": "Sie gelten für jede Sitzung in diesem Chat.",
+   "appearance": "Aussehen",
+   "appearanceIntro": "Wie die Buttons von aipager in diesem Chat aussehen.",
+   "defaultTag": "Standard",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "So sieht die Antwort aus",
+     "options": [
+      {
+       "value": "card",
+       "label": "Arbeitskarte + eigene Antwort",
+       "lead": "Arbeitskarte + eigene Antwort",
+       "help": "Die Arbeitskarte bleibt, die Antwort kommt als eigene Nachricht."
+      },
+      {
+       "value": "merged",
+       "label": "Antwort in der Karte",
+       "lead": "Antwort in der Karte",
+       "help": "Die Antwort ersetzt den Text der Arbeitskarte, in derselben Nachricht."
+      },
+      {
+       "value": "replace",
+       "label": "Nur die Antwort (ohne Karte)",
+       "lead": "Nur die Antwort (ohne Karte)",
+       "help": "Die Arbeitskarte wird gelöscht, nur die Antwort bleibt."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Diff-Vorschauen",
+     "options": [
+      {
+       "value": false,
+       "label": "Aus - nur die Arbeitskarte",
+       "lead": "Aus",
+       "help": "Dateiänderungen erscheinen nur als Zeilen auf der Arbeitskarte."
+      },
+      {
+       "value": true,
+       "label": "An - eine Diff-Nachricht pro Änderung",
+       "lead": "An",
+       "help": "Jedes Write/Edit kommt zusätzlich als eigene Diff-Nachricht unter der Arbeitskarte."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Karten-Updates bei langen Aufgaben",
+     "options": [
+      {
+       "value": true,
+       "label": "An - langsamer bei langen Aufgaben",
+       "lead": "An",
+       "help": "Je länger die Aufgabe dauert, desto seltener aktualisiert sich die Karte (ab 2 Min. alle 10 s, ab 10 Min. alle 30 s); ihre Uhr springt in 30-s-Schritten. Ein Statuswechsel erscheint sofort."
+      },
+      {
+       "value": false,
+       "label": "Aus - gleiches Tempo pro Aufgabe",
+       "lead": "Aus",
+       "help": "Die Karte aktualisiert sich die ganze Aufgabe über im gleichen Takt, egal wie lange sie dauert."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Einfache Formatierung",
+     "options": [
+      {
+       "value": false,
+       "label": "Aus - normale Formatierung",
+       "lead": "Aus",
+       "help": "Claude formatiert Antworten, wie es will."
+      },
+      {
+       "value": true,
+       "label": "An - nur einfacher Text",
+       "lead": "An",
+       "help": "Nur einfacher Text und Listen mit Bindestrichen, keine Tabellen oder Codeblöcke."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Antwortlänge",
+     "options": [
+      {
+       "value": "none",
+       "label": "Keine Regel",
+       "lead": "Keine Regel",
+       "help": "Keine Vorgabe zur Länge."
+      },
+      {
+       "value": "xshort",
+       "label": "Sehr kurz",
+       "lead": "Sehr kurz",
+       "help": "Ein oder zwei Sätze. Keine Einleitung, keine Zusammenfassung."
+      },
+      {
+       "value": "short",
+       "label": "Kurz",
+       "lead": "Kurz",
+       "help": "Ein paar Sätze."
+      },
+      {
+       "value": "medium",
+       "label": "Mittel",
+       "lead": "Mittel",
+       "help": "Ein paar Absätze."
+      },
+      {
+       "value": "long",
+       "label": "Lang",
+       "lead": "Lang",
+       "help": "Alle Details, wenn die Antwort sie braucht."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Wortschatz",
+     "options": [
+      {
+       "value": "none",
+       "label": "Keine Regel",
+       "lead": "Keine Regel",
+       "help": "Keine Vorgabe zum Wortschatz."
+      },
+      {
+       "value": "simple",
+       "label": "Einfache Wörter",
+       "lead": "Einfache Wörter",
+       "help": "Alltagswörter, kurze Sätze."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Übliche Fachsprache."
+      },
+      {
+       "value": "advanced",
+       "label": "Fortgeschritten",
+       "lead": "Fortgeschritten",
+       "help": "Setzt Fachwissen voraus; ohne Erklärungen für Einsteiger."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Stoppen-Button",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Das normale Aussehen von Telegram, wie bei allen anderen Buttons.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blau",
+       "lead": "Blau",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Grün",
+       "lead": "Grün",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rot",
+       "lead": "Rot",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Erlauben- und Ablehnen-Buttons",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Das normale Aussehen von Telegram, wie bei allen anderen Buttons.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Farbig - Erlauben grün, Ablehnen rot",
+       "lead": "Farbig",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "App-Button",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Das normale Aussehen von Telegram, wie bei allen anderen Buttons.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blau",
+       "lead": "Blau",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Grün",
+       "lead": "Grün",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rot",
+       "lead": "Rot",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Einstellungsmenü",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Nur ✅ markiert die aktuelle Auswahl.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Aktuelle Auswahl in Blau",
+       "lead": "Aktuelle Auswahl in Blau",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Problem melden",
+    "card": "Sag dem Entwickler von aipager, was schiefgelaufen ist. Du siehst den ganzen Bericht, bevor etwas gesendet wird.",
+    "title": "Problem melden",
+    "privacy": "Er enthält Versionen, Zähler und Stellen im Code von aipager. Nie deine Chats, Nachrichten, Namen oder Pfade.",
+    "noteLabel": "Deine Notiz (optional)",
+    "notePlaceholder": "Was hast du gemacht, als es schiefging?",
+    "asWritten": "Wird genau so gesendet, wie du sie schreibst.",
+    "whatSent": "Was gesendet wird",
+    "system": "System",
+    "setup": "Einrichtung",
+    "setupLine": "Mehrere Chats, 2 private Chats, läuft seit 1 bis 24 Stunden",
+    "errors": "Fehler (2)",
+    "err1": "TimeoutError in in der Arbeitskarte",
+    "err1Sub": "3-mal, zuletzt gesehen am 2026-10-17",
+    "err2": "Protokollierter Fehler in beim Senden der Nachrichten an Telegram",
+    "err2Sub": "einmal, zuletzt gesehen am 2026-10-16",
+    "foot": "Nichts wird gesendet, bevor du auf „Bericht senden“ tippst. Er geht ohne deinen Namen an das Fehlerpostfach des Entwicklers von aipager.",
+    "send": "Bericht senden",
+    "sending": "Wird gesendet...",
+    "sent": "Bericht gesendet",
+    "thanks": "Danke. Wenn du ein Issue auf GitHub öffnest, gib diese Referenz an:"
+   },
+   "new": {
+    "title": "Neue Sitzung",
+    "sub": "Gib ihr einen Namen, wähle einen Ordner, und Claude startet dort.",
+    "name": "Name",
+    "where": "Wo",
+    "recent": "Zuletzt",
+    "suggested": "Vorgeschlagen",
+    "cwdTitle": "Ordner",
+    "newFolder": "Neuer Ordner",
+    "newFolderHelp": "Im oben gewählten Ordner",
+    "default": "Standard",
+    "defaultModelHelp": "Was in Claude Code eingestellt ist",
+    "otherModel": "Anderes Modell",
+    "otherModelHelp": "Gib einen vollständigen Namen ein, z. B. claude-opus-5",
+    "modelName": "Modellname",
+    "modelNeeded": "Gib einen Modellnamen ein, um fortzufahren.",
+    "more": "Weitere Optionen",
+    "modeTitle": "Berechtigungsmodus",
+    "modes": {
+     "ask": "Fragen",
+     "auto": "Auto",
+     "full": "Vollzugriff"
+    },
+    "modeHelp": {
+     "ask": "Claude fragt, bevor es Tools nutzt",
+     "auto": "Eine Sicherheitsprüfung lässt sichere Aktionen durch und stoppt riskante",
+     "full": "Alles läuft ohne jede Prüfung"
+    },
+    "summary": {
+     "ask": "Startet Claude in {where} im Fragen-Modus mit {model}.",
+     "auto": "Startet Claude in {where} im Auto-Modus mit {model}.",
+     "full": "Startet Claude in {where} im Vollzugriff-Modus mit {model}."
+    },
+    "summaryNamed": {
+     "ask": "Startet Claude als {name} in {where} im Fragen-Modus mit {model}.",
+     "auto": "Startet Claude als {name} in {where} im Auto-Modus mit {model}.",
+     "full": "Startet Claude als {name} in {where} im Vollzugriff-Modus mit {model}."
+    },
+    "cliModel": "dem Standardmodell von Claude Code",
+    "start": "Sitzung starten",
+    "creating": "Wird erstellt…",
+    "created": "Sitzung erstellt."
+   }
   }
  },
  {
@@ -741,6 +3856,451 @@
    "agentsDone2": "✅ 에이전트 2개 완료 ({clock})",
    "agentDone11": "🤖 {agent} · 도구 11번 사용 · {clock}",
    "agentDone7": "🤖 {agent} · 도구 7번 사용 · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "세션",
+    "settings": "설정"
+   },
+   "uptime": "141분째 실행 중",
+   "pulse": {
+    "need1": "답변 대기 중 1개",
+    "working2": "작업 중 2개",
+    "working3": "작업 중 3개",
+    "resting1": "준비됨 1개",
+    "finished12": "종료됨 12개",
+    "spent": "{cost} 사용"
+   },
+   "needsYou": "답변 대기 중",
+   "answerInChat": "채팅에서 답하기",
+   "answerSent": "채팅에 보냈어요. 거기서 답하세요.",
+   "newSession": "새 세션",
+   "state": {
+    "busy": "작업 중",
+    "idle": "준비됨",
+    "waiting": "답변 대기 중",
+    "gone": "종료됨"
+   },
+   "finished12": "종료됨 (12)",
+   "line": {
+    "resting": "준비됨, 마지막 활동 {age}",
+    "working": "작업 중 ({clock})",
+    "needs": "답변 대기 중 (권한)",
+    "finished": "종료됨"
+   },
+   "age": {
+    "s2": "2초 전",
+    "s14": "14초 전",
+    "m10": "10분 전",
+    "m40": "40분 전",
+    "h3": "3시간 전",
+    "d2": "2일 전"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "최근 답변",
+    "sessionSettings": "세션 설정"
+   },
+   "fact": {
+    "model": "모델",
+    "context": "컨텍스트",
+    "cost": "비용",
+    "lastActive": "마지막 활동",
+    "mode": "모드",
+    "cwd": "폴더",
+    "working": "작업 시간"
+   },
+   "modelTitle": "모델",
+   "resetDefaults": "기본값으로 초기화",
+   "resetDone": "기본값으로 초기화했어요.",
+   "saved": "저장했어요.",
+   "changed3": "변경된 파일 (3)",
+   "changedNone": "변경된 파일 (없음)",
+   "change": {
+    "added": "추가됨",
+    "modified": "수정됨",
+    "deleted": "삭제됨"
+   },
+   "timeline5": "타임라인 (5)",
+   "timelineEmpty": "타임라인 (비어 있음)",
+   "timelineNote": "타임라인에는 aipager가 마지막으로 켜진 뒤의 내용만 있어요. aipager를 재시작하면 남지 않아서, 오래된 세션은 여기에 아무것도 나오지 않아요.",
+   "action": {
+    "stop": "중지",
+    "restart": "재시작",
+    "compact": "지금 압축",
+    "rename": "이름 바꾸기",
+    "kill": "종료",
+    "resume": "재개",
+    "delete": "삭제"
+   },
+   "done": {
+    "stop": "중지했어요.",
+    "restart": "재시작했어요.",
+    "compact": "대화를 압축하는 중…",
+    "rename": "이름을 바꿨어요.",
+    "kill": "종료했어요.",
+    "resume": "다시 열었어요.",
+    "delete": "삭제했어요."
+   },
+   "update": {
+    "title": "업데이트",
+    "upToDate": "모두 최신 상태예요.",
+    "check": "업데이트 확인",
+    "checking": "확인하는 중…"
+   },
+   "language": {
+    "title": "앱 언어",
+    "hint": "aipager 자체 문구만 바뀌어요. Claude의 답변은 그대로예요.",
+    "auto": "자동 (내 Telegram 언어)"
+   },
+   "chatPrefs": "채팅 설정",
+   "prefsIntro": "이 채팅의 모든 세션에 적용돼요.",
+   "appearance": "모양",
+   "appearanceIntro": "이 채팅에서 aipager 버튼이 보이는 방식이에요.",
+   "defaultTag": "기본",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "메시지 배치",
+     "options": [
+      {
+       "value": "card",
+       "label": "작업 카드 + 따로 오는 답변",
+       "lead": "작업 카드 + 따로 오는 답변",
+       "help": "작업 카드는 남고, 답변은 별도 메시지로 와요."
+      },
+      {
+       "value": "merged",
+       "label": "답변을 카드 안에",
+       "lead": "답변을 카드 안에",
+       "help": "답변이 같은 메시지 안에서 작업 카드의 본문을 대신해요."
+      },
+      {
+       "value": "replace",
+       "label": "카드 지우고 답변만",
+       "lead": "카드 지우고 답변만",
+       "help": "작업 카드는 지워지고 답변만 남아요."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "변경 사항 미리 보기 (diff)",
+     "options": [
+      {
+       "value": false,
+       "label": "끄기 - 작업 카드만",
+       "lead": "끄기",
+       "help": "파일 편집은 작업 카드의 줄로만 보여요."
+      },
+      {
+       "value": true,
+       "label": "켜기 - 편집마다 diff 메시지",
+       "lead": "켜기",
+       "help": "Write/Edit마다 작업 카드 아래에 별도의 diff 메시지도 올라와요."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "긴 작업의 카드 업데이트",
+     "options": [
+      {
+       "value": true,
+       "label": "켜기 - 작업이 길어지면 느리게",
+       "lead": "켜기",
+       "help": "작업이 길어질수록 카드를 덜 자주 새로 고쳐요 (2분 뒤에는 10초마다, 10분 뒤에는 30초마다). 시계도 30초 단위로 움직여서 멈춘 것처럼 보이지 않아요. 상태가 바뀌면 바로 보여요."
+      },
+      {
+       "value": false,
+       "label": "끄기 - 작업 내내 같은 속도",
+       "lead": "끄기",
+       "help": "작업이 아무리 길어도 카드는 같은 속도로 새로 고쳐져요."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "간단한 서식",
+     "options": [
+      {
+       "value": false,
+       "label": "끄기 - 보통 서식",
+       "lead": "끄기",
+       "help": "Claude가 답변 서식을 마음대로 정해요."
+      },
+      {
+       "value": true,
+       "label": "켜기 - 평범한 글만",
+       "lead": "켜기",
+       "help": "평범한 문장과 대시 목록만 써요. 표나 코드 블록은 쓰지 않아요."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "답변 길이",
+     "options": [
+      {
+       "value": "none",
+       "label": "규칙 없음",
+       "lead": "규칙 없음",
+       "help": "길이 규칙 없음."
+      },
+      {
+       "value": "xshort",
+       "label": "아주 짧게",
+       "lead": "아주 짧게",
+       "help": "한두 문장. 서두도 요약도 없어요."
+      },
+      {
+       "value": "short",
+       "label": "짧게",
+       "lead": "짧게",
+       "help": "몇 문장."
+      },
+      {
+       "value": "medium",
+       "label": "중간",
+       "lead": "중간",
+       "help": "두 문단 정도."
+      },
+      {
+       "value": "long",
+       "label": "길게",
+       "lead": "길게",
+       "help": "필요할 때는 자세하게 답해요."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "어휘 수준",
+     "options": [
+      {
+       "value": "none",
+       "label": "규칙 없음",
+       "lead": "규칙 없음",
+       "help": "어휘 규칙 없음."
+      },
+      {
+       "value": "simple",
+       "label": "쉬운 단어",
+       "lead": "쉬운 단어",
+       "help": "일상적인 단어, 짧은 문장."
+      },
+      {
+       "value": "normal",
+       "label": "보통",
+       "lead": "보통",
+       "help": "일반적인 기술 문체."
+      },
+      {
+       "value": "advanced",
+       "label": "고급",
+       "lead": "고급",
+       "help": "잘 아는 사람이라고 보고 따로 풀어 설명하지 않아요."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "중지 버튼",
+     "options": [
+      {
+       "value": "normal",
+       "label": "기본",
+       "lead": "기본",
+       "help": "다른 버튼처럼 Telegram 기본 모양이에요.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "파란색",
+       "lead": "파란색",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "초록색",
+       "lead": "초록색",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "빨간색",
+       "lead": "빨간색",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "허용·거부 버튼",
+     "options": [
+      {
+       "value": "normal",
+       "label": "기본",
+       "lead": "기본",
+       "help": "다른 버튼처럼 Telegram 기본 모양이에요.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "색 있음 - 허용은 초록, 거부는 빨강",
+       "lead": "색 있음",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "App 버튼",
+     "options": [
+      {
+       "value": "normal",
+       "label": "기본",
+       "lead": "기본",
+       "help": "다른 버튼처럼 Telegram 기본 모양이에요.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "파란색",
+       "lead": "파란색",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "초록색",
+       "lead": "초록색",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "빨간색",
+       "lead": "빨간색",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "설정 메뉴",
+     "options": [
+      {
+       "value": "normal",
+       "label": "기본",
+       "lead": "기본",
+       "help": "✅로만 지금 선택한 항목을 표시해요.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "지금 선택한 항목을 파란색으로",
+       "lead": "지금 선택한 항목을 파란색으로",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "문제 신고",
+    "card": "무엇이 잘못됐는지 aipager 개발자에게 알려 주세요. 보내기 전에 보고서 전체를 보여 드려요.",
+    "title": "문제 신고",
+    "privacy": "버전, 횟수, aipager 코드의 위치만 들어 있어요. 채팅, 메시지, 이름, 경로는 절대 들어 있지 않아요.",
+    "noteLabel": "메모 (선택)",
+    "notePlaceholder": "문제가 생겼을 때 무엇을 하고 있었나요?",
+    "asWritten": "쓴 그대로 보내요.",
+    "whatSent": "보내는 내용",
+    "system": "시스템",
+    "setup": "구성",
+    "setupLine": "여러 채팅에서 사용, 개인 채팅 2개, 실행 시간 1시간에서 24시간",
+    "errors": "오류 (2)",
+    "err1": "작업 카드의 TimeoutError",
+    "err1Sub": "3회, 마지막 발생 2026-10-17",
+    "err2": "Telegram으로 메시지 보내기에서 기록된 오류",
+    "err2Sub": "한 번, 마지막 발생 2026-10-16",
+    "foot": "“보고서 보내기”를 누르기 전에는 아무것도 보내지 않아요. 보고서는 이름 없이 aipager 개발자의 오류 수신함으로 가요.",
+    "send": "보고서 보내기",
+    "sending": "보내는 중...",
+    "sent": "보고서를 보냈어요",
+    "thanks": "고마워요. GitHub 이슈를 열면 이 참조 번호를 함께 적어 주세요:"
+   },
+   "new": {
+    "title": "새 세션",
+    "sub": "이름을 정하고 폴더를 고르면 Claude가 거기서 작업을 시작해요.",
+    "name": "이름",
+    "where": "위치",
+    "recent": "최근",
+    "suggested": "추천",
+    "cwdTitle": "폴더",
+    "newFolder": "새 폴더",
+    "newFolderHelp": "위에서 고른 폴더 안에 만들어요",
+    "default": "기본값",
+    "defaultModelHelp": "Claude Code에 설정된 모델",
+    "otherModel": "다른 모델",
+    "otherModelHelp": "전체 이름을 입력하세요. 예: claude-opus-5",
+    "modelName": "모델 이름",
+    "modelNeeded": "계속하려면 모델 이름을 입력하세요.",
+    "more": "옵션 더 보기",
+    "modeTitle": "권한 모드",
+    "modes": {
+     "ask": "확인",
+     "auto": "자동",
+     "full": "전체 권한"
+    },
+    "modeHelp": {
+     "ask": "Claude가 도구를 실행하기 전에 물어봐요",
+     "auto": "안전 검사가 안전한 작업은 실행하고 위험한 작업은 중지해요",
+     "full": "모든 작업이 아무 확인 없이 실행돼요"
+    },
+    "summary": {
+     "ask": "{where}에서 확인 모드로 Claude를 시작하고 {model} 모델을 써요.",
+     "auto": "{where}에서 자동 모드로 Claude를 시작하고 {model} 모델을 써요.",
+     "full": "{where}에서 전체 권한 모드로 Claude를 시작하고 {model} 모델을 써요."
+    },
+    "summaryNamed": {
+     "ask": "{where}에서 {name} 이름으로 확인 모드의 Claude를 시작하고 {model} 모델을 써요.",
+     "auto": "{where}에서 {name} 이름으로 자동 모드의 Claude를 시작하고 {model} 모델을 써요.",
+     "full": "{where}에서 {name} 이름으로 전체 권한 모드의 Claude를 시작하고 {model} 모델을 써요."
+    },
+    "cliModel": "Claude Code 자체 기본 모델",
+    "start": "세션 시작",
+    "creating": "만드는 중…",
+    "created": "세션을 만들었어요."
+   }
   }
  },
  {
@@ -834,6 +4394,451 @@
    "agentsDone2": "‏✅ انتهى عمل وكيلين (⁨{clock}⁩)‏",
    "agentDone11": "‏🤖 ⁨{agent}⁩ · استخدم ١١ أداة · ⁨{clock}⁩‏",
    "agentDone7": "‏🤖 ⁨{agent}⁩ · استخدم ٧ أدوات · ⁨{clock}⁩‏"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "‏الجلسات‏",
+    "settings": "‏الإعدادات‏"
+   },
+   "uptime": "‏يعمل منذ ١٤١ د‏",
+   "pulse": {
+    "need1": "‏بانتظارك: ١‏",
+    "working2": "‏تعمل: ٢‏",
+    "working3": "‏تعمل: ٣‏",
+    "resting1": "‏جاهزة: ١‏",
+    "finished12": "‏انتهت: ١٢‏",
+    "spent": "‏أُنفق ⁨{cost}⁩‏"
+   },
+   "needsYou": "‏بانتظارك‏",
+   "answerInChat": "‏الرد في الدردشة‏",
+   "answerSent": "‏أُرسل إلى الدردشة. يمكنك الرد هناك.‏",
+   "newSession": "‏جلسة جديدة‏",
+   "state": {
+    "busy": "‏تعمل‏",
+    "idle": "‏جاهزة‏",
+    "waiting": "‏بانتظارك‏",
+    "gone": "‏انتهت‏"
+   },
+   "finished12": "‏المنتهية (١٢)‏",
+   "line": {
+    "resting": "‏جاهزة، آخر نشاط ⁨{age}⁩‏",
+    "working": "‏تعمل (⁨{clock}⁩)‏",
+    "needs": "‏بانتظارك (⁨‏إذن‏⁩)‏",
+    "finished": "‏انتهت‏"
+   },
+   "age": {
+    "s2": "‏منذ ٢ ث‏",
+    "s14": "‏منذ ١٤ ث‏",
+    "m10": "‏منذ ١٠ د‏",
+    "m40": "‏منذ ٤٠ د‏",
+    "h3": "‏منذ ٣ س‏",
+    "d2": "‏منذ ٢ يوم‏"
+   },
+   "clock": {
+    "a": "٣:١٤",
+    "b": "١٤:٢٢",
+    "c": "٠:٤١"
+   },
+   "detail": {
+    "latestReply": "‏آخر رد‏",
+    "sessionSettings": "‏إعدادات الجلسة‏"
+   },
+   "fact": {
+    "model": "‏النموذج‏",
+    "context": "‏السياق‏",
+    "cost": "‏التكلفة‏",
+    "lastActive": "‏آخر نشاط‏",
+    "mode": "‏الوضع‏",
+    "cwd": "‏المجلد‏",
+    "working": "‏مدة العمل‏"
+   },
+   "modelTitle": "‏النموذج‏",
+   "resetDefaults": "‏استعادة الافتراضي‏",
+   "resetDone": "‏أُعيدت إلى الافتراضي.‏",
+   "saved": "‏تم الحفظ.‏",
+   "changed3": "‏الملفات المتغيرة (٣)‏",
+   "changedNone": "‏الملفات المتغيرة (لا شيء)‏",
+   "change": {
+    "added": "‏مضاف‏",
+    "modified": "‏معدّل‏",
+    "deleted": "‏محذوف‏"
+   },
+   "timeline5": "‏الخط الزمني (٥)‏",
+   "timelineEmpty": "‏الخط الزمني (فارغ)‏",
+   "timelineNote": "‏يغطي الخط الزمني فقط الفترة منذ آخر تشغيل لـ aipager. لا يُحفظ عند إعادة تشغيل aipager، لذا لا تُظهر الجلسات الأقدم شيئًا هنا.‏",
+   "action": {
+    "stop": "‏إيقاف‏",
+    "restart": "‏إعادة التشغيل‏",
+    "compact": "‏تلخيص الآن‏",
+    "rename": "‏إعادة التسمية‏",
+    "kill": "‏إنهاء‏",
+    "resume": "‏استئناف‏",
+    "delete": "‏حذف‏"
+   },
+   "done": {
+    "stop": "‏تم الإيقاف.‏",
+    "restart": "‏تمت إعادة التشغيل.‏",
+    "compact": "‏يجري تلخيص المحادثة…‏",
+    "rename": "‏تمت إعادة التسمية.‏",
+    "kill": "‏تم الإنهاء.‏",
+    "resume": "‏أُعيد الفتح.‏",
+    "delete": "‏تم الحذف.‏"
+   },
+   "update": {
+    "title": "‏التحديثات‏",
+    "upToDate": "‏كل شيء بأحدث إصدار.‏",
+    "check": "‏التحقق من التحديثات‏",
+    "checking": "‏يجري التحقق…‏"
+   },
+   "language": {
+    "title": "‏لغة التطبيق‏",
+    "hint": "‏نص aipager فقط. إجابات Claude لا تتغير.‏",
+    "auto": "‏تلقائي (لغة Telegram لديك)‏"
+   },
+   "chatPrefs": "‏إعدادات الدردشة‏",
+   "prefsIntro": "‏تنطبق على كل جلسة في هذه الدردشة.‏",
+   "appearance": "‏المظهر‏",
+   "appearanceIntro": "‏شكل أزرار aipager في هذه الدردشة.‏",
+   "defaultTag": "‏الافتراضي‏",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "شكل الرسائل‏",
+     "options": [
+      {
+       "value": "card",
+       "label": "‏بطاقة العمل + إجابة منفصلة‏",
+       "lead": "‏بطاقة العمل + إجابة منفصلة‏",
+       "help": "‏تبقى بطاقة العمل، وتصل الإجابة في رسالة خاصة بها.‏"
+      },
+      {
+       "value": "merged",
+       "label": "‏الإجابة داخل البطاقة‏",
+       "lead": "‏الإجابة داخل البطاقة‏",
+       "help": "‏تحل الإجابة محل نص بطاقة العمل في الرسالة نفسها.‏"
+      },
+      {
+       "value": "replace",
+       "label": "‏الإجابة فقط، بدل البطاقة‏",
+       "lead": "‏الإجابة فقط، بدل البطاقة‏",
+       "help": "‏تُحذف بطاقة العمل وتبقى الإجابة وحدها.‏"
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "معاينة التغييرات (diff)‏",
+     "options": [
+      {
+       "value": false,
+       "label": "‏إيقاف - بطاقة العمل فقط‏",
+       "lead": "‏إيقاف",
+       "help": "‏تظهر تعديلات الملفات صفوفًا على بطاقة العمل فقط.‏"
+      },
+      {
+       "value": true,
+       "label": "‏تشغيل - رسالة diff لكل تعديل‏",
+       "lead": "‏تشغيل",
+       "help": "‏كل Write/Edit يُرسل أيضًا في رسالة diff مستقلة تحت بطاقة العمل.‏"
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "تحديث البطاقة في المهام الطويلة‏",
+     "options": [
+      {
+       "value": true,
+       "label": "‏تشغيل - أبطأ كلما طالت المهمة‏",
+       "lead": "‏تشغيل",
+       "help": "‏كلما طالت المهمة قلّ تحديث البطاقة (كل ١٠ ث بعد دقيقتين، وكل ٣٠ ث بعد ١٠ د)، وتتقدم ساعتها بخطوات من ٣٠ ث فلا تبدو معلّقة. أي تغيير في الحالة يظهر فورًا.‏"
+      },
+      {
+       "value": false,
+       "label": "‏إيقاف - الوتيرة نفسها طوال المهمة‏",
+       "lead": "‏إيقاف",
+       "help": "‏تُحدَّث البطاقة بالوتيرة نفسها طوال المهمة مهما طالت.‏"
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "تنسيق بسيط‏",
+     "options": [
+      {
+       "value": false,
+       "label": "‏إيقاف - التنسيق المعتاد‏",
+       "lead": "‏إيقاف",
+       "help": "‏Claude ينسق الإجابات كما يشاء.‏"
+      },
+      {
+       "value": true,
+       "label": "‏تشغيل - نص عادي فقط‏",
+       "lead": "‏تشغيل",
+       "help": "‏نص عادي وقوائم بشرطات فقط - بلا جداول ولا كتل شيفرة.‏"
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "طول الإجابة‏",
+     "options": [
+      {
+       "value": "none",
+       "label": "‏بلا قاعدة‏",
+       "lead": "‏بلا قاعدة‏",
+       "help": "‏لا قاعدة للطول.‏"
+      },
+      {
+       "value": "xshort",
+       "label": "‏قصيرة جدًا‏",
+       "lead": "‏قصيرة جدًا‏",
+       "help": "‏جملة أو جملتان. بلا مقدمة ولا خلاصة.‏"
+      },
+      {
+       "value": "short",
+       "label": "‏قصيرة‏",
+       "lead": "‏قصيرة‏",
+       "help": "‏بضع جمل.‏"
+      },
+      {
+       "value": "medium",
+       "label": "‏متوسطة‏",
+       "lead": "‏متوسطة‏",
+       "help": "‏فقرتان تقريبًا.‏"
+      },
+      {
+       "value": "long",
+       "label": "‏طويلة‏",
+       "lead": "‏طويلة‏",
+       "help": "‏كل التفاصيل حين تحتاجها الإجابة.‏"
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "مستوى المفردات‏",
+     "options": [
+      {
+       "value": "none",
+       "label": "‏بلا قاعدة‏",
+       "lead": "‏بلا قاعدة‏",
+       "help": "‏لا قاعدة للمفردات.‏"
+      },
+      {
+       "value": "simple",
+       "label": "‏كلمات بسيطة‏",
+       "lead": "‏كلمات بسيطة‏",
+       "help": "‏كلمات يومية، وجمل قصيرة.‏"
+      },
+      {
+       "value": "normal",
+       "label": "‏عادي‏",
+       "lead": "‏عادي‏",
+       "help": "‏كتابة تقنية عادية.‏"
+      },
+      {
+       "value": "advanced",
+       "label": "‏متقدم‏",
+       "lead": "‏متقدم‏",
+       "help": "‏يفترض الخبرة؛ بلا شرح إضافي.‏"
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "زر الإيقاف‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏عادي‏",
+       "lead": "‏عادي‏",
+       "help": "‏شكل Telegram المعتاد، مثل باقي الأزرار.‏",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "‏أزرق‏",
+       "lead": "‏أزرق‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "‏أخضر‏",
+       "lead": "‏أخضر‏",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "‏أحمر‏",
+       "lead": "‏أحمر‏",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "زرّا السماح والرفض‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏عادي‏",
+       "lead": "‏عادي‏",
+       "help": "‏شكل Telegram المعتاد، مثل باقي الأزرار.‏",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "‏ملوّن - السماح أخضر والرفض أحمر‏",
+       "lead": "‏ملوّن",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "زر App‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏عادي‏",
+       "lead": "‏عادي‏",
+       "help": "‏شكل Telegram المعتاد، مثل باقي الأزرار.‏",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "‏أزرق‏",
+       "lead": "‏أزرق‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "‏أخضر‏",
+       "lead": "‏أخضر‏",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "‏أحمر‏",
+       "lead": "‏أحمر‏",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "قائمة الإعدادات‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏عادي‏",
+       "lead": "‏عادي‏",
+       "help": "‏علامة ✅ وحدها تُبرز الخيار الحالي.‏",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "‏الخيار الحالي بالأزرق‏",
+       "lead": "‏الخيار الحالي بالأزرق‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "‏الإبلاغ عن مشكلة‏",
+    "card": "‏يمكنك إخبار مطوّر aipager بما حدث. يظهر لك التقرير كاملًا قبل إرسال أي شيء.‏",
+    "title": "‏الإبلاغ عن مشكلة‏",
+    "privacy": "‏يحتوي على الإصدارات والعدادات ومواضع في شيفرة aipager. ولا يحتوي أبدًا على دردشاتك أو نص رسالتك أو الأسماء أو المسارات.‏",
+    "noteLabel": "‏ملاحظتك (اختيارية)‏",
+    "notePlaceholder": "‏ما الذي كان يجري حين حدث الخطأ؟‏",
+    "asWritten": "‏يُرسل كما كتبته تمامًا.‏",
+    "whatSent": "‏ما الذي سيُرسل‏",
+    "system": "‏النظام‏",
+    "setup": "‏الإعداد‏",
+    "setupLine": "‏⁨‏استخدام في عدة دردشات‏⁩، ⁨‏دردشتان خاصتان‏⁩، مدة التشغيل: ⁨‏من ساعة إلى ٢٤ ساعة‏⁩‏",
+    "errors": "‏الأخطاء (٢)‏",
+    "err1": "‏⁨TimeoutError⁩ في ⁨‏بطاقة العمل‏⁩‏",
+    "err1Sub": "‏⁨‏٣ مرات‏⁩، آخر ظهور ⁨2026-10-17⁩‏",
+    "err2": "‏خطأ مسجل في ⁨‏إرسال الرسائل إلى Telegram‏⁩‏",
+    "err2Sub": "‏⁨‏مرة واحدة‏⁩، آخر ظهور ⁨2026-10-16⁩‏",
+    "foot": "‏لا يُرسل شيء قبل الضغط على «إرسال التقرير». يذهب التقرير دون اسمك إلى صندوق أخطاء مطوّر aipager.‏",
+    "send": "‏إرسال التقرير‏",
+    "sending": "‏يجري الإرسال...‏",
+    "sent": "‏تم إرسال التقرير‏",
+    "thanks": "‏شكرًا. إذا فتحت issue على GitHub، يمكنك ذكر رقم المرجع هذا:‏"
+   },
+   "new": {
+    "title": "‏جلسة جديدة‏",
+    "sub": "‏يكفي اسم ومجلد، ثم يبدأ Claude العمل هناك.‏",
+    "name": "‏الاسم‏",
+    "where": "‏أين‏",
+    "recent": "‏الأخيرة‏",
+    "suggested": "‏مقترحة‏",
+    "cwdTitle": "‏المجلد‏",
+    "newFolder": "‏مجلد جديد‏",
+    "newFolderHelp": "‏داخل المجلد المختار أعلاه‏",
+    "default": "‏الافتراضي‏",
+    "defaultModelHelp": "‏النموذج المحدد في Claude Code‏",
+    "otherModel": "‏نموذج آخر‏",
+    "otherModelHelp": "‏يُرجى كتابة اسم كامل، مثل ⁨claude-opus-5⁩‏",
+    "modelName": "‏اسم النموذج‏",
+    "modelNeeded": "‏يُرجى كتابة اسم نموذج للمتابعة.‏",
+    "more": "‏خيارات أخرى‏",
+    "modeTitle": "‏وضع الأذونات‏",
+    "modes": {
+     "ask": "‏اسأل‏",
+     "auto": "‏تلقائي‏",
+     "full": "‏وصول كامل‏"
+    },
+    "modeHelp": {
+     "ask": "‏يسأل Claude قبل تشغيل الأدوات‏",
+     "auto": "‏فحص أمان يشغّل الإجراءات الآمنة ويوقف الخطرة‏",
+     "full": "‏يعمل كل شيء دون أي فحص‏"
+    },
+    "summary": {
+     "ask": "‏يبدأ Claude في ⁨{where}⁩، في وضع «اسأل»، باستخدام ⁨{model}⁩.‏",
+     "auto": "‏يبدأ Claude في ⁨{where}⁩، في الوضع التلقائي، باستخدام ⁨{model}⁩.‏",
+     "full": "‏يبدأ Claude في ⁨{where}⁩، في وضع الوصول الكامل، باستخدام ⁨{model}⁩.‏"
+    },
+    "summaryNamed": {
+     "ask": "‏يبدأ Claude باسم ⁨{name}⁩ في ⁨{where}⁩، في وضع «اسأل»، باستخدام ⁨{model}⁩.‏",
+     "auto": "‏يبدأ Claude باسم ⁨{name}⁩ في ⁨{where}⁩، في الوضع التلقائي، باستخدام ⁨{model}⁩.‏",
+     "full": "‏يبدأ Claude باسم ⁨{name}⁩ في ⁨{where}⁩، في وضع الوصول الكامل، باستخدام ⁨{model}⁩.‏"
+    },
+    "cliModel": "‏النموذج الافتراضي في Claude Code‏",
+    "start": "‏بدء الجلسة‏",
+    "creating": "‏يجري الإنشاء…‏",
+    "created": "‏أُنشئت الجلسة.‏"
+   }
   }
  },
  {
@@ -927,6 +4932,451 @@
    "agentsDone2": "✅ 2 agen selesai ({clock})",
    "agentDone11": "🤖 {agent} · 11 alat · {clock}",
    "agentDone7": "🤖 {agent} · 7 alat · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sesi",
+    "settings": "Pengaturan"
+   },
+   "uptime": "menyala 141 mnt",
+   "pulse": {
+    "need1": "1 menunggu jawabanmu",
+    "working2": "2 sedang bekerja",
+    "working3": "3 sedang bekerja",
+    "resting1": "1 siap",
+    "finished12": "12 sudah berakhir",
+    "spent": "{cost} terpakai"
+   },
+   "needsYou": "Menunggu jawabanmu",
+   "answerInChat": "Jawab di chat",
+   "answerSent": "Dikirim ke chat. Jawab di sana.",
+   "newSession": "Sesi baru",
+   "state": {
+    "busy": "sedang bekerja",
+    "idle": "siap",
+    "waiting": "menunggu jawabanmu",
+    "gone": "sudah berakhir"
+   },
+   "finished12": "Sudah berakhir (12)",
+   "line": {
+    "resting": "Siap, terakhir aktif {age}",
+    "working": "Bekerja ({clock})",
+    "needs": "Menunggu jawabanmu (izin)",
+    "finished": "Sudah berakhir"
+   },
+   "age": {
+    "s2": "2 detik lalu",
+    "s14": "14 detik lalu",
+    "m10": "10 menit lalu",
+    "m40": "40 menit lalu",
+    "h3": "3 jam lalu",
+    "d2": "2 hari lalu"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Jawaban terbaru",
+    "sessionSettings": "Pengaturan sesi"
+   },
+   "fact": {
+    "model": "Model",
+    "context": "Konteks",
+    "cost": "Biaya",
+    "lastActive": "Terakhir aktif",
+    "mode": "Mode",
+    "cwd": "Folder",
+    "working": "Lama bekerja"
+   },
+   "modelTitle": "Model",
+   "resetDefaults": "Kembalikan ke bawaan",
+   "resetDone": "Dikembalikan ke bawaan.",
+   "saved": "Tersimpan.",
+   "changed3": "File yang berubah (3)",
+   "changedNone": "File yang berubah (tidak ada)",
+   "change": {
+    "added": "ditambah",
+    "modified": "diubah",
+    "deleted": "dihapus"
+   },
+   "timeline5": "Linimasa (5)",
+   "timelineEmpty": "Linimasa (kosong)",
+   "timelineNote": "Linimasa hanya mencakup waktu sejak aipager terakhir dinyalakan. Linimasa tidak disimpan saat aipager dimulai ulang, jadi sesi yang lebih lama tidak menampilkan apa pun di sini.",
+   "action": {
+    "stop": "Hentikan",
+    "restart": "Mulai ulang",
+    "compact": "Ringkas sekarang",
+    "rename": "Ganti nama",
+    "kill": "Akhiri",
+    "resume": "Lanjutkan",
+    "delete": "Hapus"
+   },
+   "done": {
+    "stop": "Dihentikan.",
+    "restart": "Dimulai ulang.",
+    "compact": "Meringkas percakapan…",
+    "rename": "Nama diganti.",
+    "kill": "Diakhiri.",
+    "resume": "Dilanjutkan.",
+    "delete": "Dihapus."
+   },
+   "update": {
+    "title": "Pembaruan",
+    "upToDate": "Semuanya sudah terbaru.",
+    "check": "Cek pembaruan",
+    "checking": "Memeriksa…"
+   },
+   "language": {
+    "title": "Bahasa aplikasi",
+    "hint": "Hanya teks aipager sendiri. Jawaban Claude tidak berubah.",
+    "auto": "Otomatis (bahasa Telegram-mu)"
+   },
+   "chatPrefs": "Pengaturan chat",
+   "prefsIntro": "Ini berlaku untuk setiap sesi di chat ini.",
+   "appearance": "Tampilan",
+   "appearanceIntro": "Cara tombol aipager terlihat di chat ini.",
+   "defaultTag": "bawaan",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Tata letak pesan",
+     "options": [
+      {
+       "value": "card",
+       "label": "Kartu kerja + jawaban terpisah",
+       "lead": "Kartu kerja + jawaban terpisah",
+       "help": "Kartu kerja tetap ada, jawaban datang sebagai pesan tersendiri."
+      },
+      {
+       "value": "merged",
+       "label": "Jawaban di dalam kartu kerja",
+       "lead": "Jawaban di dalam kartu kerja",
+       "help": "Jawaban menggantikan isi kartu kerja di pesan yang sama."
+      },
+      {
+       "value": "replace",
+       "label": "Hanya jawaban, kartu dihapus",
+       "lead": "Hanya jawaban, kartu dihapus",
+       "help": "Kartu kerja dihapus, hanya jawaban yang tersisa."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Pratinjau perubahan (diff)",
+     "options": [
+      {
+       "value": false,
+       "label": "Mati - hanya kartu kerja",
+       "lead": "Mati",
+       "help": "Edit file hanya tampil sebagai baris di kartu kerja."
+      },
+      {
+       "value": true,
+       "label": "Nyala - satu pesan diff tiap edit",
+       "lead": "Nyala",
+       "help": "Setiap Write/Edit juga dikirim sebagai pesan diff tersendiri di bawah kartu kerja."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Pembaruan kartu tugas panjang",
+     "options": [
+      {
+       "value": true,
+       "label": "Nyala - melambat saat tugas lama",
+       "lead": "Nyala",
+       "help": "Makin lama tugas berjalan, makin jarang kartu diperbarui (tiap 10 dtk setelah 2 mnt, tiap 30 dtk setelah 10 mnt); jamnya maju per 30 dtk agar tak tampak macet. Status baru tetap langsung tampil."
+      },
+      {
+       "value": false,
+       "label": "Mati - laju sama sepanjang tugas",
+       "lead": "Mati",
+       "help": "Kartu diperbarui dengan laju yang sama sepanjang tugas, berapa pun lamanya."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Format sederhana",
+     "options": [
+      {
+       "value": false,
+       "label": "Mati - format biasa",
+       "lead": "Mati",
+       "help": "Claude memformat jawaban sesukanya."
+      },
+      {
+       "value": true,
+       "label": "Nyala - teks biasa saja",
+       "lead": "Nyala",
+       "help": "Hanya teks biasa dan daftar dengan strip - tanpa tabel atau blok kode."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Panjang jawaban",
+     "options": [
+      {
+       "value": "none",
+       "label": "Tanpa aturan",
+       "lead": "Tanpa aturan",
+       "help": "Tanpa panduan panjang sama sekali."
+      },
+      {
+       "value": "xshort",
+       "label": "Sangat pendek",
+       "lead": "Sangat pendek",
+       "help": "Satu atau dua kalimat. Tanpa pembuka, tanpa ringkasan."
+      },
+      {
+       "value": "short",
+       "label": "Pendek",
+       "lead": "Pendek",
+       "help": "Beberapa kalimat."
+      },
+      {
+       "value": "medium",
+       "label": "Sedang",
+       "lead": "Sedang",
+       "help": "Sekitar dua paragraf."
+      },
+      {
+       "value": "long",
+       "label": "Panjang",
+       "lead": "Panjang",
+       "help": "Detail lengkap kalau jawabannya butuh."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Tingkat kosakata",
+     "options": [
+      {
+       "value": "none",
+       "label": "Tanpa aturan",
+       "lead": "Tanpa aturan",
+       "help": "Tanpa panduan kosakata sama sekali."
+      },
+      {
+       "value": "simple",
+       "label": "Kata sederhana",
+       "lead": "Kata sederhana",
+       "help": "Kata sehari-hari, kalimat pendek."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Tulisan teknis biasa."
+      },
+      {
+       "value": "advanced",
+       "label": "Mahir",
+       "lead": "Mahir",
+       "help": "Menganggap kamu ahli; tanpa penjelasan tambahan."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Tombol Hentikan",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Biasa",
+       "lead": "Biasa",
+       "help": "Tampilan bawaan Telegram, seperti tombol lain.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Biru",
+       "lead": "Biru",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Hijau",
+       "lead": "Hijau",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Merah",
+       "lead": "Merah",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Tombol Izinkan dan Tolak",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Biasa",
+       "lead": "Biasa",
+       "help": "Tampilan bawaan Telegram, seperti tombol lain.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Berwarna - Izinkan hijau, Tolak merah",
+       "lead": "Berwarna",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Tombol App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Biasa",
+       "lead": "Biasa",
+       "help": "Tampilan bawaan Telegram, seperti tombol lain.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Biru",
+       "lead": "Biru",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Hijau",
+       "lead": "Hijau",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Merah",
+       "lead": "Merah",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menu pengaturan",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Biasa",
+       "lead": "Biasa",
+       "help": "Hanya ✅ yang menandai pilihan saat ini.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Pilihan saat ini biru",
+       "lead": "Pilihan saat ini biru",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Laporkan masalah",
+    "card": "Beri tahu pembuat aipager apa yang salah. Kamu melihat seluruh laporannya sebelum ada yang dikirim.",
+    "title": "Laporkan masalah",
+    "privacy": "Isinya hanya versi, jumlah, dan lokasi di kode aipager. Tidak pernah chat, pesan, nama, atau path milikmu.",
+    "noteLabel": "Catatanmu (opsional)",
+    "notePlaceholder": "Apa yang sedang kamu lakukan saat terjadi masalah?",
+    "asWritten": "Dikirim persis seperti yang kamu tulis.",
+    "whatSent": "Yang dikirim",
+    "system": "Sistem",
+    "setup": "Penyiapan",
+    "setupLine": "Pemakaian di banyak chat, 2 chat pribadi, berjalan 1 sampai 24 jam",
+    "errors": "Error (2)",
+    "err1": "TimeoutError di kartu kerja",
+    "err1Sub": "3 kali, terakhir terlihat 2026-10-17",
+    "err2": "Error tercatat di pengiriman pesan ke Telegram",
+    "err2Sub": "sekali, terakhir terlihat 2026-10-16",
+    "foot": "Tidak ada yang dikirim sampai kamu mengetuk “Kirim laporan”. Laporan masuk ke kotak error pembuat aipager, tanpa namamu.",
+    "send": "Kirim laporan",
+    "sending": "Mengirim...",
+    "sent": "Laporan terkirim",
+    "thanks": "Terima kasih. Kalau kamu membuat issue di GitHub, sebutkan kode referensi ini:"
+   },
+   "new": {
+    "title": "Sesi baru",
+    "sub": "Beri nama, pilih folder, lalu Claude mulai bekerja di sana.",
+    "name": "Nama",
+    "where": "Lokasi",
+    "recent": "Baru-baru ini",
+    "suggested": "Saran",
+    "cwdTitle": "Folder",
+    "newFolder": "Folder baru",
+    "newFolderHelp": "Di dalam folder yang dipilih di atas",
+    "default": "Bawaan",
+    "defaultModelHelp": "Model apa pun yang diatur di Claude Code",
+    "otherModel": "Model lain",
+    "otherModelHelp": "Ketik nama lengkap, misalnya claude-opus-5",
+    "modelName": "Nama model",
+    "modelNeeded": "Ketik nama model untuk melanjutkan.",
+    "more": "Opsi lainnya",
+    "modeTitle": "Mode izin",
+    "modes": {
+     "ask": "Tanya",
+     "auto": "Auto",
+     "full": "Akses penuh"
+    },
+    "modeHelp": {
+     "ask": "Claude bertanya sebelum menjalankan alat",
+     "auto": "Pemeriksaan keamanan menjalankan tindakan aman dan menghentikan yang berisiko",
+     "full": "Semuanya berjalan tanpa pemeriksaan apa pun"
+    },
+    "summary": {
+     "ask": "Memulai Claude di {where}, dalam Mode Tanya, memakai {model}.",
+     "auto": "Memulai Claude di {where}, dalam Mode Auto, memakai {model}.",
+     "full": "Memulai Claude di {where}, dalam Mode Akses penuh, memakai {model}."
+    },
+    "summaryNamed": {
+     "ask": "Memulai Claude sebagai {name} di {where}, dalam Mode Tanya, memakai {model}.",
+     "auto": "Memulai Claude sebagai {name} di {where}, dalam Mode Auto, memakai {model}.",
+     "full": "Memulai Claude sebagai {name} di {where}, dalam Mode Akses penuh, memakai {model}."
+    },
+    "cliModel": "model bawaan Claude Code sendiri",
+    "start": "Mulai sesi",
+    "creating": "Membuat…",
+    "created": "Sesi dibuat."
+   }
   }
  },
  {
@@ -1020,6 +5470,451 @@
    "agentsDone2": "✅ Готово: 2 агенти ({clock})",
    "agentDone11": "🤖 {agent} · 11 інструментів · {clock}",
    "agentDone7": "🤖 {agent} · 7 інструментів · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Сесії",
+    "settings": "Налаштування"
+   },
+   "uptime": "працює 141 хв",
+   "pulse": {
+    "need1": "1 чекає на тебе",
+    "working2": "2 працюють",
+    "working3": "3 працюють",
+    "resting1": "1 готова",
+    "finished12": "12 завершено",
+    "spent": "витрачено {cost}"
+   },
+   "needsYou": "Чекають на тебе",
+   "answerInChat": "Відповісти в чаті",
+   "answerSent": "Надіслано в чат. Дай відповідь там.",
+   "newSession": "Нова сесія",
+   "state": {
+    "busy": "працює",
+    "idle": "готова",
+    "waiting": "чекає на тебе",
+    "gone": "завершена"
+   },
+   "finished12": "Завершені (12)",
+   "line": {
+    "resting": "Готова, остання активність {age}",
+    "working": "Працює ({clock})",
+    "needs": "Чекає на тебе (дозвіл)",
+    "finished": "Завершена"
+   },
+   "age": {
+    "s2": "2 с тому",
+    "s14": "14 с тому",
+    "m10": "10 хв тому",
+    "m40": "40 хв тому",
+    "h3": "3 год тому",
+    "d2": "2 дн. тому"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Остання відповідь",
+    "sessionSettings": "Налаштування сесії"
+   },
+   "fact": {
+    "model": "Модель",
+    "context": "Контекст",
+    "cost": "Вартість",
+    "lastActive": "Остання активність",
+    "mode": "Режим",
+    "cwd": "Папка",
+    "working": "Час роботи"
+   },
+   "modelTitle": "Модель",
+   "resetDefaults": "Повернути за замовчуванням",
+   "resetDone": "Налаштування за замовчуванням повернуто.",
+   "saved": "Збережено.",
+   "changed3": "Змінені файли (3)",
+   "changedNone": "Змінені файли (немає)",
+   "change": {
+    "added": "додано",
+    "modified": "змінено",
+    "deleted": "видалено"
+   },
+   "timeline5": "Хронологія (5)",
+   "timelineEmpty": "Хронологія (порожньо)",
+   "timelineNote": "Хронологія охоплює лише поточний запуск aipager. Між перезапусками вона не зберігається, тож у старої сесії тут порожньо.",
+   "action": {
+    "stop": "Зупинити",
+    "restart": "Перезапустити",
+    "compact": "Стиснути зараз",
+    "rename": "Перейменувати",
+    "kill": "Завершити",
+    "resume": "Продовжити",
+    "delete": "Видалити"
+   },
+   "done": {
+    "stop": "Зупинено.",
+    "restart": "Перезапущено.",
+    "compact": "Стискаю розмову…",
+    "rename": "Перейменовано.",
+    "kill": "Завершено.",
+    "resume": "Знову працює.",
+    "delete": "Видалено."
+   },
+   "update": {
+    "title": "Оновлення",
+    "upToDate": "Усе актуальне.",
+    "check": "Перевірити оновлення",
+    "checking": "Перевіряю…"
+   },
+   "language": {
+    "title": "Мова застосунку",
+    "hint": "Лише власний текст aipager. Відповіді Claude не змінюються.",
+    "auto": "Автоматично (мова твого Telegram)"
+   },
+   "chatPrefs": "Налаштування чату",
+   "prefsIntro": "Вони діють для кожної сесії в цьому чаті.",
+   "appearance": "Оформлення",
+   "appearanceIntro": "Як виглядають кнопки aipager у цьому чаті.",
+   "defaultTag": "за замовчуванням",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Вигляд повідомлень",
+     "options": [
+      {
+       "value": "card",
+       "label": "Картка + відповідь окремо",
+       "lead": "Картка + відповідь окремо",
+       "help": "Робоча картка залишається, відповідь приходить окремим повідомленням."
+      },
+      {
+       "value": "merged",
+       "label": "Відповідь усередині картки",
+       "lead": "Відповідь усередині картки",
+       "help": "Відповідь стає на місце тексту робочої картки, у тому самому повідомленні."
+      },
+      {
+       "value": "replace",
+       "label": "Лише відповідь (без картки)",
+       "lead": "Лише відповідь (без картки)",
+       "help": "Робоча картка видаляється, лишається тільки відповідь."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Попередній перегляд змін",
+     "options": [
+      {
+       "value": false,
+       "label": "Вимк - лише робоча картка",
+       "lead": "Вимк",
+       "help": "Правки файлів видно лише рядками в робочій картці."
+      },
+      {
+       "value": true,
+       "label": "Увімк - diff на кожну правку",
+       "lead": "Увімк",
+       "help": "Кожен Write/Edit також приходить окремим повідомленням із diff під робочою карткою."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Оновлення картки в довгих завданнях",
+     "options": [
+      {
+       "value": true,
+       "label": "Увімк - рідше в довгих завданнях",
+       "lead": "Увімк",
+       "help": "Що довше завдання, то рідше оновлюється картка (кожні 10 с після 2 хв, кожні 30 с після 10 хв), а її годинник іде кроками по 30 с і не виглядає завислим. Зміна стану видна одразу."
+      },
+      {
+       "value": false,
+       "label": "Вимк - один темп усе завдання",
+       "lead": "Вимк",
+       "help": "Картка оновлюється в одному темпі все завдання, хоч би скільки воно тривало."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Просте оформлення",
+     "options": [
+      {
+       "value": false,
+       "label": "Вимк - звичайне оформлення",
+       "lead": "Вимк",
+       "help": "Claude оформлює відповіді як хоче."
+      },
+      {
+       "value": true,
+       "label": "Увімк - лише простий текст",
+       "lead": "Увімк",
+       "help": "Лише простий текст і списки через дефіс, без таблиць і блоків коду."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Довжина відповіді",
+     "options": [
+      {
+       "value": "none",
+       "label": "Без правил",
+       "lead": "Без правил",
+       "help": "Жодних вказівок щодо довжини."
+      },
+      {
+       "value": "xshort",
+       "label": "Дуже коротка",
+       "lead": "Дуже коротка",
+       "help": "Одне-два речення. Без вступу й підсумків."
+      },
+      {
+       "value": "short",
+       "label": "Коротка",
+       "lead": "Коротка",
+       "help": "Кілька речень."
+      },
+      {
+       "value": "medium",
+       "label": "Середня",
+       "lead": "Середня",
+       "help": "Кілька абзаців."
+      },
+      {
+       "value": "long",
+       "label": "Довга",
+       "lead": "Довга",
+       "help": "Усі подробиці, коли відповідь їх потребує."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Рівень словника",
+     "options": [
+      {
+       "value": "none",
+       "label": "Без правил",
+       "lead": "Без правил",
+       "help": "Жодних вказівок щодо слів."
+      },
+      {
+       "value": "simple",
+       "label": "Прості слова",
+       "lead": "Прості слова",
+       "help": "Повсякденні слова, короткі речення."
+      },
+      {
+       "value": "normal",
+       "label": "Звичайний",
+       "lead": "Звичайний",
+       "help": "Звичайний технічний текст."
+      },
+      {
+       "value": "advanced",
+       "label": "Просунутий",
+       "lead": "Просунутий",
+       "help": "Для обізнаних; без розжовування."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Кнопка «Зупинити»",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Звичайний",
+       "lead": "Звичайний",
+       "help": "Звичайний вигляд Telegram, як в інших кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Синій",
+       "lead": "Синій",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Зелений",
+       "lead": "Зелений",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Червоний",
+       "lead": "Червоний",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Кнопки «Дозволити» і «Відхилити»",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Звичайний",
+       "lead": "Звичайний",
+       "help": "Звичайний вигляд Telegram, як в інших кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Зелена «Дозволити», червона «Відхилити»",
+       "lead": "Зелена «Дозволити», червона «Відхилити»",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Кнопка App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Звичайний",
+       "lead": "Звичайний",
+       "help": "Звичайний вигляд Telegram, як в інших кнопок.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Синій",
+       "lead": "Синій",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Зелений",
+       "lead": "Зелений",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Червоний",
+       "lead": "Червоний",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Меню налаштувань",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Звичайний",
+       "lead": "Звичайний",
+       "help": "Поточний вибір позначено лише ✅.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Поточний вибір синім",
+       "lead": "Поточний вибір синім",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Повідомити про проблему",
+    "card": "Розкажи розробнику aipager, що пішло не так. Перед надсиланням ти побачиш увесь звіт.",
+    "title": "Повідомити про проблему",
+    "privacy": "Тут версії, лічильники й місця в коді aipager. Ніколи твої чати, повідомлення, імена чи шляхи.",
+    "noteLabel": "Твоя примітка (необов'язково)",
+    "notePlaceholder": "Що відбувалося, коли все зламалося?",
+    "asWritten": "Надішлеться точно так, як ти її напишеш.",
+    "whatSent": "Що надішлеться",
+    "system": "Система",
+    "setup": "Налаштування",
+    "setupLine": "Кілька чатів, 2 особисті чати, працює від 1 до 24 годин",
+    "errors": "Помилки (2)",
+    "err1": "TimeoutError в робоча картка",
+    "err1Sub": "3 рази, востаннє 2026-10-17",
+    "err2": "Помилка в журналі: надсилання повідомлень у Telegram",
+    "err2Sub": "один раз, востаннє 2026-10-16",
+    "foot": "Нічого не надішлеться, поки ти не натиснеш «Надіслати звіт». Звіт піде до скриньки помилок розробника aipager, без твого імені.",
+    "send": "Надіслати звіт",
+    "sending": "Надсилаю...",
+    "sent": "Звіт надіслано",
+    "thanks": "Дякую. Якщо відкриєш issue на GitHub, вкажи цей номер:"
+   },
+   "new": {
+    "title": "Нова сесія",
+    "sub": "Дай їй назву, вибери папку, і Claude почне там роботу.",
+    "name": "Назва",
+    "where": "Де",
+    "recent": "Нещодавні",
+    "suggested": "Радимо",
+    "cwdTitle": "Папка",
+    "newFolder": "Нова папка",
+    "newFolderHelp": "Усередині папки, вибраної вище",
+    "default": "За замовчуванням",
+    "defaultModelHelp": "Та, що налаштована в Claude Code",
+    "otherModel": "Інша модель",
+    "otherModelHelp": "Введи повну назву, наприклад claude-opus-5",
+    "modelName": "Назва моделі",
+    "modelNeeded": "Введи назву моделі, щоб продовжити.",
+    "more": "Ще параметри",
+    "modeTitle": "Режим дозволів",
+    "modes": {
+     "ask": "Питати",
+     "auto": "Авто",
+     "full": "Повний доступ"
+    },
+    "modeHelp": {
+     "ask": "Claude питає, перш ніж використовувати інструменти",
+     "auto": "Перевірка безпеки пропускає безпечні дії, а ризиковані зупиняє",
+     "full": "Усе виконується без жодних перевірок"
+    },
+    "summary": {
+     "ask": "Запустить Claude у {where}, режим «Питати», модель {model}.",
+     "auto": "Запустить Claude у {where}, режим Авто, модель {model}.",
+     "full": "Запустить Claude у {where}, режим «Повний доступ», модель {model}."
+    },
+    "summaryNamed": {
+     "ask": "Запустить Claude з назвою {name} у {where}, режим «Питати», модель {model}.",
+     "auto": "Запустить Claude з назвою {name} у {where}, режим Авто, модель {model}.",
+     "full": "Запустить Claude з назвою {name} у {where}, режим «Повний доступ», модель {model}."
+    },
+    "cliModel": "модель за замовчуванням із Claude Code",
+    "start": "Запустити сесію",
+    "creating": "Створюю…",
+    "created": "Сесію створено."
+   }
   }
  },
  {
@@ -1113,6 +6008,451 @@
    "agentsDone2": "✅ 2 agenti hanno finito ({clock})",
    "agentDone11": "🤖 {agent} · 11 strumenti usati · {clock}",
    "agentDone7": "🤖 {agent} · 7 strumenti usati · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Sessioni",
+    "settings": "Impostazioni"
+   },
+   "uptime": "attivo da 141 min",
+   "pulse": {
+    "need1": "1 ha bisogno di te",
+    "working2": "2 al lavoro",
+    "working3": "3 al lavoro",
+    "resting1": "1 pronta",
+    "finished12": "12 terminate",
+    "spent": "{cost} spesi"
+   },
+   "needsYou": "Hanno bisogno di te",
+   "answerInChat": "Rispondi nella chat",
+   "answerSent": "Inviata alla chat. Rispondi lì.",
+   "newSession": "Nuova sessione",
+   "state": {
+    "busy": "al lavoro",
+    "idle": "pronta",
+    "waiting": "ha bisogno di te",
+    "gone": "terminata"
+   },
+   "finished12": "Terminate (12)",
+   "line": {
+    "resting": "Pronta, ultima attività {age}",
+    "working": "Al lavoro ({clock})",
+    "needs": "Ha bisogno di te (permesso)",
+    "finished": "Terminata"
+   },
+   "age": {
+    "s2": "2 s fa",
+    "s14": "14 s fa",
+    "m10": "10 min fa",
+    "m40": "40 min fa",
+    "h3": "3 h fa",
+    "d2": "2 g fa"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Ultima risposta",
+    "sessionSettings": "Impostazioni della sessione"
+   },
+   "fact": {
+    "model": "Modello",
+    "context": "Contesto",
+    "cost": "Costo",
+    "lastActive": "Ultima attività",
+    "mode": "Modalità",
+    "cwd": "Cartella",
+    "working": "Al lavoro da"
+   },
+   "modelTitle": "Modello",
+   "resetDefaults": "Ripristina predefiniti",
+   "resetDone": "Tornate ai valori predefiniti.",
+   "saved": "Salvato.",
+   "changed3": "File modificati (3)",
+   "changedNone": "File modificati (nessuno)",
+   "change": {
+    "added": "aggiunto",
+    "modified": "modificato",
+    "deleted": "eliminato"
+   },
+   "timeline5": "Cronologia (5)",
+   "timelineEmpty": "Cronologia (vuota)",
+   "timelineNote": "La cronologia parte dall'ultimo avvio di aipager. Non viene salvata tra un riavvio e l'altro, quindi una sessione più vecchia qui non mostra nulla.",
+   "action": {
+    "stop": "Ferma",
+    "restart": "Riavvia",
+    "compact": "Compatta ora",
+    "rename": "Rinomina",
+    "kill": "Termina",
+    "resume": "Riprendi",
+    "delete": "Elimina"
+   },
+   "done": {
+    "stop": "Fermata.",
+    "restart": "Riavviata.",
+    "compact": "Compattazione in corso…",
+    "rename": "Nome cambiato.",
+    "kill": "Terminata.",
+    "resume": "Ripartita.",
+    "delete": "Eliminata."
+   },
+   "update": {
+    "title": "Aggiornamenti",
+    "upToDate": "Tutto è aggiornato.",
+    "check": "Cerca aggiornamenti",
+    "checking": "Controllo in corso…"
+   },
+   "language": {
+    "title": "Lingua dell'app",
+    "hint": "Solo i testi di aipager. Le risposte di Claude non cambiano.",
+    "auto": "Automatico (lingua del tuo Telegram)"
+   },
+   "chatPrefs": "Preferenze della chat",
+   "prefsIntro": "Valgono per tutte le sessioni di questa chat.",
+   "appearance": "Aspetto",
+   "appearanceIntro": "Come appaiono i pulsanti di aipager in questa chat.",
+   "defaultTag": "predefinito",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Come appare la risposta",
+     "options": [
+      {
+       "value": "card",
+       "label": "Scheda + risposta a parte",
+       "lead": "Scheda + risposta a parte",
+       "help": "La scheda di attività resta e la risposta arriva in un messaggio a parte."
+      },
+      {
+       "value": "merged",
+       "label": "Risposta dentro la scheda",
+       "lead": "Risposta dentro la scheda",
+       "help": "La risposta prende il posto del testo della scheda di attività, nello stesso messaggio."
+      },
+      {
+       "value": "replace",
+       "label": "Solo la risposta (senza scheda)",
+       "lead": "Solo la risposta (senza scheda)",
+       "help": "La scheda di attività si cancella e resta solo la risposta."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Anteprime dei diff",
+     "options": [
+      {
+       "value": false,
+       "label": "Disattivo - solo la scheda",
+       "lead": "Disattivo",
+       "help": "Le modifiche ai file compaiono solo come righe nella scheda di attività."
+      },
+      {
+       "value": true,
+       "label": "Attivo - un diff per ogni modifica",
+       "lead": "Attivo",
+       "help": "Ogni Write/Edit arriva anche come messaggio di diff a parte, sotto la scheda di attività."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Aggiorna scheda nelle attività lunghe",
+     "options": [
+      {
+       "value": true,
+       "label": "Attivo - rallenta nelle attività lunghe",
+       "lead": "Attivo",
+       "help": "La scheda si aggiorna meno spesso col passare dell'attività (ogni 10 s dopo 2 min, ogni 30 s dopo 10 min) e l'orologio avanza di 30 s, così non sembra mai bloccata. Un cambio di stato si vede subito."
+      },
+      {
+       "value": false,
+       "label": "Disattivo - ritmo fisso nell'attività",
+       "lead": "Disattivo",
+       "help": "La scheda si aggiorna allo stesso ritmo per tutta l'attività, per quanto lunga."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Formattazione semplice",
+     "options": [
+      {
+       "value": false,
+       "label": "Disattivo - formattazione normale",
+       "lead": "Disattivo",
+       "help": "Claude formatta le risposte come preferisce."
+      },
+      {
+       "value": true,
+       "label": "Attivo - solo testo semplice",
+       "lead": "Attivo",
+       "help": "Solo testo semplice ed elenchi con trattini, niente tabelle né blocchi di codice."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Lunghezza delle risposte",
+     "options": [
+      {
+       "value": "none",
+       "label": "Nessuna regola",
+       "lead": "Nessuna regola",
+       "help": "Nessuna indicazione sulla lunghezza."
+      },
+      {
+       "value": "xshort",
+       "label": "Molto breve",
+       "lead": "Molto breve",
+       "help": "Una o due frasi. Niente preambolo, niente riepilogo."
+      },
+      {
+       "value": "short",
+       "label": "Breve",
+       "lead": "Breve",
+       "help": "Poche frasi."
+      },
+      {
+       "value": "medium",
+       "label": "Media",
+       "lead": "Media",
+       "help": "Un paio di paragrafi."
+      },
+      {
+       "value": "long",
+       "label": "Lunga",
+       "lead": "Lunga",
+       "help": "Tutti i dettagli quando la risposta lo richiede."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Livello di vocabolario",
+     "options": [
+      {
+       "value": "none",
+       "label": "Nessuna regola",
+       "lead": "Nessuna regola",
+       "help": "Nessuna indicazione sul vocabolario."
+      },
+      {
+       "value": "simple",
+       "label": "Parole semplici",
+       "lead": "Parole semplici",
+       "help": "Parole di tutti i giorni, frasi brevi."
+      },
+      {
+       "value": "normal",
+       "label": "Normale",
+       "lead": "Normale",
+       "help": "Scrittura tecnica normale."
+      },
+      {
+       "value": "advanced",
+       "label": "Avanzato",
+       "lead": "Avanzato",
+       "help": "Dà per scontato che tu conosca l'argomento; niente spiegazioni di base."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Pulsante Ferma",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normale",
+       "lead": "Normale",
+       "help": "L'aspetto normale di Telegram, come gli altri pulsanti.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blu",
+       "lead": "Blu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rosso",
+       "lead": "Rosso",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Pulsanti Consenti e Nega",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normale",
+       "lead": "Normale",
+       "help": "L'aspetto normale di Telegram, come gli altri pulsanti.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Colorati - Consenti verde, Nega rosso",
+       "lead": "Colorati",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Pulsante App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normale",
+       "lead": "Normale",
+       "help": "L'aspetto normale di Telegram, come gli altri pulsanti.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Blu",
+       "lead": "Blu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Verde",
+       "lead": "Verde",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Rosso",
+       "lead": "Rosso",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menu impostazioni",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normale",
+       "lead": "Normale",
+       "help": "Solo ✅ segna la scelta attuale.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Scelta attuale in blu",
+       "lead": "Scelta attuale in blu",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Segnala un problema",
+    "card": "Racconta allo sviluppatore di aipager cosa è andato storto. Vedi tutta la segnalazione prima che parta qualcosa.",
+    "title": "Segnala un problema",
+    "privacy": "Contiene versioni, conteggi e punti del codice di aipager. Mai le tue chat, i messaggi, i nomi o i percorsi.",
+    "noteLabel": "La tua nota (facoltativa)",
+    "notePlaceholder": "Cosa stavi facendo quando c'è stato il problema?",
+    "asWritten": "Viene inviata esattamente come la scrivi.",
+    "whatSent": "Cosa viene inviato",
+    "system": "Sistema",
+    "setup": "Configurazione",
+    "setupLine": "Più chat, 2 chat private, attivo da 1 a 24 ore",
+    "errors": "Errori (2)",
+    "err1": "TimeoutError in nella scheda di attività",
+    "err1Sub": "3 volte, visto l'ultima volta il 2026-10-17",
+    "err2": "Errore registrato in nell'invio dei messaggi a Telegram",
+    "err2Sub": "una volta, visto l'ultima volta il 2026-10-16",
+    "foot": "Non parte nulla finché non tocchi «Invia segnalazione». Arriva alla casella degli errori dello sviluppatore di aipager, senza il tuo nome.",
+    "send": "Invia segnalazione",
+    "sending": "Invio in corso...",
+    "sent": "Segnalazione inviata",
+    "thanks": "Grazie. Se apri una issue su GitHub, cita questo riferimento:"
+   },
+   "new": {
+    "title": "Nuova sessione",
+    "sub": "Dagli un nome, scegli una cartella e Claude parte da lì.",
+    "name": "Nome",
+    "where": "Dove",
+    "recent": "Recenti",
+    "suggested": "Suggeriti",
+    "cwdTitle": "Cartella",
+    "newFolder": "Nuova cartella",
+    "newFolderHelp": "Dentro la cartella scelta sopra",
+    "default": "Predefinito",
+    "defaultModelHelp": "Quello che ha configurato Claude Code",
+    "otherModel": "Altro modello",
+    "otherModelHelp": "Scrivi un nome completo, es. claude-opus-5",
+    "modelName": "Nome del modello",
+    "modelNeeded": "Scrivi il nome di un modello per continuare.",
+    "more": "Altre opzioni",
+    "modeTitle": "Modalità dei permessi",
+    "modes": {
+     "ask": "Chiedi",
+     "auto": "Automatico",
+     "full": "Completo"
+    },
+    "modeHelp": {
+     "ask": "Claude chiede prima di usare gli strumenti",
+     "auto": "Un controllo di sicurezza lascia passare le azioni sicure e ferma quelle rischiose",
+     "full": "Tutto viene eseguito senza alcun controllo"
+    },
+    "summary": {
+     "ask": "Avvia Claude in {where}, in modalità «Chiedi», con {model}.",
+     "auto": "Avvia Claude in {where}, in modalità «Automatico», con {model}.",
+     "full": "Avvia Claude in {where}, in modalità «Completo», con {model}."
+    },
+    "summaryNamed": {
+     "ask": "Avvia Claude come {name} in {where}, in modalità «Chiedi», con {model}.",
+     "auto": "Avvia Claude come {name} in {where}, in modalità «Automatico», con {model}.",
+     "full": "Avvia Claude come {name} in {where}, in modalità «Completo», con {model}."
+    },
+    "cliModel": "il modello predefinito di Claude Code",
+    "start": "Avvia sessione",
+    "creating": "Creazione in corso…",
+    "created": "Sessione creata."
+   }
   }
  },
  {
@@ -1206,6 +6546,451 @@
    "agentsDone2": "✅ 2 ajan tamamlandı ({clock})",
    "agentDone11": "🤖 {agent} · 11 araç · {clock}",
    "agentDone7": "🤖 {agent} · 7 araç · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Oturumlar",
+    "settings": "Ayarlar"
+   },
+   "uptime": "141 dk'dır açık",
+   "pulse": {
+    "need1": "1 seni bekliyor",
+    "working2": "2 çalışıyor",
+    "working3": "3 çalışıyor",
+    "resting1": "1 hazır",
+    "finished12": "12 bitti",
+    "spent": "{cost} harcandı"
+   },
+   "needsYou": "Seni bekleyenler",
+   "answerInChat": "Sohbette yanıtla",
+   "answerSent": "Sohbete gönderildi. Orada yanıtla.",
+   "newSession": "Yeni oturum",
+   "state": {
+    "busy": "çalışıyor",
+    "idle": "hazır",
+    "waiting": "seni bekliyor",
+    "gone": "bitti"
+   },
+   "finished12": "Bitenler (12)",
+   "line": {
+    "resting": "Hazır, son etkinlik {age}",
+    "working": "Çalışıyor ({clock})",
+    "needs": "Seni bekliyor (izin)",
+    "finished": "Bitti"
+   },
+   "age": {
+    "s2": "2 sn önce",
+    "s14": "14 sn önce",
+    "m10": "10 dk önce",
+    "m40": "40 dk önce",
+    "h3": "3 sa önce",
+    "d2": "2 g önce"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Son yanıt",
+    "sessionSettings": "Oturum ayarları"
+   },
+   "fact": {
+    "model": "Model",
+    "context": "Bağlam",
+    "cost": "Maliyet",
+    "lastActive": "Son etkinlik",
+    "mode": "Mod",
+    "cwd": "Klasör",
+    "working": "Çalışma süresi"
+   },
+   "modelTitle": "Model",
+   "resetDefaults": "Varsayılana dön",
+   "resetDone": "Varsayılanlara dönüldü.",
+   "saved": "Kaydedildi.",
+   "changed3": "Değişen dosyalar (3)",
+   "changedNone": "Değişen dosyalar (yok)",
+   "change": {
+    "added": "eklendi",
+    "modified": "değişti",
+    "deleted": "silindi"
+   },
+   "timeline5": "Zaman çizelgesi (5)",
+   "timelineEmpty": "Zaman çizelgesi (boş)",
+   "timelineNote": "Zaman çizelgesi aipager'ın son başlatılmasından itibaren tutulur. Yeniden başlatmalar arasında kaydedilmez, bu yüzden eski bir oturum burada bir şey göstermez.",
+   "action": {
+    "stop": "Durdur",
+    "restart": "Yeniden başlat",
+    "compact": "Şimdi sıkıştır",
+    "rename": "Yeniden adlandır",
+    "kill": "Sonlandır",
+    "resume": "Devam ettir",
+    "delete": "Sil"
+   },
+   "done": {
+    "stop": "Durduruldu.",
+    "restart": "Yeniden başlatıldı.",
+    "compact": "Konuşma sıkıştırılıyor…",
+    "rename": "Yeniden adlandırıldı.",
+    "kill": "Sonlandırıldı.",
+    "resume": "Yeniden çalışıyor.",
+    "delete": "Silindi."
+   },
+   "update": {
+    "title": "Güncellemeler",
+    "upToDate": "Her şey güncel.",
+    "check": "Güncellemeleri kontrol et",
+    "checking": "Kontrol ediliyor…"
+   },
+   "language": {
+    "title": "Uygulama dili",
+    "hint": "Yalnızca aipager'ın kendi metni. Claude'un yanıtları değişmez.",
+    "auto": "Otomatik (Telegram'daki dilin)"
+   },
+   "chatPrefs": "Sohbet tercihleri",
+   "prefsIntro": "Bunlar bu sohbetteki her oturum için geçerlidir.",
+   "appearance": "Görünüm",
+   "appearanceIntro": "aipager düğmelerinin bu sohbette nasıl göründüğü.",
+   "defaultTag": "varsayılan",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Yanıt nasıl görünsün",
+     "options": [
+      {
+       "value": "card",
+       "label": "Kart + ayrı yanıt",
+       "lead": "Kart + ayrı yanıt",
+       "help": "Çalışma kartı kalır, yanıt ayrı bir mesaj olarak gelir."
+      },
+      {
+       "value": "merged",
+       "label": "Yanıt kartın içinde",
+       "lead": "Yanıt kartın içinde",
+       "help": "Yanıt, aynı mesajda çalışma kartının metninin yerini alır."
+      },
+      {
+       "value": "replace",
+       "label": "Yalnızca yanıt (kartsız)",
+       "lead": "Yalnızca yanıt (kartsız)",
+       "help": "Çalışma kartı silinir, yalnızca yanıt kalır."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Değişiklik önizlemeleri",
+     "options": [
+      {
+       "value": false,
+       "label": "Kapalı - yalnızca çalışma kartı",
+       "lead": "Kapalı",
+       "help": "Dosya düzenlemeleri yalnızca çalışma kartında satır olarak görünür."
+      },
+      {
+       "value": true,
+       "label": "Açık - her düzenleme için bir diff",
+       "lead": "Açık",
+       "help": "Her Write/Edit ayrıca çalışma kartının altında kendi diff mesajı olarak gönderilir."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Uzun görevlerde kart güncellemeleri",
+     "options": [
+      {
+       "value": true,
+       "label": "Açık - uzun görevlerde yavaşla",
+       "lead": "Açık",
+       "help": "Görev uzadıkça kart daha seyrek yenilenir (2 dk sonra 10 sn'de bir, 10 dk sonra 30 sn'de bir) ve saati 30 sn'lik adımlarla ilerler, böylece donmuş görünmez. Durum değişikliği yine hemen görünür."
+      },
+      {
+       "value": false,
+       "label": "Kapalı - görev boyunca aynı hız",
+       "lead": "Kapalı",
+       "help": "Kart, görev ne kadar uzun sürerse sürsün aynı hızda yenilenir."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Sade biçimlendirme",
+     "options": [
+      {
+       "value": false,
+       "label": "Kapalı - normal biçim",
+       "lead": "Kapalı",
+       "help": "Claude yanıtları istediği gibi biçimlendirir."
+      },
+      {
+       "value": true,
+       "label": "Açık - yalnızca düz metin",
+       "lead": "Açık",
+       "help": "Yalnızca düz metin ve tireli listeler; tablo ya da kod bloğu yok."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Yanıt uzunluğu",
+     "options": [
+      {
+       "value": "none",
+       "label": "Kural yok",
+       "lead": "Kural yok",
+       "help": "Uzunluk için hiçbir yönlendirme yok."
+      },
+      {
+       "value": "xshort",
+       "label": "Çok kısa",
+       "lead": "Çok kısa",
+       "help": "Bir ya da iki cümle. Giriş yok, özet yok."
+      },
+      {
+       "value": "short",
+       "label": "Kısa",
+       "lead": "Kısa",
+       "help": "Birkaç cümle."
+      },
+      {
+       "value": "medium",
+       "label": "Orta",
+       "lead": "Orta",
+       "help": "Birkaç paragraf."
+      },
+      {
+       "value": "long",
+       "label": "Uzun",
+       "lead": "Uzun",
+       "help": "Yanıt gerektiriyorsa tüm ayrıntılar."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Kelime düzeyi",
+     "options": [
+      {
+       "value": "none",
+       "label": "Kural yok",
+       "lead": "Kural yok",
+       "help": "Kelime seçimi için hiçbir yönlendirme yok."
+      },
+      {
+       "value": "simple",
+       "label": "Basit kelimeler",
+       "lead": "Basit kelimeler",
+       "help": "Gündelik kelimeler, kısa cümleler."
+      },
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Olağan teknik yazım."
+      },
+      {
+       "value": "advanced",
+       "label": "İleri",
+       "lead": "İleri",
+       "help": "Uzmanlık varsayar; adım adım açıklama yok."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Durdur düğmesi",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram'ın kendi görünümü, diğer düğmeler gibi.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Mavi",
+       "lead": "Mavi",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Yeşil",
+       "lead": "Yeşil",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Kırmızı",
+       "lead": "Kırmızı",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "İzin ver ve Reddet düğmeleri",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram'ın kendi görünümü, diğer düğmeler gibi.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Renkli - İzin ver yeşil, Reddet kırmızı",
+       "lead": "Renkli",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "App düğmesi",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Telegram'ın kendi görünümü, diğer düğmeler gibi.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Mavi",
+       "lead": "Mavi",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Yeşil",
+       "lead": "Yeşil",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Kırmızı",
+       "lead": "Kırmızı",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Ayarlar menüsü",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Normal",
+       "lead": "Normal",
+       "help": "Geçerli seçimi yalnızca ✅ işaretler.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Geçerli seçim mavi",
+       "lead": "Geçerli seçim mavi",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Sorun bildir",
+    "card": "aipager geliştiricisine neyin ters gittiğini anlat. Bir şey gönderilmeden önce raporun tamamını görürsün.",
+    "title": "Sorun bildir",
+    "privacy": "Sürümleri, sayaçları ve aipager kodundaki yerleri içerir. Sohbetlerini, mesajlarını, adları ya da yolları asla içermez.",
+    "noteLabel": "Notun (isteğe bağlı)",
+    "notePlaceholder": "Sorun çıktığında ne yapıyordun?",
+    "asWritten": "Yazdığın gibi gönderilir.",
+    "whatSent": "Ne gönderilecek",
+    "system": "Sistem",
+    "setup": "Kurulum",
+    "setupLine": "Birden fazla sohbet, 2 özel sohbet, çalışma süresi: 1 ile 24 saat arası",
+    "errors": "Hatalar (2)",
+    "err1": "TimeoutError, yer: çalışma kartı",
+    "err1Sub": "3 kez, son görülme 2026-10-17",
+    "err2": "Günlüğe yazılan hata, yer: mesajların Telegram'a gönderilmesi",
+    "err2Sub": "bir kez, son görülme 2026-10-16",
+    "foot": "“Raporu gönder” düğmesine dokunana kadar hiçbir şey gönderilmez. Rapor, adın olmadan aipager geliştiricisinin hata kutusuna gider.",
+    "send": "Raporu gönder",
+    "sending": "Gönderiliyor...",
+    "sent": "Rapor gönderildi",
+    "thanks": "Teşekkürler. GitHub'da bir issue açarsan bu referansı belirt:"
+   },
+   "new": {
+    "title": "Yeni oturum",
+    "sub": "Bir ad ver, bir klasör seç; Claude orada çalışmaya başlasın.",
+    "name": "Ad",
+    "where": "Nerede",
+    "recent": "Son kullanılanlar",
+    "suggested": "Önerilen",
+    "cwdTitle": "Klasör",
+    "newFolder": "Yeni klasör",
+    "newFolderHelp": "Yukarıda seçilen klasörün içinde",
+    "default": "Varsayılan",
+    "defaultModelHelp": "Claude Code'da ayarlı olan",
+    "otherModel": "Başka model",
+    "otherModelHelp": "Tam bir ad yaz, örn. claude-opus-5",
+    "modelName": "Model adı",
+    "modelNeeded": "Devam etmek için bir model adı yaz.",
+    "more": "Daha fazla seçenek",
+    "modeTitle": "İzin modu",
+    "modes": {
+     "ask": "Sor",
+     "auto": "Otomatik",
+     "full": "Tam erişim"
+    },
+    "modeHelp": {
+     "ask": "Claude araçları çalıştırmadan önce sorar",
+     "auto": "Bir güvenlik denetimi güvenli işlemleri geçirir, riskli olanları durdurur",
+     "full": "Her şey hiçbir denetim olmadan çalışır"
+    },
+    "summary": {
+     "ask": "Claude'u {where} içinde, Sor modunda, {model} ile başlatır.",
+     "auto": "Claude'u {where} içinde, Otomatik modda, {model} ile başlatır.",
+     "full": "Claude'u {where} içinde, Tam erişim modunda, {model} ile başlatır."
+    },
+    "summaryNamed": {
+     "ask": "Claude'u {name} adıyla {where} içinde, Sor modunda, {model} ile başlatır.",
+     "auto": "Claude'u {name} adıyla {where} içinde, Otomatik modda, {model} ile başlatır.",
+     "full": "Claude'u {name} adıyla {where} içinde, Tam erişim modunda, {model} ile başlatır."
+    },
+    "cliModel": "Claude Code'un varsayılan modeli",
+    "start": "Oturumu başlat",
+    "creating": "Oluşturuluyor…",
+    "created": "Oturum oluşturuldu."
+   }
   }
  },
  {
@@ -1299,6 +7084,451 @@
    "agentsDone2": "‏✅ کار ۲ ایجنت تمام شد (⁨{clock}⁩)‏",
    "agentDone11": "‏🤖 ⁨{agent}⁩ · ۱۱ ابزار اجرا کرد · ⁨{clock}⁩‏",
    "agentDone7": "‏🤖 ⁨{agent}⁩ · ۷ ابزار اجرا کرد · ⁨{clock}⁩‏"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "‏سشن‌ها‏",
+    "settings": "‏تنظیمات‏"
+   },
+   "uptime": "‏۱۴۱ دقیقه روشن‏",
+   "pulse": {
+    "need1": "‏۱ منتظر شما‏",
+    "working2": "‏۲ در حال کار‏",
+    "working3": "‏۳ در حال کار‏",
+    "resting1": "‏۱ آماده‏",
+    "finished12": "‏۱۲ بسته‌شده‏",
+    "spent": "‏⁨{cost}⁩ هزینه‏"
+   },
+   "needsYou": "‏منتظر شما‏",
+   "answerInChat": "‏جواب در چت‏",
+   "answerSent": "‏به چت فرستاده شد. همان‌جا جواب بدهید.‏",
+   "newSession": "‏سشن جدید‏",
+   "state": {
+    "busy": "‏در حال کار‏",
+    "idle": "‏آماده‏",
+    "waiting": "‏منتظر شما‏",
+    "gone": "‏بسته‌شده‏"
+   },
+   "finished12": "‏بسته‌شده (۱۲)‏",
+   "line": {
+    "resting": "‏آماده، آخرین فعالیت ⁨{age}⁩‏",
+    "working": "‏در حال کار، ⁨{clock}⁩‏",
+    "needs": "‏منتظر شما (⁨‏اجازه‏⁩)‏",
+    "finished": "‏بسته‌شده‏"
+   },
+   "age": {
+    "s2": "‏۲ ثانیه پیش‏",
+    "s14": "‏۱۴ ثانیه پیش‏",
+    "m10": "‏۱۰ دقیقه پیش‏",
+    "m40": "‏۴۰ دقیقه پیش‏",
+    "h3": "‏۳ ساعت پیش‏",
+    "d2": "‏۲ روز پیش‏"
+   },
+   "clock": {
+    "a": "۳:۱۴",
+    "b": "۱۴:۲۲",
+    "c": "۰:۴۱"
+   },
+   "detail": {
+    "latestReply": "‏آخرین جواب‏",
+    "sessionSettings": "‏تنظیمات سشن‏"
+   },
+   "fact": {
+    "model": "‏مدل‏",
+    "context": "‏کانتکست‏",
+    "cost": "‏هزینه‏",
+    "lastActive": "‏آخرین فعالیت‏",
+    "mode": "‏مود‏",
+    "cwd": "‏پوشه‏",
+    "working": "‏مدت کار‏"
+   },
+   "modelTitle": "‏مدل‏",
+   "resetDefaults": "‏ریست به پیش‌فرض‏",
+   "resetDone": "‏به پیش‌فرض برگشت.‏",
+   "saved": "‏ذخیره شد.‏",
+   "changed3": "‏فایل‌های تغییرکرده (۳)‏",
+   "changedNone": "‏فایل‌های تغییرکرده (هیچ)‏",
+   "change": {
+    "added": "‏اضافه‌شده‏",
+    "modified": "‏تغییرکرده‏",
+    "deleted": "‏حذف‌شده‏"
+   },
+   "timeline5": "‏خط زمانی (۵)‏",
+   "timelineEmpty": "‏خط زمانی (خالی)‏",
+   "timelineNote": "‏خط زمانی فقط از آخرین روشن شدن aipager است. بعد از ری‌استارت نگه داشته نمی‌شود، برای همین سشن‌های قدیمی‌تر اینجا چیزی ندارند.‏",
+   "action": {
+    "stop": "‏توقف‏",
+    "restart": "‏ری‌استارت‏",
+    "compact": "‏الان کامپکت کن‏",
+    "rename": "‏تغییر نام‏",
+    "kill": "‏بستن‏",
+    "resume": "‏ادامه‏",
+    "delete": "‏حذف‏"
+   },
+   "done": {
+    "stop": "‏متوقف شد.‏",
+    "restart": "‏ری‌استارت شد.‏",
+    "compact": "‏در حال کامپکت…‏",
+    "rename": "‏اسم عوض شد.‏",
+    "kill": "‏بسته شد.‏",
+    "resume": "‏دوباره باز شد.‏",
+    "delete": "‏حذف شد.‏"
+   },
+   "update": {
+    "title": "‏آپدیت‏",
+    "upToDate": "‏همه چیز آپدیت است.‏",
+    "check": "‏چک کردن آپدیت‏",
+    "checking": "‏در حال چک کردن…‏"
+   },
+   "language": {
+    "title": "‏زبان برنامه‏",
+    "hint": "‏فقط متن‌های خود aipager. جواب‌های Claude عوض نمی‌شوند.‏",
+    "auto": "‏خودکار (زبان Telegram شما)‏"
+   },
+   "chatPrefs": "‏تنظیمات چت‏",
+   "prefsIntro": "‏این‌ها روی همهٔ سشن‌های این چت اثر دارند.‏",
+   "appearance": "‏ظاهر‏",
+   "appearanceIntro": "‏دکمه‌های aipager در این چت چه شکلی باشند.‏",
+   "defaultTag": "‏پیش‌فرض‏",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "شکل جواب در چت‏",
+     "options": [
+      {
+       "value": "card",
+       "label": "‏کارت + جواب جدا‏",
+       "lead": "‏کارت + جواب جدا‏",
+       "help": "‏کارت در حال کار می‌ماند و جواب در پیام جداگانه می‌آید.‏"
+      },
+      {
+       "value": "merged",
+       "label": "‏جواب داخل همان کارت‏",
+       "lead": "‏جواب داخل همان کارت‏",
+       "help": "‏جواب در همان پیام، جای متن کارت در حال کار را می‌گیرد.‏"
+      },
+      {
+       "value": "replace",
+       "label": "‏فقط جواب، جای کارت‏",
+       "lead": "‏فقط جواب، جای کارت‏",
+       "help": "‏کارت در حال کار پاک می‌شود و فقط جواب می‌ماند.‏"
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "پیش‌نمایش diff‏",
+     "options": [
+      {
+       "value": false,
+       "label": "‏خاموش - فقط کارت در حال کار‏",
+       "lead": "‏خاموش",
+       "help": "‏ویرایش فایل‌ها فقط به شکل ردیف روی کارت در حال کار دیده می‌شود.‏"
+      },
+      {
+       "value": true,
+       "label": "‏روشن - برای هر ویرایش یک پیام diff‏",
+       "lead": "‏روشن",
+       "help": "‏هر Write/Edit جداگانه هم به شکل یک پیام diff زیر کارت در حال کار می‌آید.‏"
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "آپدیت کارت در کار طولانی‏",
+     "options": [
+      {
+       "value": true,
+       "label": "‏روشن - در کار طولانی کندتر‏",
+       "lead": "‏روشن",
+       "help": "‏هرچه کار طولانی‌تر شود، کارت کمتر آپدیت می‌شود (بعد از ۲ دقیقه هر ۱۰ ثانیه، بعد از ۱۰ دقیقه هر ۳۰ ثانیه) و ساعتش ۳۰ ثانیه ۳۰ ثانیه جلو می‌رود تا هنگ‌کرده به نظر نرسد. تغییر وضعیت فوراً دیده می‌شود.‏"
+      },
+      {
+       "value": false,
+       "label": "‏خاموش - یک سرعت در کل کار‏",
+       "lead": "‏خاموش",
+       "help": "‏کارت در کل کار، هر قدر هم طول بکشد، با یک سرعت آپدیت می‌شود.‏"
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "قالب‌بندی ساده‏",
+     "options": [
+      {
+       "value": false,
+       "label": "‏خاموش - قالب‌بندی معمول‏",
+       "lead": "‏خاموش",
+       "help": "‏Claude جواب‌ها را هر طور بخواهد قالب‌بندی می‌کند.‏"
+      },
+      {
+       "value": true,
+       "label": "‏روشن - فقط متن ساده‏",
+       "lead": "‏روشن",
+       "help": "‏فقط متن ساده و فهرست با خط تیره - بدون جدول و بلوک کد.‏"
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "طول جواب‏",
+     "options": [
+      {
+       "value": "none",
+       "label": "‏بدون قاعده‏",
+       "lead": "‏بدون قاعده‏",
+       "help": "‏هیچ قیدی برای طول نیست.‏"
+      },
+      {
+       "value": "xshort",
+       "label": "‏خیلی کوتاه‏",
+       "lead": "‏خیلی کوتاه‏",
+       "help": "‏یکی دو جمله. بی‌مقدمه و بی‌جمع‌بندی.‏"
+      },
+      {
+       "value": "short",
+       "label": "‏کوتاه‏",
+       "lead": "‏کوتاه‏",
+       "help": "‏چند جمله.‏"
+      },
+      {
+       "value": "medium",
+       "label": "‏متوسط‏",
+       "lead": "‏متوسط‏",
+       "help": "‏یکی دو پاراگراف.‏"
+      },
+      {
+       "value": "long",
+       "label": "‏بلند‏",
+       "lead": "‏بلند‏",
+       "help": "‏جزئیات کامل، هر وقت جواب لازمش داشته باشد.‏"
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "سطح زبان‏",
+     "options": [
+      {
+       "value": "none",
+       "label": "‏بدون قاعده‏",
+       "lead": "‏بدون قاعده‏",
+       "help": "‏هیچ قیدی برای کلمه‌ها نیست.‏"
+      },
+      {
+       "value": "simple",
+       "label": "‏کلمه‌های ساده‏",
+       "lead": "‏کلمه‌های ساده‏",
+       "help": "‏کلمه‌های روزمره، جمله‌های کوتاه.‏"
+      },
+      {
+       "value": "normal",
+       "label": "‏معمولی‏",
+       "lead": "‏معمولی‏",
+       "help": "‏نوشتهٔ فنی معمولی.‏"
+      },
+      {
+       "value": "advanced",
+       "label": "‏پیشرفته‏",
+       "lead": "‏پیشرفته‏",
+       "help": "‏فرض می‌کند متخصص هستید؛ بدون توضیح اضافه.‏"
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "دکمهٔ توقف‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏معمولی‏",
+       "lead": "‏معمولی‏",
+       "help": "‏همان ظاهر خود Telegram، مثل بقیهٔ دکمه‌ها.‏",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "‏آبی‏",
+       "lead": "‏آبی‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "‏سبز‏",
+       "lead": "‏سبز‏",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "‏قرمز‏",
+       "lead": "‏قرمز‏",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "دکمه‌های اجازه و رد‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏معمولی‏",
+       "lead": "‏معمولی‏",
+       "help": "‏همان ظاهر خود Telegram، مثل بقیهٔ دکمه‌ها.‏",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "‏رنگی - اجازه سبز، رد قرمز‏",
+       "lead": "‏رنگی",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "دکمهٔ App‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏معمولی‏",
+       "lead": "‏معمولی‏",
+       "help": "‏همان ظاهر خود Telegram، مثل بقیهٔ دکمه‌ها.‏",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "‏آبی‏",
+       "lead": "‏آبی‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "‏سبز‏",
+       "lead": "‏سبز‏",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "‏قرمز‏",
+       "lead": "‏قرمز‏",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "منوی تنظیمات‏",
+     "options": [
+      {
+       "value": "normal",
+       "label": "‏معمولی‏",
+       "lead": "‏معمولی‏",
+       "help": "‏فقط ✅ گزینهٔ فعلی را نشان می‌دهد.‏",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "‏گزینهٔ فعلی آبی‏",
+       "lead": "‏گزینهٔ فعلی آبی‏",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "‏گزارش مشکل‏",
+    "card": "‏به سازندهٔ aipager بگویید چه چیزی خراب شد. پیش از فرستادن، کل گزارش را می‌بینید.‏",
+    "title": "‏گزارش مشکل‏",
+    "privacy": "‏فقط نسخه‌ها، شمارش‌ها و جاهایی از کد aipager در آن هست. هیچ‌وقت چت‌ها، پیام‌ها، اسم‌ها یا مسیرهای شما.‏",
+    "noteLabel": "‏توضیح شما (اختیاری)‏",
+    "notePlaceholder": "‏وقتی مشکل پیش آمد، داشتید چه کار می‌کردید؟‏",
+    "asWritten": "‏دقیقاً همان‌طور که نوشته‌اید ارسال می‌شود.‏",
+    "whatSent": "‏چه چیزی فرستاده می‌شود‏",
+    "system": "‏سیستم‏",
+    "setup": "‏تنظیمات‏",
+    "setupLine": "‏⁨‏استفادهٔ چندچتی‏⁩، ⁨‏۲ چت خصوصی‏⁩، مدت روشن بودن: ⁨‏۱ تا ۲۴ ساعت‏⁩‏",
+    "errors": "‏خطاها (۲)‏",
+    "err1": "‏⁨TimeoutError⁩ در ⁨‏کارت در حال کار‏⁩‏",
+    "err1Sub": "‏⁨‏۳ بار‏⁩، آخرین بار ⁨2026-10-17⁩‏",
+    "err2": "‏خطای ثبت‌شده در ⁨‏ارسال پیام‌ها به Telegram‏⁩‏",
+    "err2Sub": "‏⁨‏یک بار‏⁩، آخرین بار ⁨2026-10-16⁩‏",
+    "foot": "‏تا «ارسال گزارش» را نزنید چیزی فرستاده نمی‌شود. گزارش بی‌نام به صندوق خطاهای سازندهٔ aipager ارسال می‌شود.‏",
+    "send": "‏ارسال گزارش‏",
+    "sending": "‏در حال ارسال...‏",
+    "sent": "‏گزارش ارسال شد‏",
+    "thanks": "‏ممنون. اگر در GitHub مشکلی ثبت می‌کنید، این کد پیگیری را هم بنویسید:‏"
+   },
+   "new": {
+    "title": "‏سشن جدید‏",
+    "sub": "‏اسمی بگذارید، پوشه‌ای انتخاب کنید، و Claude همان‌جا شروع به کار می‌کند.‏",
+    "name": "‏اسم‏",
+    "where": "‏کجا‏",
+    "recent": "‏اخیر‏",
+    "suggested": "‏پیشنهادی‏",
+    "cwdTitle": "‏پوشه‏",
+    "newFolder": "‏پوشهٔ جدید‏",
+    "newFolderHelp": "‏داخل پوشه‌ای که بالا انتخاب کردید‏",
+    "default": "‏پیش‌فرض‏",
+    "defaultModelHelp": "‏هر مدلی که Claude Code رویش تنظیم شده‏",
+    "otherModel": "‏مدل دیگر‏",
+    "otherModelHelp": "‏اسم کامل را بنویسید، مثلاً ⁨claude-opus-5⁩‏",
+    "modelName": "‏اسم مدل‏",
+    "modelNeeded": "‏برای ادامه، اسم یک مدل را بنویسید.‏",
+    "more": "‏گزینه‌های بیشتر‏",
+    "modeTitle": "‏مود اجازه‌ها‏",
+    "modes": {
+     "ask": "‏پرسش‏",
+     "auto": "‏خودکار‏",
+     "full": "‏دسترسی کامل‏"
+    },
+    "modeHelp": {
+     "ask": "‏Claude پیش از اجرای ابزارها می‌پرسد‏",
+     "auto": "‏یک بررسی ایمنی کارهای امن را اجرا و کارهای پرخطر را متوقف می‌کند‏",
+     "full": "‏همه چیز بدون هیچ بررسی اجرا می‌شود‏"
+    },
+    "summary": {
+     "ask": "‏Claude را در ⁨{where}⁩، در مود پرسش، با ⁨{model}⁩ شروع می‌کند.‏",
+     "auto": "‏Claude را در ⁨{where}⁩، در مود خودکار، با ⁨{model}⁩ شروع می‌کند.‏",
+     "full": "‏Claude را در ⁨{where}⁩، در مود دسترسی کامل، با ⁨{model}⁩ شروع می‌کند.‏"
+    },
+    "summaryNamed": {
+     "ask": "‏Claude را با نام ⁨{name}⁩ در ⁨{where}⁩، در مود پرسش، با ⁨{model}⁩ شروع می‌کند.‏",
+     "auto": "‏Claude را با نام ⁨{name}⁩ در ⁨{where}⁩، در مود خودکار، با ⁨{model}⁩ شروع می‌کند.‏",
+     "full": "‏Claude را با نام ⁨{name}⁩ در ⁨{where}⁩، در مود دسترسی کامل، با ⁨{model}⁩ شروع می‌کند.‏"
+    },
+    "cliModel": "‏مدل پیش‌فرض خود Claude Code‏",
+    "start": "‏شروع سشن‏",
+    "creating": "‏در حال ساختن…‏",
+    "created": "‏سشن ساخته شد.‏"
+   }
   }
  },
  {
@@ -1392,6 +7622,451 @@
    "agentsDone2": "✅ 2 agent đã xong ({clock})",
    "agentDone11": "🤖 {agent} · 11 công cụ đã chạy · {clock}",
    "agentDone7": "🤖 {agent} · 7 công cụ đã chạy · {clock}"
+  },
+  "app": {
+   "tabs": {
+    "sessions": "Phiên",
+    "settings": "Cài đặt"
+   },
+   "uptime": "đã chạy 141 phút",
+   "pulse": {
+    "need1": "1 đang chờ bạn",
+    "working2": "2 đang làm việc",
+    "working3": "3 đang làm việc",
+    "resting1": "1 sẵn sàng",
+    "finished12": "12 đã kết thúc",
+    "spent": "đã tiêu {cost}"
+   },
+   "needsYou": "Đang chờ bạn",
+   "answerInChat": "Trả lời trong chat",
+   "answerSent": "Đã gửi vào chat. Hãy trả lời ở đó.",
+   "newSession": "Phiên mới",
+   "state": {
+    "busy": "đang làm việc",
+    "idle": "sẵn sàng",
+    "waiting": "đang chờ bạn",
+    "gone": "đã kết thúc"
+   },
+   "finished12": "Đã kết thúc (12)",
+   "line": {
+    "resting": "Sẵn sàng, hoạt động lần cuối {age}",
+    "working": "Đang làm việc ({clock})",
+    "needs": "Đang chờ bạn (quyền)",
+    "finished": "Đã kết thúc"
+   },
+   "age": {
+    "s2": "2 giây trước",
+    "s14": "14 giây trước",
+    "m10": "10 phút trước",
+    "m40": "40 phút trước",
+    "h3": "3 giờ trước",
+    "d2": "2 ngày trước"
+   },
+   "clock": {
+    "a": "3:14",
+    "b": "14:22",
+    "c": "0:41"
+   },
+   "detail": {
+    "latestReply": "Câu trả lời mới nhất",
+    "sessionSettings": "Cài đặt phiên"
+   },
+   "fact": {
+    "model": "Mô hình",
+    "context": "Ngữ cảnh",
+    "cost": "Chi phí",
+    "lastActive": "Hoạt động lần cuối",
+    "mode": "Chế độ",
+    "cwd": "Thư mục",
+    "working": "Thời gian làm việc"
+   },
+   "modelTitle": "Mô hình",
+   "resetDefaults": "Đặt lại về mặc định",
+   "resetDone": "Đã đặt lại về mặc định.",
+   "saved": "Đã lưu.",
+   "changed3": "File đã thay đổi (3)",
+   "changedNone": "File đã thay đổi (không có)",
+   "change": {
+    "added": "đã thêm",
+    "modified": "đã sửa",
+    "deleted": "đã xóa"
+   },
+   "timeline5": "Dòng thời gian (5)",
+   "timelineEmpty": "Dòng thời gian (trống)",
+   "timelineNote": "Dòng thời gian chỉ gồm khoảng thời gian từ lần aipager được bật gần nhất. Nó không được lưu khi aipager khởi động lại, nên phiên cũ hơn sẽ không hiện gì ở đây.",
+   "action": {
+    "stop": "Dừng",
+    "restart": "Khởi động lại",
+    "compact": "Thu gọn ngay",
+    "rename": "Đổi tên",
+    "kill": "Kết thúc",
+    "resume": "Tiếp tục",
+    "delete": "Xóa"
+   },
+   "done": {
+    "stop": "Đã dừng.",
+    "restart": "Đã khởi động lại.",
+    "compact": "Đang thu gọn cuộc trò chuyện…",
+    "rename": "Đã đổi tên.",
+    "kill": "Đã kết thúc.",
+    "resume": "Đã mở lại.",
+    "delete": "Đã xóa."
+   },
+   "update": {
+    "title": "Cập nhật",
+    "upToDate": "Mọi thứ đã là bản mới nhất.",
+    "check": "Kiểm tra cập nhật",
+    "checking": "Đang kiểm tra…"
+   },
+   "language": {
+    "title": "Ngôn ngữ ứng dụng",
+    "hint": "Chỉ đổi chữ của aipager. Câu trả lời của Claude không đổi.",
+    "auto": "Tự động (ngôn ngữ Telegram của bạn)"
+   },
+   "chatPrefs": "Cài đặt chat",
+   "prefsIntro": "Các mục này áp dụng cho mọi phiên trong chat này.",
+   "appearance": "Giao diện",
+   "appearanceIntro": "Các nút của aipager trông thế nào trong chat này.",
+   "defaultTag": "mặc định",
+   "groups": [
+    {
+     "field": "layout",
+     "title": "Bố cục tin nhắn",
+     "options": [
+      {
+       "value": "card",
+       "label": "Thẻ làm việc + câu trả lời riêng",
+       "lead": "Thẻ làm việc + câu trả lời riêng",
+       "help": "Thẻ làm việc vẫn giữ, câu trả lời đến trong tin nhắn riêng."
+      },
+      {
+       "value": "merged",
+       "label": "Câu trả lời nằm trong thẻ",
+       "lead": "Câu trả lời nằm trong thẻ",
+       "help": "Câu trả lời thay nội dung của thẻ làm việc ngay trong tin nhắn đó."
+      },
+      {
+       "value": "replace",
+       "label": "Chỉ câu trả lời, xóa thẻ",
+       "lead": "Chỉ câu trả lời, xóa thẻ",
+       "help": "Thẻ làm việc bị xóa, chỉ còn câu trả lời."
+      }
+     ]
+    },
+    {
+     "field": "diff_preview",
+     "title": "Xem trước thay đổi (diff)",
+     "options": [
+      {
+       "value": false,
+       "label": "Tắt - chỉ thẻ làm việc",
+       "lead": "Tắt",
+       "help": "Chỉnh sửa file chỉ hiện thành dòng trên thẻ làm việc."
+      },
+      {
+       "value": true,
+       "label": "Bật - mỗi lần sửa một tin diff",
+       "lead": "Bật",
+       "help": "Mỗi lần Write/Edit cũng được gửi thành một tin nhắn diff riêng dưới thẻ làm việc."
+      }
+     ]
+    },
+    {
+     "field": "card_age_decay",
+     "title": "Cập nhật thẻ khi việc kéo dài",
+     "options": [
+      {
+       "value": true,
+       "label": "Bật - chậm lại khi việc kéo dài",
+       "lead": "Bật",
+       "help": "Việc càng kéo dài, thẻ càng ít được làm mới (10 giây một lần sau 2 phút, 30 giây một lần sau 10 phút); đồng hồ nhảy theo bước 30 giây để không trông như bị treo. Trạng thái mới vẫn hiện ngay."
+      },
+      {
+       "value": false,
+       "label": "Tắt - cùng nhịp suốt cả việc",
+       "lead": "Tắt",
+       "help": "Thẻ được làm mới cùng một nhịp suốt cả việc, dù kéo dài bao lâu."
+      }
+     ]
+    },
+    {
+     "field": "simple_formatting",
+     "title": "Định dạng đơn giản",
+     "options": [
+      {
+       "value": false,
+       "label": "Tắt - định dạng thường",
+       "lead": "Tắt",
+       "help": "Claude định dạng câu trả lời theo ý nó."
+      },
+      {
+       "value": true,
+       "label": "Bật - chỉ văn bản thường",
+       "lead": "Bật",
+       "help": "Chỉ văn bản thường và danh sách gạch đầu dòng - không bảng hay khối mã."
+      }
+     ]
+    },
+    {
+     "field": "answer_length",
+     "title": "Độ dài câu trả lời",
+     "options": [
+      {
+       "value": "none",
+       "label": "Không có quy tắc",
+       "lead": "Không có quy tắc",
+       "help": "Không có quy tắc nào về độ dài."
+      },
+      {
+       "value": "xshort",
+       "label": "Rất ngắn",
+       "lead": "Rất ngắn",
+       "help": "Một hai câu. Không mở đầu, không tóm tắt."
+      },
+      {
+       "value": "short",
+       "label": "Ngắn",
+       "lead": "Ngắn",
+       "help": "Vài câu."
+      },
+      {
+       "value": "medium",
+       "label": "Vừa",
+       "lead": "Vừa",
+       "help": "Khoảng hai đoạn văn."
+      },
+      {
+       "value": "long",
+       "label": "Dài",
+       "lead": "Dài",
+       "help": "Đầy đủ chi tiết khi câu trả lời cần."
+      }
+     ]
+    },
+    {
+     "field": "language_level",
+     "title": "Mức từ vựng",
+     "options": [
+      {
+       "value": "none",
+       "label": "Không có quy tắc",
+       "lead": "Không có quy tắc",
+       "help": "Không có quy tắc nào về từ ngữ."
+      },
+      {
+       "value": "simple",
+       "label": "Từ ngữ đơn giản",
+       "lead": "Từ ngữ đơn giản",
+       "help": "Từ ngữ hằng ngày, câu ngắn."
+      },
+      {
+       "value": "normal",
+       "label": "Bình thường",
+       "lead": "Bình thường",
+       "help": "Văn phong kỹ thuật thông thường."
+      },
+      {
+       "value": "advanced",
+       "label": "Nâng cao",
+       "lead": "Nâng cao",
+       "help": "Coi bạn là người thạo; không giải thích thêm."
+      }
+     ]
+    }
+   ],
+   "looks": [
+    {
+     "field": "stop",
+     "title": "Nút Dừng",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Bình thường",
+       "lead": "Bình thường",
+       "help": "Giao diện sẵn có của Telegram, như các nút khác.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Xanh dương",
+       "lead": "Xanh dương",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Xanh lá",
+       "lead": "Xanh lá",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Đỏ",
+       "lead": "Đỏ",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "prompt",
+     "title": "Nút Cho phép và Từ chối",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Bình thường",
+       "lead": "Bình thường",
+       "help": "Giao diện sẵn có của Telegram, như các nút khác.",
+       "swatch": []
+      },
+      {
+       "value": "coloured",
+       "label": "Có màu - Cho phép xanh lá, Từ chối đỏ",
+       "lead": "Có màu",
+       "help": "",
+       "swatch": [
+        "green",
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "app",
+     "title": "Nút App",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Bình thường",
+       "lead": "Bình thường",
+       "help": "Giao diện sẵn có của Telegram, như các nút khác.",
+       "swatch": []
+      },
+      {
+       "value": "blue",
+       "label": "Xanh dương",
+       "lead": "Xanh dương",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      },
+      {
+       "value": "green",
+       "label": "Xanh lá",
+       "lead": "Xanh lá",
+       "help": "",
+       "swatch": [
+        "green"
+       ]
+      },
+      {
+       "value": "red",
+       "label": "Đỏ",
+       "lead": "Đỏ",
+       "help": "",
+       "swatch": [
+        "red"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "settings",
+     "title": "Menu cài đặt",
+     "options": [
+      {
+       "value": "normal",
+       "label": "Bình thường",
+       "lead": "Bình thường",
+       "help": "Chỉ ✅ đánh dấu lựa chọn hiện tại.",
+       "swatch": []
+      },
+      {
+       "value": "highlight",
+       "label": "Lựa chọn hiện tại màu xanh dương",
+       "lead": "Lựa chọn hiện tại màu xanh dương",
+       "help": "",
+       "swatch": [
+        "blue"
+       ]
+      }
+     ]
+    }
+   ],
+   "report": {
+    "btn": "Báo cáo sự cố",
+    "card": "Cho nhà phát triển aipager biết điều gì đã sai. Bạn sẽ xem toàn bộ báo cáo trước khi có gì được gửi.",
+    "title": "Báo cáo sự cố",
+    "privacy": "Báo cáo chỉ chứa phiên bản, số lần và vị trí trong mã của aipager. Không bao giờ có chat, tin nhắn, tên hay đường dẫn của bạn.",
+    "noteLabel": "Ghi chú của bạn (tùy chọn)",
+    "notePlaceholder": "Bạn đang làm gì khi có lỗi?",
+    "asWritten": "Gửi đúng như bạn viết.",
+    "whatSent": "Những gì được gửi",
+    "system": "Hệ thống",
+    "setup": "Thiết lập",
+    "setupLine": "Dùng trong nhiều chat, 2 chat riêng, đã chạy 1 đến 24 giờ",
+    "errors": "Lỗi (2)",
+    "err1": "TimeoutError trong thẻ làm việc",
+    "err1Sub": "3 lần, thấy lần cuối 2026-10-17",
+    "err2": "Lỗi được ghi lại trong gửi tin nhắn tới Telegram",
+    "err2Sub": "một lần, thấy lần cuối 2026-10-16",
+    "foot": "Không có gì được gửi cho đến khi bạn chạm “Gửi báo cáo”. Báo cáo đến hộp thư lỗi của nhà phát triển aipager, không kèm tên bạn.",
+    "send": "Gửi báo cáo",
+    "sending": "Đang gửi...",
+    "sent": "Đã gửi báo cáo",
+    "thanks": "Cảm ơn bạn. Nếu bạn mở issue trên GitHub, hãy ghi kèm mã tham chiếu này:"
+   },
+   "new": {
+    "title": "Phiên mới",
+    "sub": "Đặt tên, chọn thư mục, rồi Claude sẽ bắt đầu làm việc ở đó.",
+    "name": "Tên",
+    "where": "Ở đâu",
+    "recent": "Gần đây",
+    "suggested": "Gợi ý",
+    "cwdTitle": "Thư mục",
+    "newFolder": "Thư mục mới",
+    "newFolderHelp": "Bên trong thư mục đã chọn ở trên",
+    "default": "Mặc định",
+    "defaultModelHelp": "Mô hình được đặt trong Claude Code",
+    "otherModel": "Mô hình khác",
+    "otherModelHelp": "Nhập tên đầy đủ, ví dụ claude-opus-5",
+    "modelName": "Tên mô hình",
+    "modelNeeded": "Nhập tên mô hình để tiếp tục.",
+    "more": "Thêm tùy chọn",
+    "modeTitle": "Chế độ quyền",
+    "modes": {
+     "ask": "Hỏi",
+     "auto": "Auto",
+     "full": "Toàn quyền"
+    },
+    "modeHelp": {
+     "ask": "Claude hỏi trước khi chạy công cụ",
+     "auto": "Một bước kiểm tra an toàn chạy các thao tác an toàn và dừng các thao tác rủi ro",
+     "full": "Mọi thứ chạy mà không có kiểm tra nào"
+    },
+    "summary": {
+     "ask": "Khởi động Claude trong {where}, ở Chế độ Hỏi, dùng {model}.",
+     "auto": "Khởi động Claude trong {where}, ở Chế độ Auto, dùng {model}.",
+     "full": "Khởi động Claude trong {where}, ở Chế độ Toàn quyền, dùng {model}."
+    },
+    "summaryNamed": {
+     "ask": "Khởi động Claude với tên {name} trong {where}, ở Chế độ Hỏi, dùng {model}.",
+     "auto": "Khởi động Claude với tên {name} trong {where}, ở Chế độ Auto, dùng {model}.",
+     "full": "Khởi động Claude với tên {name} trong {where}, ở Chế độ Toàn quyền, dùng {model}."
+    },
+    "cliModel": "mô hình mặc định của Claude Code",
+    "start": "Bắt đầu phiên",
+    "creating": "Đang tạo…",
+    "created": "Đã tạo phiên."
+   }
   }
  }
 ]

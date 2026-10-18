@@ -75,6 +75,108 @@ export interface BotStrings {
     agentDone11: string;
     agentDone7: string;
   };
+  /** the Mini App, in its own words, for the site's working copy of it */
+  app: AppStrings;
+}
+
+/** One of the app's settings, as its schema gives it: a title and the choices. */
+export interface AppGroup {
+  field: string;
+  title: string;
+  options: { value: string | boolean; label: string; lead: string; help: string; swatch?: string[] }[];
+}
+
+type Three<T> = { ask: T; auto: T; full: T };
+type Seven = Record<"stop" | "restart" | "compact" | "rename" | "kill" | "resume" | "delete", string>;
+
+export interface AppStrings {
+  tabs: { sessions: string; settings: string };
+  uptime: string;
+  pulse: { need1: string; working2: string; working3: string; resting1: string; finished12: string; spent: string };
+  needsYou: string;
+  answerInChat: string;
+  answerSent: string;
+  newSession: string;
+  state: { busy: string; idle: string; waiting: string; gone: string };
+  finished12: string;
+  /** a session's state line; resting keeps {age}, working keeps {clock} */
+  line: { resting: string; working: string; needs: string; finished: string };
+  age: { s2: string; s14: string; m10: string; m40: string; h3: string; d2: string };
+  clock: { a: string; b: string; c: string };
+  detail: { latestReply: string; sessionSettings: string };
+  fact: { model: string; context: string; cost: string; lastActive: string; mode: string; cwd: string; working: string };
+  modelTitle: string;
+  resetDefaults: string;
+  resetDone: string;
+  saved: string;
+  changed3: string;
+  changedNone: string;
+  change: { added: string; modified: string; deleted: string };
+  timeline5: string;
+  timelineEmpty: string;
+  timelineNote: string;
+  action: Seven;
+  done: Seven;
+  update: { title: string; upToDate: string; check: string; checking: string };
+  language: { title: string; hint: string; auto: string };
+  chatPrefs: string;
+  prefsIntro: string;
+  appearance: string;
+  appearanceIntro: string;
+  defaultTag: string;
+  groups: AppGroup[];
+  looks: AppGroup[];
+  report: {
+    btn: string;
+    card: string;
+    title: string;
+    privacy: string;
+    noteLabel: string;
+    notePlaceholder: string;
+    asWritten: string;
+    whatSent: string;
+    system: string;
+    setup: string;
+    setupLine: string;
+    errors: string;
+    err1: string;
+    err1Sub: string;
+    err2: string;
+    err2Sub: string;
+    foot: string;
+    send: string;
+    sending: string;
+    sent: string;
+    thanks: string;
+  };
+  new: {
+    title: string;
+    sub: string;
+    name: string;
+    where: string;
+    recent: string;
+    suggested: string;
+    cwdTitle: string;
+    newFolder: string;
+    newFolderHelp: string;
+    default: string;
+    defaultModelHelp: string;
+    otherModel: string;
+    otherModelHelp: string;
+    modelName: string;
+    modelNeeded: string;
+    more: string;
+    modeTitle: string;
+    modes: Three<string>;
+    modeHelp: Three<string>;
+    /** keep {where} and {model}; the named ones {name} too */
+    summary: Three<string>;
+    summaryNamed: Three<string>;
+    cliModel: string;
+    start: string;
+    creating: string;
+    created: string;
+  };
 }
 
 const ALL = STRINGS as BotStrings[];

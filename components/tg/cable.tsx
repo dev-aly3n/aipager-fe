@@ -59,6 +59,31 @@ export interface CableGeo {
   names: { l: string; r: string };
   /** how far the cable leaves each plug in the plug's own line before it hangs free */
   boot: number;
+  /** the words in a plate the plug sits in, or on a tag beside a port the plug sits in */
+  look: "plate" | "tag";
+  feel: Feel;
+}
+
+/** How the cable behaves, as opposed to where it runs. */
+interface Feel {
+  /** how hard it resists folding at a link; 0 lets it kink anywhere */
+  stiff: number;
+  /** how much of a stretch each pass takes back; under 1 it gives, and springs */
+  give: number;
+  /** the daemon's inverse mass: smaller is heavier */
+  daemon: number;
+  /** the daemon's size */
+  big: number;
+  /** a finger may take hold of it, not only a mouse */
+  touch: boolean;
+  /** a breeze that keeps it alive when nothing else moves it, in px/s² */
+  sway: number;
+  /** how far a scroll of the page swings it */
+  inertia: number;
+  /** how much of its speed it keeps each step: lower settles sooner, higher swings longer */
+  damp: number;
+  /** how much of the way a held point goes toward the hand each step: 1 is in the hand */
+  follow: number;
 }
 
 const SOCKET = { top: 580, h: 52 };
@@ -78,49 +103,56 @@ export const DESK: CableGeo = {
   tag: "below",
   names: { l: "claude-api · hooks", r: "telegram · @aipagerbot" },
   boot: 0,
+  look: "plate",
+  feel: { stiff: 0, give: 1, daemon: 0.4, big: 1, touch: false, sway: 0, inertia: 0, damp: 0.955, follow: 1 },
 };
 
 /** The phone's stage height, from the phone's foot to the terminal's head. */
-export const PHONE_H = 210;
+export const PHONE_H = 230;
 
 /**
- * The phone's, for a column w wide: Telegram's plate hangs from the phone's
- * foot, clear of its rounded corner, the terminal's stands on the terminal's
- * head at the other side, and the rope drapes between them. Drawn at the
- * column's own width rather than scaled, so the plates' words keep their
- * size on a small phone.
+ * The phone's, for a column w wide. The cable comes out of a port in the
+ * phone's foot and goes into one in the terminal's head further along, so
+ * it hangs in an S between them, and the words sit in the two corners the
+ * rope leaves free. Drawn at the column's own width rather than scaled, so
+ * the words keep their size on a small phone.
+ *
+ * It is also the one a finger plays with: it gives when pulled and springs
+ * back, a breeze keeps it moving, a scroll swings it, a tap plucks it.
  */
 export function phoneGeo(w: number): CableGeo {
-  const ph = 48;
-  // wide enough to keep its words whole on a 320 phone
-  const pw = Math.round(Math.max(150, Math.min(210, w * 0.58)));
-  const hang = 46; // the phone's corner is 40 round
-  const stand = w - 18 - pw;
-  const a = { x: stand + pw / 2, y: PHONE_H - ph };
+  const plug = 21; // the port's housing, then the plug's shell under it
+  const b = { x: Math.round(w * 0.4), y: plug };
+  const a = { x: Math.round(w * 0.8), y: PHONE_H - plug };
   return {
     stage: { w, h: PHONE_H },
     a,
-    b: { x: hang + pw / 2, y: ph },
-    slack: 1.08,
-    bow: 16,
-    // never into the terminal's plate
-    floor: a.y - 6,
+    b,
+    slack: 1.1,
+    bow: 0,
+    floor: a.y - 2,
     plates: {
-      l: { x: stand, y: PHONE_H - ph, w: pw, h: ph, edge: "stand" },
-      r: { x: hang, y: 0, w: pw, h: ph, edge: "hang" },
+      // the terminal's words, low, on the side away from its port, clear of
+      // the last of the rope as it comes round into the plug
+      l: { x: 8, y: PHONE_H - 60, w: Math.max(a.x - 74, 170), h: 50, edge: "stand" },
+      // Telegram's, high, past the phone's port
+      r: { x: b.x + 28, y: 14, w: w - b.x - 36, h: 50, edge: "hang" },
     },
-    flick: null,
+    // under Telegram's words, where the rope has already turned away
+    flick: { x: b.x + 30, y: 74 },
     tag: "side",
     // the phone above it already says Telegram
     names: { l: "claude-api · hooks", r: "@aipagerbot" },
-    // a cable rising from a plug on the terminal's head leaves it upward
     boot: 14,
+    look: "tag",
+    // all but still: a breath of a breeze, nothing from the page scrolling,
+    // a held point that lags well behind the finger
+    feel: { stiff: 1, give: 1, daemon: 0.75, big: 1.3, touch: true, sway: 25, inertia: 0, damp: 0.95, follow: 0.15 },
   };
 }
 
 const N = 40;
 const GRAV = 1500;
-const DAMP = 0.955;
 const ITER = 16;
 const GRAB_R = 40;
 const PUSH_R = 74;
@@ -169,7 +201,7 @@ function rope(g: CableGeo): Node[] {
     out.push({ x, y, px: x, py: y, w: i === 0 || i === N ? 0 : 1 });
   }
   // the daemon hangs off the middle link, and it has weight
-  out[N / 2].w = 0.4;
+  out[N / 2].w = g.feel.daemon;
   // the stiff boot behind each plug holds the first links on the plug's line
   if (g.boot) {
     for (const [end, step, p, plate] of [
@@ -219,6 +251,8 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
   const shade = useRef<SVGPathElement>(null);
   const sheen = useRef<SVGPathElement>(null);
   const daemon = useRef<SVGGElement>(null);
+  const ring = useRef<SVGCircleElement>(null);
+  const body = useRef<SVGGElement>(null);
   const sparkA = useRef<SVGCircleElement>(null);
   const sparkB = useRef<SVGCircleElement>(null);
   const slots = useRef<(SVGGElement | null)[]>([]);
@@ -238,7 +272,9 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
     let raf = 0;
     let last = performance.now();
     let acc = 0;
-    const m = { x: -1e4, y: -1e4, vx: 0, vy: 0, on: false, grab: -1 };
+    const m = { x: -1e4, y: -1e4, vx: 0, vy: 0, on: false, grab: -1, at: 0, moved: 0, sx: 0, sy: 0 };
+    // a touch only counts where the cable lets a finger hold it
+    const fingerOk = (e: PointerEvent) => e.pointerType !== "touch" || g.feel.touch;
 
     const toStage = (e: PointerEvent): { x: number; y: number } | null => {
       const r = root.current?.getBoundingClientRect();
@@ -261,10 +297,12 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
     };
 
     const move = (e: PointerEvent) => {
-      // Touch belongs to the page: a finger scrolls past, it does not shove the rope.
-      if (e.pointerType === "touch") return;
+      // Touch belongs to the page: a finger scrolls past, it does not shove
+      // the rope, unless it took hold of a cable that lets it.
+      if (e.pointerType === "touch" && !(g.feel.touch && m.grab >= 0)) return;
       const p = toStage(e);
       if (!p) return;
+      if (m.grab >= 0) m.moved = Math.max(m.moved, Math.hypot(p.x - m.sx, p.y - m.sy));
       m.vx = p.x - m.x;
       m.vy = p.y - m.y;
       m.x = p.x;
@@ -272,7 +310,7 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       m.on = true;
     };
     const down = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
+      if (!fingerOk(e)) return;
       const p = toStage(e);
       if (!p) return;
       const { i, d } = nearest(p.x, p.y);
@@ -281,12 +319,35 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       m.grab = i;
       m.x = p.x;
       m.y = p.y;
+      m.sx = p.x;
+      m.sy = p.y;
+      m.at = performance.now();
+      m.moved = 0;
       document.documentElement.style.userSelect = "none";
       setGrabbing(true);
       setGrabbed(true);
     };
     const up = () => {
       if (m.grab < 0) return;
+      // On a phone a tap, not a pull: the daemon hops, anywhere else the cable twangs.
+      if (g.feel.touch && performance.now() - m.at < 260 && m.moved < 8) {
+        const n = ns[m.grab];
+        if (Math.abs(m.grab - N / 2) <= 3) {
+          // the middle of the cable leaps with it, thrown a little to one side
+          const side = Math.random() < 0.5 ? -1 : 1;
+          for (let k = -9; k <= 9; k++) {
+            const q = ns[N / 2 + k];
+            if (!q.w) continue;
+            const f = Math.cos((Math.PI * k) / 20);
+            q.py = q.y + 3.5 * f;
+            q.px = q.x - side * 1.1 * f;
+          }
+          jolt(body.current, "boing");
+        } else if (n.w) {
+          n.px = n.x + (Math.random() < 0.5 ? -1.2 : 1.2);
+          n.py = n.y + 0.8;
+        }
+      }
       m.grab = -1;
       document.documentElement.style.userSelect = "";
       setGrabbing(false);
@@ -296,6 +357,17 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       m.x = -1e4;
       m.y = -1e4;
     };
+    // Chrome reads touch-action from boxes, not from an SVG path, so a
+    // finger that lands on the cable is kept from scrolling the page here.
+    const hold = (e: TouchEvent) => {
+      if (g.feel.touch) e.preventDefault();
+    };
+    const pin = (e: TouchEvent) => {
+      if (m.grab >= 0) e.preventDefault();
+    };
+    const grip = hit.current;
+    grip?.addEventListener("touchstart", hold, { passive: false });
+    window.addEventListener("touchmove", pin, { passive: false });
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", down);
     window.addEventListener("pointerup", up, { passive: true });
@@ -316,13 +388,13 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
 
     const cool: number[] = [];
     const lit = { a: -1e4, b: -1e4 };
-    const jolt = (el: Element | null | undefined) => {
+    const jolt = (el: Element | null | undefined, cls = "jolt") => {
       if (!el) return;
-      el.classList.remove("jolt");
+      el.classList.remove(cls);
       // getBoundingClientRect flushes layout for SVG too, where offsetWidth is
       // undefined; without it the same class never restarts the animation.
       el.getBoundingClientRect();
-      el.classList.add("jolt");
+      el.classList.add(cls);
     };
     // Only the socket takes the knock: the window above it is not what the
     // cable is plugged into.
@@ -338,21 +410,28 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       cool.push(window.setTimeout(() => set((f) => (f.text === text ? { text, hot: false } : f)), 950));
     };
 
+    let clock = 0;
     const step = (dt: number) => {
-      for (const n of ns) {
-        if (!n.w) continue;
-        const vx = (n.x - n.px) * DAMP;
-        const vy = (n.y - n.py) * DAMP;
+      clock += dt;
+      ns.forEach((n, i) => {
+        if (!n.w) return;
+        const vx = (n.x - n.px) * g.feel.damp;
+        const vy = (n.y - n.py) * g.feel.damp;
         n.px = n.x;
         n.py = n.y;
-        n.x += vx;
+        // a breeze that never quite settles: the whole cable leans with it,
+        // the middle most, and a slower gust under it keeps it from looking
+        // like a metronome
+        const gust = Math.sin(clock * 1.3 + i * 0.05) + 0.6 * Math.sin(clock * 0.47 + 1.7);
+        const air = g.feel.sway ? g.feel.sway * gust * Math.sin((Math.PI * i) / N) : 0;
+        n.x += vx + air * dt * dt;
         n.y += vy + GRAV * dt * dt;
-      }
+      });
       // the pointer: a finger through the rope, or a hand holding it
       if (m.grab >= 0) {
         const n = ns[m.grab];
-        n.x = m.x;
-        n.y = m.y;
+        n.x += (m.x - n.x) * g.feel.follow;
+        n.y += (m.y - n.y) * g.feel.follow;
       } else if (m.on) {
         for (const n of ns) {
           if (!n.w) continue;
@@ -365,14 +444,20 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
           n.y += (dy / d) * f * f * 3 + m.vy * f * 0.16;
         }
       }
-      for (let k = 0; k < ITER; k++) {
+      // It may give a little while it is held, and is firm again once let
+      // go, so it never sags under itself. A held cable gets more passes,
+      // so a finger cannot pull it longer than it is.
+      const give = m.grab >= 0 ? g.feel.give : Math.max(g.feel.give, 0.9);
+      const passes = m.grab >= 0 && g.feel.touch ? ITER * 2 : ITER;
+      for (let k = 0; k < passes; k++) {
         for (let i = 0; i < ns.length - 1; i++) {
           const a = ns[i];
           const b = ns[i + 1];
           const dx = b.x - a.x;
           const dy = b.y - a.y;
           const d = Math.hypot(dx, dy) || 0.001;
-          const diff = (d - rest) / d;
+          // under 1, each pass takes back only part of a stretch: the cable gives
+          const diff = ((d - rest) / d) * give;
           const tot = a.w + b.w;
           if (!tot) continue;
           const ax = dx * diff * (a.w / tot);
@@ -383,6 +468,26 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
           a.y += ay;
           b.x -= bx;
           b.y -= by;
+        }
+        // A cable bends, it does not fold: two links apart may not come
+        // closer than a gentle bend allows.
+        if (g.feel.stiff) {
+          const reach = rest * 2 * 0.98;
+          for (let i = 0; i < ns.length - 2; i++) {
+            const a = ns[i];
+            const c = ns[i + 2];
+            const tot = a.w + c.w;
+            if (!tot) continue;
+            const dx = c.x - a.x;
+            const dy = c.y - a.y;
+            const d = Math.hypot(dx, dy) || 0.001;
+            if (d >= reach) continue;
+            const push = ((d - reach) / d) * g.feel.stiff * 0.5;
+            a.x += dx * push * (a.w / tot);
+            a.y += dy * push * (a.w / tot);
+            c.x -= dx * push * (c.w / tot);
+            c.y -= dy * push * (c.w / tot);
+          }
         }
       }
       for (const n of ns) {
@@ -398,8 +503,31 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       m.vy *= 0.6;
     };
 
+    // A phone's cable is already hanging at rest when it first comes into
+    // view, rather than falling into shape in front of the reader who
+    // scrolled down to it.
+    if (g.feel.touch) for (let i = 0; i < 900; i++) step(1 / 120);
+
+    // Nothing to draw while the cable is off the screen.
+    let seen = true;
+    const io = new IntersectionObserver(([e]) => (seen = e.isIntersecting), { rootMargin: "160px" });
+    if (root.current) io.observe(root.current);
+    let scrolled = window.scrollY;
+
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      if (!seen) {
+        last = now;
+        scrolled = window.scrollY;
+        return;
+      }
+      // The page moving under it swings it, the way a cable hanging off a
+      // phone swings when you move the phone.
+      if (g.feel.inertia) {
+        const dy = Math.max(-14, Math.min(14, window.scrollY - scrolled));
+        scrolled = window.scrollY;
+        if (dy) ns.forEach((n, i) => n.w && (n.y += dy * g.feel.inertia * Math.sin((Math.PI * i) / N)));
+      }
       if (still) {
         // The cable hangs where it is; only the sockets keep speaking.
         queue.current.splice(0).forEach((w) => {
@@ -430,12 +558,9 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       sheen.current?.setAttribute("d", d);
       const mid = ns[N / 2];
       const through = live.find((q) => Math.abs(q.s - 0.5) < 0.07);
-      const ring = daemon.current?.firstElementChild as SVGCircleElement | undefined;
-      if (ring) {
-        ring.setAttribute("stroke", through ? TONE[through.tone].glow : "#2f3843");
-        ring.setAttribute("stroke-width", through ? "2" : "1");
-      }
-      daemon.current?.setAttribute("transform", `translate(${mid.x.toFixed(2)} ${mid.y.toFixed(2)})`);
+      ring.current?.setAttribute("stroke", through ? TONE[through.tone].glow : "#2f3843");
+      ring.current?.setAttribute("stroke-width", through ? "2" : "1");
+      daemon.current?.setAttribute("transform", `translate(${mid.x.toFixed(2)} ${mid.y.toFixed(2)}) scale(${g.feel.big})`);
 
       // charges take the cable as it is this frame
       while (queue.current.length && live.length < SLOTS) {
@@ -470,7 +595,7 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
         if (p.s >= 1) {
           flash(p.dir === "out" ? "r" : "l", p.to);
           land(p.dir === "out" ? "r" : "l");
-          kick(p.dir === "out" ? "b" : "a", 2.4);
+          kick(p.dir === "out" ? "b" : "a", 2.4 * g.feel.big);
           live.splice(i, 1);
         }
       }
@@ -514,12 +639,15 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
       for (let i = 0; i < 400; i++) step(1 / 120);
       const d0 = draw(ns);
       for (const el of [main.current, shade.current, sheen.current, hit.current]) el?.setAttribute("d", d0);
-      daemon.current?.setAttribute("transform", `translate(${ns[N / 2].x.toFixed(2)} ${ns[N / 2].y.toFixed(2)})`);
+      daemon.current?.setAttribute("transform", `translate(${ns[N / 2].x.toFixed(2)} ${ns[N / 2].y.toFixed(2)}) scale(${g.feel.big})`);
     }
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
+      io.disconnect();
       cool.forEach((t) => window.clearTimeout(t));
+      grip?.removeEventListener("touchstart", hold);
+      window.removeEventListener("touchmove", pin);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointerup", up);
@@ -549,17 +677,21 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
   return (
     <div ref={root} className="pointer-events-none absolute inset-0 z-20">
       {!grabbed && g.flick && (
-        <div className="absolute font-mono text-[9.5px] uppercase tracking-[0.16em] text-fg-4" style={{ left: g.flick.x, top: g.flick.y }}>
+        <div
+          className={`absolute font-mono text-fg-4 ${g.look === "tag" ? "text-balance text-[10.5px] leading-snug" : "text-[9.5px] uppercase tracking-[0.16em]"}`}
+          // on the phone it has what is left of the row, and wraps inside it
+          style={{ left: g.flick.x, top: g.flick.y, maxWidth: g.look === "tag" ? ST.w - g.flick.x - 8 : undefined }}
+        >
           ✥ {t.demo.cable.flick}
         </div>
       )}
-      <Socket plate={g.plates.l} side="l" caption={g.names.l} face={left} hot={left.hot} />
-      <Socket plate={g.plates.r} side="r" caption={g.names.r} face={right} hot={right.hot} />
+      <Socket plate={g.plates.l} side="l" caption={g.names.l} face={left} hot={left.hot} look={g.look} />
+      <Socket plate={g.plates.r} side="r" caption={g.names.r} face={right} hot={right.hot} look={g.look} />
       <svg
         viewBox={`0 0 ${ST.w} ${ST.h}`}
         className="absolute inset-0 h-full w-full"
         // the scene is drawn to coordinates, so an anchor's "end" is always its right
-        style={{ cursor: grabbing ? "grabbing" : undefined, direction: "ltr" }}
+        style={{ cursor: grabbing ? "grabbing" : undefined, direction: "ltr", WebkitTouchCallout: "none", userSelect: "none" }}
         aria-hidden
       >
         <defs>
@@ -578,6 +710,13 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
             </feMerge>
           </filter>
         </defs>
+        {/* the ports, where the plugs go into the phone and the terminal rather than into a plate */}
+        {g.look === "tag" && (
+          <>
+            <rect x={B.x - 19} y={-5} width="38" height="13" rx="4" fill="#2a313b" stroke="#3d4652" strokeWidth="0.8" />
+            <rect x={A.x - 19} y={ST.h - 8} width="38" height="13" rx="4" fill="#2a313b" stroke="#3d4652" strokeWidth="0.8" />
+          </>
+        )}
         {/* the plugs */}
         {([
           [A, g.plates.l, "l"],
@@ -596,7 +735,15 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
         <circle ref={sparkA} cx={A.x} cy={g.plates.l.edge === "stand" ? A.y - 8 : A.y + 8} r="5" fill="none" stroke="#9ad8ff" strokeWidth="2" opacity="0" />
         <circle ref={sparkB} cx={B.x} cy={g.plates.r.edge === "stand" ? B.y - 8 : B.y + 8} r="5" fill="none" stroke="#a8f0c6" strokeWidth="2" opacity="0" />
         <path ref={shade} fill="none" stroke="#04070b" strokeWidth="10" strokeLinecap="round" opacity="0.85" />
-        <path ref={hit} fill="none" stroke="transparent" strokeWidth="30" strokeLinecap="round" style={{ pointerEvents: "stroke", cursor: grabbing ? "grabbing" : "grab" }} />
+        {/* where a finger may take hold of it, the page does not scroll */}
+        <path
+          ref={hit}
+          fill="none"
+          stroke="transparent"
+          strokeWidth={g.feel.touch ? 40 : 30}
+          strokeLinecap="round"
+          style={{ pointerEvents: "stroke", cursor: grabbing ? "grabbing" : "grab", touchAction: g.feel.touch ? "none" : undefined }}
+        />
         <path ref={main} fill="none" stroke={`url(#${uid}-skin)`} strokeWidth="6.5" strokeLinecap="round" />
         <path ref={sheen} fill="none" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="1.5" strokeLinecap="round" transform="translate(0 -1.6)" />
         {Array.from({ length: SLOTS }, (_, i) => (
@@ -617,13 +764,17 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
           </g>
         ))}
         <g ref={daemon}>
-          <circle r="16" fill="#0b0f14" stroke="#2f3843" />
-          <g transform="translate(-9 -9) scale(0.281)">
-            <rect x="2" y="2" width="60" height="60" rx="14" fill="#181C20" stroke="#3a4048" />
-            <path d="M16 24 L26 32 L16 40" stroke="#F6F7F8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            <rect x="30" y="29" width="8" height="6" rx="1" fill="#F6F7F8" />
-            <circle cx="48" cy="20" r="6" fill="#3FA9F5" fillOpacity="0.22" />
-            <circle cx="48" cy="20" r="3" fill="#3FA9F5" />
+          {/* tap it and it hops, squashing as it goes */}
+          <g ref={body} style={{ transformBox: "fill-box", transformOrigin: "center" }}>
+            <circle ref={ring} r="16" fill="#0b0f14" stroke="#2f3843" />
+            <g transform="translate(-9 -9) scale(0.281)">
+              <rect x="2" y="2" width="60" height="60" rx="14" fill="#181C20" stroke="#3a4048" />
+              <path d="M16 24 L26 32 L16 40" stroke="#F6F7F8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              {/* on the phone its cursor waits, the way a shell's does */}
+              <rect x="30" y="29" width="8" height="6" rx="1" fill="#F6F7F8" className={g.look === "tag" ? "caret-blink" : undefined} />
+              <circle cx="48" cy="20" r="6" fill="#3FA9F5" fillOpacity="0.22" />
+              <circle cx="48" cy="20" r="3" fill="#3FA9F5" />
+            </g>
           </g>
           <text
             x={g.tag === "side" ? -23 : 0}
@@ -640,13 +791,15 @@ export function Cable({ world, spark, t, geo = DESK }: { world: World; spark: { 
   );
 }
 
-function Socket({ plate, side, caption, face, hot }: { plate: Plate; side: "l" | "r"; caption: string; face: Face; hot: boolean }) {
+function Socket({ plate, side, caption, face, hot, look }: { plate: Plate; side: "l" | "r"; caption: string; face: Face; hot: boolean; look: CableGeo["look"] }) {
   // a plate under a window opens upward into it, with the plug at its foot;
-  // one standing on a window opens downward, with the plug on its head
-  const shape = plate.edge === "hang" ? "rounded-b-xl border-t-0 pb-4 pt-1.5" : "rounded-t-xl border-b-0 pb-1.5 pt-4";
+  // one standing on a window opens downward, with the plug on its head; a
+  // tag beside a port is a card of its own
+  const shape =
+    look === "tag" ? "rounded-xl py-2" : plate.edge === "hang" ? "rounded-b-xl border-t-0 pb-4 pt-1.5" : "rounded-t-xl border-b-0 pb-1.5 pt-4";
   return (
     <div data-socket={side} className="absolute" style={{ left: plate.x, top: plate.y, width: plate.w, height: plate.h }}>
-      <div className={`h-full border px-3 transition-colors duration-200 ${shape} ${hot ? "border-white/20 bg-[#121922]" : "border-white/10 bg-[#0c1117]"}`}>
+      <div className={`h-full border transition-colors duration-200 ${look === "tag" ? "px-2.5" : "px-3"} ${shape} ${hot ? "border-white/20 bg-[#121922]" : look === "tag" ? "border-white/[0.08] bg-[#0c1117]/85" : "border-white/10 bg-[#0c1117]"}`}>
         <div className="flex items-center gap-1.5">
           <span
             className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${

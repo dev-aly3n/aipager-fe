@@ -8,6 +8,9 @@ import { LANGUAGES, pathFor, type Locale } from "@/lib/i18n/locales";
 /** A year: long enough that a reader never has to pick twice. */
 const REMEMBER = 60 * 60 * 24 * 365;
 
+/** The product's order, except that Persian sits just above Arabic. */
+const LISTED = LANGUAGES.flatMap((l) => (l.code === "fa" ? [] : l.code === "ar" ? LANGUAGES.filter((x) => x.code === "fa").concat(l) : [l]));
+
 /**
  * The language picker in the bar. It keeps you on the page you are reading,
  * and remembers the choice so the next visit opens in it.
@@ -78,7 +81,7 @@ export function LangSwitcher({ locale, label }: { locale: Locale; label: string 
             className="absolute end-0 top-[calc(100%+10px)] z-50 max-h-[min(70vh,28rem)] w-[min(92vw,30rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#11161c]/95 p-1.5 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] backdrop-blur-xl sm:w-[30rem]"
           >
             <ul className="grid gap-0.5 sm:grid-cols-2">
-              {LANGUAGES.map((l) => {
+              {LISTED.map((l) => {
                 const on = l.code === locale;
                 return (
                   // the list is only for layout: a listbox owns its options

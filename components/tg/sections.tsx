@@ -5,11 +5,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CopyButton, Mark } from "@/components/brand";
 import { Ticks } from "./telegram";
 import { Bidi, Rich } from "./rich";
+import { MiniApp } from "./miniapp";
 import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
 import STRINGS from "@/lib/bot-strings.json";
 import { botOf, fill } from "@/lib/i18n/bot";
 import type { Dict } from "@/lib/i18n";
-import { arrow, comma, digits, isLocale, percent, type Locale } from "@/lib/i18n/locales";
+import { arrow, digits, isLocale, type Locale } from "@/lib/i18n/locales";
 
 export { Rich };
 
@@ -178,11 +179,25 @@ export function Under({ t }: { t: Dict }) {
           <div className="absolute inset-x-[10%] top-[27px] hidden h-px bg-gradient-to-r from-[#d97757]/60 via-[#4fd693]/60 to-[#b18cff]/60 rtl:bg-gradient-to-l sm:block" />
           <span className="flow-dot absolute top-[23px] hidden h-[9px] w-[9px] rounded-full bg-white shadow-[0_0_12px_white] sm:block" />
           <span className="flow-dot flow-back absolute top-[23px] hidden h-[9px] w-[9px] rounded-full bg-live shadow-[0_0_12px_rgb(79_214_147)] sm:block" />
+          {/* On a phone the same flow runs down the list: a spine through the
+              five boxes, the event travelling down it to your chats and the
+              answer coming back up, each box lighting as it passes. */}
+          <div className="relative">
+            <div className="absolute start-[25.5px] top-[26px] bottom-[26px] w-px bg-gradient-to-b from-[#d97757]/70 via-[#4fd693]/60 to-[#b18cff]/70 sm:hidden" />
+            <span className="flow-down absolute start-[21.5px] h-[9px] w-[9px] rounded-full bg-white shadow-[0_0_12px_white] sm:hidden" />
+            <span className="flow-up absolute start-[21.5px] h-[9px] w-[9px] rounded-full bg-live shadow-[0_0_12px_rgb(79_214_147)] sm:hidden" />
           <ol className="relative grid gap-4 sm:grid-cols-5 sm:gap-0">
-            {nodes.map((n) => (
-              <li key={n.t} className="flex items-center gap-4 sm:block sm:text-center">
-                <span className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-2xl border bg-[#0d1117] sm:mx-auto sm:h-[56px] sm:w-[56px]" style={{ borderColor: `${n.color}66` }}>
-                  <span className="h-3 w-3 rounded-full" style={{ background: n.color, boxShadow: `0 0 16px ${n.color}` }} />
+            {nodes.map((n, i) => (
+              <li key={n.t} className="flex min-h-[60px] items-center gap-4 sm:block sm:min-h-0 sm:text-center">
+                <span
+                  className="node-out grid h-[52px] w-[52px] shrink-0 place-items-center rounded-2xl border bg-[#0d1117] sm:mx-auto sm:h-[56px] sm:w-[56px]"
+                  // the event reaches box i on its way down, the answer on its way up
+                  style={{ borderColor: `${n.color}66`, animationDelay: `${(i * 0.54).toFixed(2)}s` }}
+                >
+                  <span
+                    className="node-back h-3 w-3 rounded-full"
+                    style={{ background: n.color, boxShadow: `0 0 16px ${n.color}`, animationDelay: `${(2.4 + (nodes.length - 1 - i) * 0.54).toFixed(2)}s` }}
+                  />
                 </span>
                 <div className="min-w-0">
                   <div className="text-[16px] font-semibold text-white sm:mt-4">{n.t}</div>
@@ -191,6 +206,7 @@ export function Under({ t }: { t: Dict }) {
               </li>
             ))}
           </ol>
+          </div>
           {/* why the sentence above is true, in three facts */}
           <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {t.under.facts.map((f) => (
@@ -769,6 +785,18 @@ function Bold({ html }: { html: string }) {
 export function Languages({ t }: { t: Dict }) {
   const [code, setCode] = useState("fa");
   const L = LANGS.find((l) => l.code === code) ?? LANGS[0];
+  // Where the chips are one row you swipe, the chosen one is brought to the
+  // middle of it. By the difference in place, so it works either way round
+  // and never moves the page itself.
+  const chips = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = chips.current;
+    const on = row?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    if (!row || !on || row.scrollWidth <= row.clientWidth) return;
+    const a = on.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    row.scrollBy({ left: a.left + a.width / 2 - (r.left + r.width / 2), behavior: "smooth" });
+  }, [code]);
   return (
     <section id="languages" className="border-t border-white/[0.06] py-20 sm:py-28 lg:py-32">
       <div className="wrap !max-w-[76rem]">
@@ -779,9 +807,12 @@ export function Languages({ t }: { t: Dict }) {
           </div>
           <p className="text-[16.5px] leading-relaxed text-fg-2"><Bidi text={t.langs.lead} /></p>
         </div>
-        <div className="mt-12 grid gap-10 tablet:min-[720px]:grid-cols-2 tablet:min-[720px]:items-start tablet:min-[720px]:gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-14">
-          <div>
-            <div className="flex flex-wrap gap-2">
+        {/* In one column the chips are a single row you swipe, with the chat
+            right under it, so a tap shows its language where you are looking;
+            what the section says comes after the chat. */}
+        <div className="mt-12 grid gap-10 max-[719px]:gap-4 tablet:min-[720px]:grid-cols-2 tablet:min-[720px]:items-start tablet:min-[720px]:gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-14">
+          <div className="max-[719px]:contents">
+            <div ref={chips} className="flex flex-wrap gap-2 max-[719px]:order-1 max-[719px]:-mx-[clamp(20px,4vw,56px)] max-[719px]:flex-nowrap max-[719px]:overflow-x-auto max-[719px]:px-[clamp(20px,4vw,56px)] max-[719px]:pb-1 max-[719px]:[scrollbar-width:none]">
               {LANGS.map((l) => (
                 <button
                   key={l.code}
@@ -789,7 +820,7 @@ export function Languages({ t }: { t: Dict }) {
                   onClick={() => setCode(l.code)}
                   aria-pressed={l.code === code}
                   title={l.english}
-                  className={`rounded-full px-3.5 py-1.5 text-[14px] transition-colors ${
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[14px] transition-colors ${
                     l.code === code ? "bg-[#2aabee] text-white" : "border border-white/10 bg-white/[0.03] text-fg-2 hover:border-white/25 hover:text-foreground"
                   }`}
                 >
@@ -797,7 +828,7 @@ export function Languages({ t }: { t: Dict }) {
                 </button>
               ))}
             </div>
-            <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2 tablet:min-[720px]:!grid-cols-1">
+            <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2 max-[719px]:order-3 max-[719px]:mt-6 tablet:min-[720px]:!grid-cols-1">
               {t.langs.facts.map((f) => (
                 <div key={f.t} className="border-t border-white/10 pt-4">
                   <div className="text-[15px] font-semibold text-white"><Bidi text={f.t} /></div>
@@ -806,7 +837,7 @@ export function Languages({ t }: { t: Dict }) {
               ))}
             </div>
           </div>
-          <div dir={L.rtl ? "rtl" : "ltr"} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)]">
+          <div dir={L.rtl ? "rtl" : "ltr"} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] max-[719px]:order-2">
             <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3" dir="ltr">
               <Mark size={34} className="rounded-full" />
               <div className="leading-tight">
@@ -864,50 +895,8 @@ export function Languages({ t }: { t: Dict }) {
 
 /* ---------------- the dashboard inside Telegram ---------------- */
 
-/** A session's context ring, the way the app draws it: the number inside. */
-function Ring({ pct, on, locale }: { pct: number; on: boolean; locale: Locale }) {
-  const r = 20;
-  const c = 2 * Math.PI * r;
-  // Arabic and Persian write their own digits, and Arabic its own per-cent sign
-  const sign = percent(locale);
-  return (
-    <span className="relative grid h-[50px] w-[50px] shrink-0 place-items-center">
-      <svg width="50" height="50" viewBox="0 0 50 50" className="absolute -rotate-90" aria-hidden>
-        <circle cx="25" cy="25" r={r} fill="none" stroke={on ? "rgb(255 255 255 / 0.12)" : "rgb(255 255 255 / 0.09)"} strokeWidth="4" />
-        <circle cx="25" cy="25" r={r} fill="none" stroke={on ? "#5a9fe0" : "#5c6a78"} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(c * pct) / 100} ${c}`} />
-      </svg>
-      <span className="font-semibold text-[13px] text-white">
-        {digits(String(pct), locale)}
-        <span className="text-[9px] text-fg-3">{sign}</span>
-      </span>
-    </span>
-  );
-}
-
-// `working` names which of the Mini App's own "last active" phrases the
-// tile shows; the catalog writes the number, the unit and the word.
-const TILES: { name: string; who: string; pct: number; model: string; cost: string; working?: "age2" | "age14"; needs?: boolean }[] = [
-  { name: "api", who: "aly", pct: 62, model: "Sonnet 5.5", cost: "$1.84", working: "age2" },
-  { name: "web", who: "jim", pct: 38, model: "Sonnet 5.5", cost: "$0.92", needs: true },
-  { name: "docs", who: "aly", pct: 44, model: "Opus 5.5 (1M context)", cost: "$1.36", working: "age14" },
-  { name: "trip", who: "aly", pct: 12, model: "Haiku 5.5", cost: "$0.07" },
-];
-
-
-
-/** The app's own surface: a card on the Telegram-dark background. */
-const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-2xl bg-[#19222d] ${className}`}>{children}</div>
-);
-
 export function App({ t, locale, version }: { t: Dict; locale: Locale; version: string }) {
   const a = t.app;
-  const bot = botOf(locale);
-  // A language puts the number where its grammar wants it: a phrase with
-  // {n} places it itself, one without gets it in front, as English does.
-  const count = (phrase: string, n: number | string) => digits(phrase.includes("{n}") ? fill(phrase, { n }) : `${n} ${phrase}`, locale);
-  const sep = comma(locale);
-  const [tab, setTab] = useState<"sessions" | "settings">("sessions");
   return (
     <section id="app" className="border-t border-white/[0.06] py-20 sm:py-28 lg:py-32">
       <div className="wrap !max-w-[76rem]">
@@ -919,133 +908,9 @@ export function App({ t, locale, version }: { t: Dict; locale: Locale; version: 
           <p className="text-[16.5px] leading-relaxed text-fg-2"><Bidi text={a.lead} /></p>
         </div>
         <div className="mt-12 grid gap-10 tablet:min-[720px]:grid-cols-2 tablet:min-[720px]:items-start tablet:min-[720px]:gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:items-start lg:gap-14">
-          {/* the app itself */}
-          <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-[22px] border border-white/10 bg-[#212d3b] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)]">
-            {/* Telegram's own bar */}
-            <div className="flex items-center gap-3 px-5 pb-3 pt-4">
-              <span className="text-[20px] font-semibold tracking-[-0.02em] text-white">aipager</span>
-              <span className="ms-auto text-[17px] leading-none text-fg-3">⋮</span>
-              <span className="text-[17px] leading-none text-fg-3" aria-label={a.close}>✕</span>
-            </div>
-            {/* who you are talking to */}
-            <div className="flex items-center gap-3 px-5 pb-4">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.03]">
-                <Mark size={22} />
-              </span>
-              <div className="min-w-0 leading-tight">
-                <div className="text-[18px] font-semibold text-white">aipager</div>
-                {/* uptime as the symbol, not the English word: the catalog has
-                    no string for it and this line is the product's own UI */}
-                <div className="truncate text-[12.5px] text-fg-3">
-                  <bdi dir="ltr">@aipagerbot · v{version} · ↑ 25m</bdi>
-                </div>
-              </div>
-            </div>
-            {/* the two halves of the app */}
-            <div className="mx-4 grid grid-cols-2 rounded-2xl bg-[#2b3846] p-1">
-              {(["sessions", "settings"] as const).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setTab(key)}
-                  className={`rounded-xl py-2 text-[14.5px] font-medium transition-colors ${tab === key ? "bg-[#19222d] text-white shadow-[0_1px_3px_rgb(0_0_0/0.4)]" : "text-fg-3 hover:text-fg-2"}`}
-                >
-                  {key === "sessions" ? a.tabs.sessions : a.tabs.settings}
-                </button>
-              ))}
-            </div>
-            {tab === "sessions" ? (
-              <div className="space-y-2.5 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[19px] font-semibold tracking-[-0.02em] text-white">
-                      {count(a.summary.needs, 1)}
-                      {sep}
-                      <span className="text-fg-2">{count(a.summary.working, 2)}</span>
-                      <span className="text-fg-3">
-                        {sep}
-                        {count(a.summary.resting, 1)}
-                      </span>
-                    </div>
-                    <div className="mt-0.5 text-[13px] text-fg-3">
-                      {count(a.summary.spent, "$4.19")} · {count(a.summary.finished, 12)}
-                    </div>
-                  </div>
-                  <span className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-2xl bg-[#5288c1] text-[22px] leading-none text-white">+</span>
-                </div>
-                {/* the one that is waiting */}
-                <div className="rounded-2xl border border-[#ffc774]/30 bg-[#ffc774]/[0.07] px-3.5 py-3">
-                  <div className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-[#ffc774]">{a.needsYou}</div>
-                  <div className="mt-1 text-[14px] text-white">
-                    <b className="font-semibold">web</b> · Bash: <code className="font-mono text-[13px] text-[#ffc774]">make deploy</code>
-                  </div>
-                  <button type="button" className="mt-2.5 w-full rounded-xl bg-[#2b3846] py-2 text-[13.5px] font-medium text-white transition-colors hover:bg-[#34445a]">
-                    {a.answerInChat}
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {TILES.map((tile) => (
-                    <Card key={tile.name} className={`px-3 py-3 ${tile.working ? "bg-[#1b2a3d] ring-1 ring-[#5a9fe0]/30" : tile.needs ? "bg-[#231f1a] ring-1 ring-[#ffc774]/25" : ""}`}>
-                      <div className="flex items-start gap-2">
-                        <Ring pct={tile.pct} on={Boolean(tile.working)} locale={locale} />
-                        <div className="ms-auto text-end">
-                          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-[3px] text-[11.5px] ${tile.working ? "bg-[#5a9fe0]/15 text-[#8fc4f0]" : tile.needs ? "bg-[#ffc774]/15 text-[#ffc774]" : "bg-white/[0.06] text-fg-3"}`}>
-                            {tile.working ? a.states.working : tile.needs ? a.states.needs : a.states.resting}
-                          </span>
-                          {tile.working && <div className="mt-1 text-[11.5px] text-fg-4">{bot.count[tile.working]}</div>}
-                        </div>
-                      </div>
-                      <div className="mt-2 truncate text-[15.5px] font-semibold text-white">{tile.name}</div>
-                      <div className="truncate text-[13px] text-fg-3">{tile.who}</div>
-                      <div className="truncate text-[12.5px] text-fg-4">
-                        {tile.model} · {digits(tile.cost, locale)}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between px-1 pt-0.5 text-[13px] text-fg-3">
-                  {/* the grid's own fold header, as the Mini App writes it */}
-                  <span>{bot.count.finished12}</span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3 p-4">
-                <Card className="px-4 py-3.5">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-[16.5px] font-semibold text-white">{a.settings.updates}</span>
-                    <span className="text-[12.5px] text-fg-3">v{version}</span>
-                    <span className="ms-auto text-[13.5px] font-medium text-[#6ab3f3]">⟳ {a.settings.check}</span>
-                  </div>
-                  <div className="mt-1.5 text-[14px] text-fg-2">{a.settings.upToDate}</div>
-                </Card>
-                <div>
-                  <Card className="flex items-center gap-3 px-4 py-3.5">
-                    <span className="text-[16px] text-white">{a.settings.language}</span>
-                    <span className="ms-auto text-[14.5px] text-fg-3">{bot.name}</span>
-                    <span className="text-fg-4">›</span>
-                  </Card>
-                  <p className="mt-1.5 px-1 text-[12.5px] text-fg-4">{a.settings.languageNote}</p>
-                </div>
-                <div>
-                  <div className="px-1 text-[13px] font-medium text-fg-3">{a.settings.chatPrefs}</div>
-                  <p className="mb-1.5 px-1 text-[12.5px] text-fg-4">{a.settings.chatPrefsNote}</p>
-                  <Card className="divide-y divide-white/[0.05]">
-                    {a.settings.rows.map((row) => (
-                      <div key={row.k} className="flex items-center gap-3 px-4 py-3">
-                        <span className="text-[15px] text-white">{row.k}</span>
-                        <span className="ms-auto text-[14px] text-fg-3">{"v" in row ? row.v : bot.modes.auto}</span>
-                        <span className="text-fg-4">›</span>
-                      </div>
-                    ))}
-                  </Card>
-                </div>
-              </div>
-            )}
-            <div className="border-t border-white/[0.05] py-2.5 text-center text-[12.5px] text-fg-4"><bdi dir="ltr">@aipagerbot</bdi></div>
-          </div>
+          {/* the app itself, working: tap into a session, the finished ones,
+              the settings, a new session or a problem report */}
+          <MiniApp t={t} locale={locale} version={version} />
           {/* what it is for */}
           <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2 tablet:min-[720px]:!grid-cols-1 lg:grid-cols-1">
             {a.facts.map((f) => (
@@ -1075,7 +940,12 @@ function VoiceNote({ t, locale }: { t: Dict; locale: Locale }) {
     <div className="mt-3 max-w-[290px] space-y-1.5">
       <div className="flex justify-end">
         <span className="flex items-center gap-2 rounded-[14px] rounded-ee-[5px] bg-[#2b5278] px-3 py-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/90 text-[10px] text-[#2b5278]">▶</span>
+          {/* drawn, not ▶, which a phone turns into its blue emoji button */}
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/90 text-[#2b5278]" aria-hidden>
+            <svg width="10" height="11" viewBox="0 0 10 11" fill="currentColor">
+              <path d="M1.5 1.2v8.6c0 .6.6.9 1.1.6l6.6-4.3a.7.7 0 0 0 0-1.2L2.6.6c-.5-.3-1.1 0-1.1.6Z" />
+            </svg>
+          </span>
           <span className="flex h-6 items-center gap-[2px]" aria-hidden>
             {[6, 11, 16, 9, 20, 14, 8, 17, 12, 22, 10, 15, 7, 13, 18, 9, 5].map((h, i) => (
               <span key={i} className="w-[2px] rounded-full bg-white/70" style={{ height: h }} />
