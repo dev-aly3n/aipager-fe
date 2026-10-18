@@ -836,9 +836,16 @@ function Feed({
     el.scrollTop = el.scrollHeight;
   }, [c.msgs.length, c.id, world.focus, Boolean(world.replyTo)]);
 
+  // The story pointing at an older message scrolls the feed to it, and only
+  // the feed: scrollIntoView would move the page too. Measured through the
+  // offset chain, which the desk's scale does not distort.
   useEffect(() => {
-    if (!world.focus) return;
-    box.current?.querySelector(`[data-msg="${world.focus}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const el = box.current;
+    const m = el?.querySelector<HTMLElement>(`[data-msg="${world.focus}"]`);
+    if (!el || !m || !world.focus) return;
+    let y = 0;
+    for (let n: HTMLElement | null = m; n && n !== el; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+    el.scrollTo({ top: Math.max(0, y - (el.clientHeight - m.offsetHeight) / 2), behavior: "smooth" });
   }, [world.focus]);
 
   // Messages that change place (a card re-sent at the bottom under the

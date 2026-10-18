@@ -638,7 +638,7 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 7000,
+    after: 5000,
     caption: t.demo.captions.agentsWork,
     run: (w) => {
       const c = card(w, "aipager", "c3");
@@ -744,7 +744,7 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 8000,
+    after: 5500,
     wire: hook("Stop", t.demo.wire.interim),
     caption: t.demo.captions.interim,
     run: (w) => {
@@ -790,9 +790,12 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 9000,
+    after: 5000,
     caption: t.demo.captions.liveLine,
     run: (w) => {
+      // the agents report on the message above the PR's answer; the chat
+      // goes up to it, so the wait reads as work, not as a stuck screen
+      w.focus = "a5";
       const m = msg(w, "aipager", "a5");
       if (m.kind === "answer" && m.background) {
         m.background.rows = [
@@ -823,7 +826,7 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 11000,
+    after: 6000,
     wire: hook("SubagentStop", t.demo.wire.flightsDone),
     run: (w) => {
       const c = card(w, "aipager", "c3");
@@ -848,7 +851,7 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 10000,
+    after: 5500,
     wire: hook("SubagentStop", t.demo.wire.hotelsDone),
     caption: t.demo.captions.bothBack,
     run: (w) => {
@@ -883,10 +886,12 @@ const ACT2 = (t: Dict, bot: BotStrings): Step[] => [
     },
   },
   {
-    after: 4200,
+    after: 3200,
     wire: hook("Stop", t.demo.wire.shortlist),
     caption: t.demo.captions.shortlist,
     run: (w) => {
+      // back to the bottom, where the shortlist lands
+      w.focus = null;
       arrive(
         w,
         "aipager",
