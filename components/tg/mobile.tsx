@@ -169,7 +169,7 @@ function Screens({
         style={{ ...motion, transform: `translateX(${inChat ? 0 : 104 * away}%)` }}
         inert={!inChat}
       >
-        <ChatView world={{ ...world, open: shown }} waiting={waiting} onTap={onTap} t={t} onBack={back} />
+        <ChatView key={shown} world={{ ...world, open: shown }} waiting={waiting} onTap={onTap} t={t} onBack={back} />
       </div>
     </div>
   );

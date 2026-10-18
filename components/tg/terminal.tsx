@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
+import { DRAG_CLASS, LEAD, useDragScroll, useLeadClamp, useStuck } from "./drag-scroll";
 import { motion } from "framer-motion";
 import { fmtElapsed, type Pane, type TAgent, type TDialog, type TLine, type Tone } from "./world";
 
@@ -139,89 +139,107 @@ function Dialog({ d }: { d: TDialog }) {
 }
 
 function PaneView({ p, multi }: { p: Pane; multi: boolean }) {
-  // Claude Code draws inline: the conversation from the top, the input box
-  // right under it, and the view follows the newest line once it fills,
+  // The newest line is always at the bottom, the input box right under it,
+  // as in a terminal that has been running a while, and the view follows it
   // unless you have taken hold of it, scrollback being the one thing a
-  // reader may want to go back through.
+  // reader may want to go back through. The lines sit under a lead and are
+  // kept in view by scrolling, so a new one moves nothing in the layout
+  // (drawn from the top instead, every line pushed the input box down).
   const { ref: body, bind, busy } = useDragScroll();
+  useLeadClamp(body);
+  const stuck = useStuck(body);
+  const seen = useRef(p.lines.length);
   const inner = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = body.current;
     const content = inner.current;
     if (!el || !content) return;
     const tail = () => {
-      if (!busy()) el.scrollTop = el.scrollHeight;
+      if (!busy() && stuck.current) el.scrollTop = el.scrollHeight;
     };
     tail();
     // Anything new (a line, a dialog, the agents panel) brings the view
     // back to the newest line, as it does in a terminal you are watching.
     const ro = new ResizeObserver(tail);
     ro.observe(content);
+    ro.observe(el);
     return () => ro.disconnect();
   }, [body, busy, p.id]);
+  // and before every paint that follows a change, so a new line is never
+  // drawn once where it landed and again where the view follows it
+  useLayoutEffect(() => {
+    const el = body.current;
+    const added = p.lines.length !== seen.current;
+    seen.current = p.lines.length;
+    if (el && !busy() && (stuck.current || added)) el.scrollTop = el.scrollHeight;
+  });
   return (
     <div className="pane flex min-h-0 flex-1 flex-col">
-      <div ref={body} {...bind} className={`min-h-0 flex-1 px-4 pb-2 pt-3 ${DRAG_CLASS}`}>
-       <div ref={inner}>
-        <div className="space-y-1">
-          {p.lines.map((l, i) => (
-            <Line key={i} line={l} />
-          ))}
+      <div ref={body} {...bind} className={`min-h-0 flex-1 px-4 ${DRAG_CLASS}`}>
+        <div aria-hidden style={{ height: LEAD }} />
+        <div ref={inner} className="pt-3">
+          <div className="space-y-1">
+            {p.lines.map((l, i) => (
+              <Line key={i} line={l} />
+            ))}
+          </div>
+          {p.dialog && <Dialog d={p.dialog} />}
+          {p.spinner && (
+            <div className="mt-1.5 text-[#d97757]">
+              ✻ <span className="text-[#c9ccd1]">
+                {p.spinner}… <span className="text-[#7f8791]">({fmtElapsed(p.secs)}{p.tokens ? ` · ↓ ${p.tokens} tokens` : ""})</span>
+              </span>
+            </div>
+          )}
         </div>
-        {p.dialog && <Dialog d={p.dialog} />}
-        {p.spinner && (
-          <div className="mt-1.5 text-[#d97757]">
-            ✻ <span className="text-[#c9ccd1]">
-              {p.spinner}… <span className="text-[#7f8791]">({fmtElapsed(p.secs)}{p.tokens ? ` · ↓ ${p.tokens} tokens` : ""})</span>
-            </span>
-          </div>
-        )}
-        {p.status || p.input ? (
-          <div className="pt-2">
-            {/* the session's name sits on the rule above the prompt */}
-            <div className="flex items-center gap-2">
-              <span className="h-px flex-1 bg-[#262c34]" />
-              <span className="shrink-0 text-[11px] text-[#555c65]">{p.id}</span>
-              <span className="h-px w-4 bg-[#262c34]" />
-            </div>
-            <div className="flex gap-2 pt-1.5 text-[#e8ebee]">
-              <span className="text-[#7f8791]">❯</span>
-              <span className="caret">{p.input}</span>
-            </div>
-            <div className="mt-1.5 h-px bg-[#262c34]" />
-            <div className="mt-1.5 text-[11px] text-[#555c65]">{p.status}</div>
-            <div className="flex flex-wrap gap-x-1.5 text-[11px] text-[#555c65]">
-              {p.bypass ? (
-                <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span>
-              ) : (
-                <span>{p.spinner ? "esc to interrupt" : "? for shortcuts"}</span>
-              )}
-              {!!p.shells && (
-                <span>
-                  · {p.shells} shell{p.shells === 1 ? "" : "s"}
-                </span>
-              )}
-              {!!p.agents && <span>· ← for agents</span>}
-            </div>
-            {p.panel && p.panel.length > 0 && (
-              <div className="mt-2.5 text-[11px]">
-                <div className="font-semibold text-[#e8ebee]">● main</div>
-                {p.panel.map((a, i) => (
-                  <div key={i} className="flex gap-2">
-                    <span className="shrink-0 text-[#555c65]">○</span>
-                    <span className="shrink-0 text-[#9aa1aa]">{a.name}</span>
-                    <span className="min-w-0 truncate text-[#7f8791]">{a.what}</span>
-                    <span className="ml-auto shrink-0 whitespace-nowrap text-[#555c65]">
-                      {a.clock} · ↓ {a.tokens}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : null}
-       </div>
       </div>
+      {/* The input box under the lines, outside what scrolls: inside it, every
+          new line pushed it down. With the lines kept at the bottom it sits
+          right under the newest one either way. */}
+      {p.status || p.input ? (
+        <div className="shrink-0 px-4 pb-2 pt-2">
+          {/* the session's name sits on the rule above the prompt */}
+          <div className="flex items-center gap-2">
+            <span className="h-px flex-1 bg-[#262c34]" />
+            <span className="shrink-0 text-[11px] text-[#555c65]">{p.id}</span>
+            <span className="h-px w-4 bg-[#262c34]" />
+          </div>
+          <div className="flex gap-2 pt-1.5 text-[#e8ebee]">
+            <span className="text-[#7f8791]">❯</span>
+            <span className="caret">{p.input}</span>
+          </div>
+          <div className="mt-1.5 h-px bg-[#262c34]" />
+          <div className="mt-1.5 text-[11px] text-[#555c65]">{p.status}</div>
+          <div className="flex flex-wrap gap-x-1.5 text-[11px] text-[#555c65]">
+            {p.bypass ? (
+              <span className="text-[#ff6b80]">⏵⏵ bypass permissions on</span>
+            ) : (
+              <span>{p.spinner ? "esc to interrupt" : "? for shortcuts"}</span>
+            )}
+            {!!p.shells && (
+              <span>
+                · {p.shells} shell{p.shells === 1 ? "" : "s"}
+              </span>
+            )}
+            {!!p.agents && <span>· ← for agents</span>}
+          </div>
+          {p.panel && p.panel.length > 0 && (
+            <div className="mt-2.5 text-[11px]">
+              <div className="font-semibold text-[#e8ebee]">● main</div>
+              {p.panel.map((a, i) => (
+                <div key={i} className="flex gap-2">
+                  <span className="shrink-0 text-[#555c65]">○</span>
+                  <span className="shrink-0 text-[#9aa1aa]">{a.name}</span>
+                  <span className="min-w-0 truncate text-[#7f8791]">{a.what}</span>
+                  <span className="ml-auto shrink-0 whitespace-nowrap text-[#555c65]">
+                    {a.clock} · ↓ {a.tokens}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

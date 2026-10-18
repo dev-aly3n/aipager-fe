@@ -10,6 +10,7 @@ import { App, Ask, Day, Languages, Modes, Places, Saved, Trust, Under } from "@/
 import { dictOf } from "@/lib/i18n";
 import { isLocale, LOCALES, type Locale } from "@/lib/i18n/locales";
 import { getAipagerVersion } from "@/lib/version";
+import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/share";
 
 const INSTALL = "curl -fsSL aipager.run/install | sh";
 
@@ -43,8 +44,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: t.title,
     description: t.description,
     alternates: { canonical: `/${locale}`, languages },
-    openGraph: { title: t.title, description: t.description, url: `https://aipager.run/${locale}`, siteName: "aipager", type: "website", locale },
-    twitter: { card: "summary_large_image", title: t.title, description: t.description },
+    openGraph: { title: t.title, description: t.description, url: `https://aipager.run/${locale}`, siteName: "aipager", type: "website", locale, images: OG_IMAGES },
+    twitter: { card: "summary_large_image", title: t.title, description: t.description, images: TWITTER_IMAGES },
   };
 }
 

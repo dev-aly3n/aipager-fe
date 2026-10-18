@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mark } from "@/components/brand";
 import { Cable, STAGE } from "./cable";
@@ -11,7 +11,8 @@ import { Notes } from "./notes";
 import { MobileStage } from "./mobile";
 import { isHandheld } from "@/lib/layout";
 import { useLayout } from "@/lib/use-layout";
-import { PEOPLE, type ChatId, type Mode, type World } from "./world";
+import { initialWorld, PEOPLE, type ChatId, type Mode, type World } from "./world";
+import { storyFor } from "./story";
 import type { Dict } from "@/lib/i18n";
 import { botOf, type BotStrings } from "@/lib/i18n/bot";
 import { digits, type Locale } from "@/lib/i18n/locales";
@@ -88,9 +89,14 @@ function MenuBar({ status, clock }: { status: string; clock: string }) {
   return (
     <div className="absolute inset-x-0 top-0 flex h-[26px] items-center gap-5 bg-black/35 px-4 text-[12.5px] text-white/85 backdrop-blur-md">
       <span className="font-semibold">Telegram</span>
-      <span className="ms-auto flex min-w-0 items-center gap-1.5 rounded-md bg-white/[0.07] px-2 py-0.5">
-        <Mark size={14} />
-        <span className="max-w-[300px] truncate text-white/80">{status}</span>
+      {/* a slot of its own width, the item starting at its start: a status
+          right-aligned against the clock moved its whole edge every time
+          its words got longer or shorter */}
+      <span className="ms-auto flex w-[330px] min-w-0">
+        <span className="flex min-w-0 max-w-full items-center gap-1.5 rounded-md bg-white/[0.07] px-2 py-0.5">
+          <Mark size={14} />
+          <span className="truncate text-white/80">{status}</span>
+        </span>
       </span>
       <span className="shrink-0 text-white/70">{clock}</span>
     </div>
@@ -171,6 +177,12 @@ export function Desktop({ t, locale }: { t: Dict; locale: Locale }) {
   const [mode, setMode] = useState<Mode>("auto");
   const story = useStory(on, mode, t, bot);
   const { world, waiting } = story;
+  // every caption this mode's evening can show, for the space they need
+  const captions = useMemo(() => {
+    const all = new Set<string>([initialWorld(t, bot, mode).caption, t.demo.captions.held]);
+    for (const step of storyFor(mode, t, bot)) if (step.caption) all.add(step.caption);
+    return [...all];
+  }, [mode, t, bot]);
   const [hint, setHint] = useState<string | null>(null);
 
   const lastTime =
@@ -254,11 +266,28 @@ export function Desktop({ t, locale }: { t: Dict; locale: Locale }) {
           down its stack. */}
       <div className="contents tablet:sticky tablet:top-[88px] tablet:flex tablet:flex-col tablet:gap-7">
         <ModeSwitch mode={mode} onMode={setMode} t={t} bot={bot} />
-        {/* what is happening, in words */}
-        <div className="mx-auto mt-6 flex min-h-[3.5rem] max-w-3xl items-start justify-center gap-3 text-center tablet:mx-0 tablet:mt-0 tablet:justify-start tablet:text-start">
-          <span className={`mt-2 h-2 w-2 shrink-0 rounded-full ${waiting ? "bg-live dot-pulse" : story.held ? "bg-amber" : "bg-accent dot-pulse"}`} />
+        {/* What is happening, in words. Every caption this evening can show
+            is laid out, unseen, in the same place, so the space is the
+            tallest one's from the start, in this language at this width:
+            a caption of three lines after one of one moved everything under
+            it. The dot rides at the start of the line it belongs to. */}
+        <div className="mx-auto mt-6 grid max-w-3xl text-center tablet:mx-0 tablet:mt-0 tablet:text-start">
+          {captions.map((c) => (
+            <p key={c} aria-hidden className="invisible text-[16px] leading-relaxed [grid-area:1/1] tablet:text-[17px]">
+              <span className="me-3 inline-block h-2 w-2" />
+              {c}
+            </p>
+          ))}
           <AnimatePresence mode="wait">
-            <motion.p key={story.held && !waiting ? "held" : world.caption} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }} className="text-[16px] leading-relaxed text-fg-2 tablet:text-[17px]">
+            <motion.p
+              key={story.held && !waiting ? "held" : world.caption}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+              className="self-start text-[16px] leading-relaxed text-fg-2 [grid-area:1/1] tablet:text-[17px]"
+            >
+              <span className={`me-3 inline-block h-2 w-2 rounded-full align-[0.1em] ${waiting ? "bg-live dot-pulse" : story.held ? "bg-amber" : "bg-accent dot-pulse"}`} />
               {story.held && !waiting ? t.demo.captions.held : world.caption}
             </motion.p>
           </AnimatePresence>

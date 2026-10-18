@@ -12,6 +12,51 @@ import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent,
  * reaches an end.
  */
 
+/**
+ * A feed that reads from the bottom (a chat, a terminal) without its
+ * messages ever moving in the page's layout: its content sits under a tall
+ * empty lead, the view is kept at the bottom by scrolling, and scrolling is
+ * not layout movement. Laid out with margin-top: auto instead, every new
+ * line pushed all the others up, and the browser counted each push as a
+ * layout shift. Taller than any feed on the page.
+ */
+export const LEAD = 2400;
+
+/**
+ * Keeps a feed from being scrolled up into its lead: no higher than its
+ * first line, and not at all while everything fits.
+ */
+export function useLeadClamp(ref: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const clamp = () => {
+      const min = Math.min(LEAD, el.scrollHeight - el.clientHeight);
+      if (el.scrollTop < min) el.scrollTop = min;
+    };
+    el.addEventListener("scroll", clamp, { passive: true });
+    return () => el.removeEventListener("scroll", clamp);
+  }, [ref]);
+}
+
+/**
+ * Whether a feed is resting at its bottom: it follows what is new while it
+ * is, and stays where the reader put it once they scroll up to read.
+ */
+export function useStuck(ref: RefObject<HTMLElement | null>): RefObject<boolean> {
+  const stuck = useRef(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const read = () => {
+      stuck.current = el.scrollHeight - el.clientHeight - el.scrollTop < 24;
+    };
+    el.addEventListener("scroll", read, { passive: true });
+    return () => el.removeEventListener("scroll", read);
+  }, [ref]);
+  return stuck;
+}
+
 /** The fastest a flick can leave, in pixels per millisecond. */
 const MAX_V = 4;
 /** What is left of that speed after one millisecond. */

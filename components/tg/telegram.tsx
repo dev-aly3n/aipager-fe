@@ -8,7 +8,7 @@ import { digits } from "@/lib/i18n/locales";
 import { botOf, fill } from "@/lib/i18n/bot";
 import { Rich } from "./rich";
 import { useLocale } from "./locale-context";
-import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
+import { DRAG_CLASS, LEAD, useDragScroll, useLeadClamp, useStuck } from "./drag-scroll";
 import { fmtClock, PEOPLE, preview, type Background as BackgroundWork, type CardItem, type Chat, type ChatId, type Folder, type Msg, type World } from "./world";
 
 type Card = Extract<Msg, { kind: "card" }>;
@@ -130,7 +130,9 @@ export function FolderTabs({ world, onFolder, t }: { world: World; onFolder: (f:
         return (
           <button key={f.id} type="button" onClick={() => onFolder(f.id)} className={`relative flex shrink-0 items-center gap-1.5 pb-2.5 pt-2 text-[13.5px] font-medium ${on ? "text-[#6ab3f3]" : "text-[#8a98a6]"}`}>
             {f.label}
-            {unread > 0 && <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[11px] font-semibold ${on ? "bg-[#6ab3f3] text-[#17212b]" : "bg-[#3b4a5a] text-[#c9d6e3]"}`}>{unread}</span>}
+            {/* the badge's room is kept when there is nothing unread, so a
+                count coming and going never moves the tabs after it */}
+            <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[11px] font-semibold ${unread > 0 ? "" : "invisible"} ${on ? "bg-[#6ab3f3] text-[#17212b]" : "bg-[#3b4a5a] text-[#c9d6e3]"}`}>{unread > 0 ? unread : 0}</span>
             {on && <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-t-full bg-[#6ab3f3]" />}
           </button>
         );
@@ -786,9 +788,10 @@ export function ChatView({
           <svg className="mb-[1px] shrink-0" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6d7f8f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8" />
           </svg>
-          <div className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-[14px] leading-[1.35] ${world.draft ? "text-white" : "text-[#6d7f8f]"}`}>
-            {world.draft ? <span className="caret">{world.draft}</span> : t.demo.composer}
-          </div>
+          {/* One line that follows the end of what is being typed, by
+              scrolling: grown to two or three lines, the composer pushed the
+              conversation up as it typed. */}
+          <Draft text={world.draft} placeholder={t.demo.composer} />
           {world.draft ? (
             <svg className="mb-[-1px] shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="#6ab3f3" aria-hidden>
               <path d="M3.4 20.4 21 12 3.4 3.6l.1 6.5L15 12 3.5 13.9z" />
@@ -800,6 +803,22 @@ export function ChatView({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** The composer's line: the draft's end always in view, the box never taller. */
+function Draft({ text, placeholder }: { text: string; placeholder: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    // the end is on the left when the line runs right to left
+    el.scrollLeft = getComputedStyle(el).direction === "rtl" ? -el.scrollWidth : el.scrollWidth;
+  }, [text]);
+  return (
+    <div ref={box} className={`min-w-0 flex-1 overflow-hidden whitespace-nowrap pe-1 text-[14px] leading-[1.35] ${text ? "text-white" : "text-[#6d7f8f]"}`}>
+      {text ? <span className="caret">{text}</span> : placeholder}
     </div>
   );
 }
@@ -823,18 +842,23 @@ function Feed({
   t: Dict;
 }) {
   const { ref: box, bind: dragBind, busy: dragging } = useDragScroll();
+  useLeadClamp(box);
   const inner = useRef<HTMLDivElement>(null);
   const look = useRef<string | null | undefined>(world.focus);
   look.current = world.focus;
 
-  // New messages bring it back to the bottom, unless the story is pointing
-  // at an older one. Typing does not: a line appearing in the composer must
-  // not yank the view, and must not fight a drag in progress.
+  // Anything new (a message, a card growing) brings it back to the bottom
+  // before it is painted, unless the story is pointing at an older one or
+  // the reader has hold of it.
+  const stuck = useStuck(box);
+  const seen = useRef(c.msgs.length);
   useLayoutEffect(() => {
     const el = box.current;
-    if (!el || world.focus || dragging()) return;
+    const arrived = c.msgs.length !== seen.current;
+    seen.current = c.msgs.length;
+    if (!el || world.focus || dragging() || !(stuck.current || arrived)) return;
     el.scrollTop = el.scrollHeight;
-  }, [c.msgs.length, c.id, world.focus, Boolean(world.replyTo)]);
+  });
 
   // The story pointing at an older message scrolls the feed to it, and only
   // the feed: scrollIntoView would move the page too. Measured through the
@@ -884,16 +908,19 @@ function Feed({
   });
 
   // A card that edits itself into a prompt grows without a new message
-  // arriving, and its buttons must not end up below the fold.
+  // arriving, and its buttons must not end up below the fold; and the feed
+  // itself gets shorter when the reply bar opens over the composer. Either
+  // way the view goes back to the bottom, by scrolling.
   useEffect(() => {
     const el = box.current;
     const content = inner.current;
     if (!el || !content) return;
     const ro = new ResizeObserver(() => {
-      if (look.current || dragging()) return;
+      if (look.current || dragging() || !stuck.current) return;
       el.scrollTop = el.scrollHeight;
     });
     ro.observe(content);
+    ro.observe(el);
     return () => ro.disconnect();
     // the inner div is keyed by chat, so a new chat means a new node to watch
   }, [c.id]);
@@ -904,7 +931,8 @@ function Feed({
       {...dragBind}
       className={`tg-pattern relative flex min-h-0 flex-1 flex-col px-4 pb-3 ${DRAG_CLASS}`}
     >
-      <div key={c.id} ref={inner} className="mt-auto">
+      <div aria-hidden className="shrink-0" style={{ height: LEAD }} />
+      <div key={c.id} ref={inner}>
         <AnimatePresence initial={false}>
           {c.msgs.map((m, i) => (
             <motion.div
@@ -969,7 +997,9 @@ export function TelegramWindow({
       <div className="flex min-h-0 flex-1">
         <Folders world={world} onFolder={onFolder} t={t} />
         <ChatList world={world} onOpen={onOpen} t={t} />
-        <ChatView world={world} waiting={waiting} onTap={onTap} t={t} />
+        {/* each conversation its own screen: one with a pinned bar and one
+            without would otherwise move the same feed up and down */}
+        <ChatView key={world.open} world={world} waiting={waiting} onTap={onTap} t={t} />
       </div>
     </div>
   );

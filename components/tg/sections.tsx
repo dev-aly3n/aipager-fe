@@ -6,7 +6,7 @@ import { BotAvatar, CopyButton } from "@/components/brand";
 import { Ticks } from "./telegram";
 import { Bidi, Rich } from "./rich";
 import { MiniApp } from "./miniapp";
-import { DRAG_CLASS, useDragScroll } from "./drag-scroll";
+import { DRAG_CLASS, LEAD, useDragScroll, useLeadClamp } from "./drag-scroll";
 import STRINGS from "@/lib/bot-strings.json";
 import { botOf, fill } from "@/lib/i18n/bot";
 import type { Dict } from "@/lib/i18n";
@@ -177,15 +177,32 @@ export function Under({ t }: { t: Dict }) {
             more width than a phone has */}
         <div className="relative mt-12 sm:mt-20">
           <div className="absolute inset-x-[10%] top-[27px] hidden h-px bg-gradient-to-r from-[#d97757]/60 via-[#4fd693]/60 to-[#b18cff]/60 rtl:bg-gradient-to-l sm:block" />
-          <span className="flow-dot absolute top-[23px] hidden h-[9px] w-[9px] rounded-full bg-white shadow-[0_0_12px_white] sm:block" />
-          <span className="flow-dot flow-back absolute top-[23px] hidden h-[9px] w-[9px] rounded-full bg-live shadow-[0_0_12px_rgb(79_214_147)] sm:block" />
+          {/* each dot rides a track as wide as the row, and the track slides:
+              a transform moves nothing in the layout, where animating the
+              dot's own position did, every frame */}
+          {/* clipped to the row: a track slid past the row's end would widen
+              the page, and right to left that scrolls it sideways */}
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-[3px] hidden h-[49px] overflow-hidden sm:block">
+            <span className="flow-x absolute inset-x-0 top-[20px] h-[9px]">
+              <span className="flow-dot absolute start-0 -ms-[4.5px] h-[9px] w-[9px] rounded-full bg-white" />
+            </span>
+            <span className="flow-x flow-back absolute inset-x-0 top-[20px] h-[9px]">
+              <span className="flow-dot absolute start-0 -ms-[4.5px] h-[9px] w-[9px] rounded-full bg-live" />
+            </span>
+          </span>
           {/* On a phone the same flow runs down the list: a spine through the
               five boxes, the event travelling down it to your chats and the
               answer coming back up, each box lighting as it passes. */}
           <div className="relative">
             <div className="absolute start-[25.5px] top-[26px] bottom-[26px] w-px bg-gradient-to-b from-[#d97757]/70 via-[#4fd693]/60 to-[#b18cff]/70 sm:hidden" />
-            <span className="flow-down absolute start-[21.5px] h-[9px] w-[9px] rounded-full bg-white shadow-[0_0_12px_white] sm:hidden" />
-            <span className="flow-up absolute start-[21.5px] h-[9px] w-[9px] rounded-full bg-live shadow-[0_0_12px_rgb(79_214_147)] sm:hidden" />
+            <span aria-hidden className="pointer-events-none absolute start-[9px] top-[14px] bottom-[14px] w-[33px] overflow-hidden sm:hidden">
+              <span className="flow-y absolute start-[12.5px] top-[12px] bottom-[12px] w-[9px]">
+                <span className="flow-dot absolute start-0 -top-[4.5px] h-[9px] w-[9px] rounded-full bg-white" />
+              </span>
+              <span className="flow-y flow-back absolute start-[12.5px] top-[12px] bottom-[12px] w-[9px]">
+                <span className="flow-dot absolute start-0 -top-[4.5px] h-[9px] w-[9px] rounded-full bg-live" />
+              </span>
+            </span>
           <ol className="relative grid gap-4 sm:grid-cols-5 sm:gap-0">
             {nodes.map((n, i) => (
               <li key={n.t} className="flex min-h-[60px] items-center gap-4 sm:block sm:min-h-0 sm:text-center">
@@ -375,6 +392,7 @@ export function Ask({ t }: { t: Dict }) {
   const nextId = useRef(1);
   const [typing, setTyping] = useState(false);
   const chat = useDragScroll();
+  useLeadClamp(chat.ref);
   /** they have taken hold of it, so the hint has done its job */
   const [dragged, setDragged] = useState(false);
   const [over, setOver] = useState(false);
@@ -391,7 +409,8 @@ export function Ask({ t }: { t: Dict }) {
     const el = chat.ref.current;
     if (!el || chat.busy()) return;
     el.scrollTop = el.scrollHeight;
-    setOver(el.scrollHeight - el.clientHeight > 12);
+    // more than fits, not counting the empty lead above the messages
+    setOver(el.scrollHeight - LEAD - el.clientHeight > 12);
   }, [asked, typing, chat]);
 
   // Their own scrolling is what retires the hint.
@@ -455,9 +474,12 @@ export function Ask({ t }: { t: Dict }) {
             <div
               ref={chat.ref}
               {...chat.bind}
-              className={`tg-pattern flex min-h-0 flex-1 flex-col px-5 py-5 ${DRAG_CLASS}`}
+              className={`tg-pattern flex min-h-0 flex-1 flex-col px-5 pb-5 ${DRAG_CLASS}`}
             >
-              <div className="mt-auto flex flex-col gap-2">
+              {/* the messages sit under a lead and are kept at the bottom by
+                  scrolling, so a new answer moves nothing in the layout */}
+              <div aria-hidden className="shrink-0" style={{ height: LEAD }} />
+              <div className="flex flex-col gap-2 pt-5">
             {/* No layout animation here: the view is pinned to the bottom, so
                 a new message does not move the old ones on screen, and animating
                 them anyway slid them straight through the arriving bubble. */}
