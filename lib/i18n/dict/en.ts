@@ -145,6 +145,10 @@ export const en: Dict = {
         b: "Photos and files land in a folder on your computer and Claude is pointed at the path, with your caption as the prompt, or check this: … when there is none. Send several at once and they go as one prompt.",
       },
       {
+        t: "It sends files back",
+        b: "Ask in your own words, “send me the screenshot”, and the file comes to that session's chat right after the answer: images as photos, videos and audio as themselves, anything else as a file, several at once as one album. Never aipager's settings, Claude's credentials or your keys: those are refused before anything is sent.",
+      },
+      {
         t: "Send the next one now",
         b: "Your message goes to Claude the moment you send it, even mid-turn: 👀 while Claude's own queue holds it, 👍 when Claude takes it. ⚡ Send now hands it over without waiting for the step to end.",
       },
@@ -171,6 +175,8 @@ export const en: Dict = {
     ],
     heard: "Heard:",
     said: "fix the flaky login e2e test",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "send me the screenshot",
   },
 
   app: {

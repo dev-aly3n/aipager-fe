@@ -147,6 +147,10 @@ export const zhHans: Dict = {
         b: "照片和文件会落到你电脑上的一个文件夹里，Claude 拿到的是路径，你写的说明就是消息；没写说明时，发过去的就是“check this:”加上路径。一次发好几个，它们会合成一条消息。",
       },
       {
+        t: "它也会给你发文件",
+        b: "用你自己的话说，比如“把截图发给我”，文件就会在回答之后发到那个会话的聊天里：图片作为照片，视频和音频保持原样，其他的作为文件，一次几个就合成一个相册。但 aipager 的设置、Claude 的凭据和你的密钥永远不会发出：发送之前就会被拒绝。",
+      },
+      {
         t: "下一条现在就发",
         b: "你一发出去，消息立刻就到 Claude 那里，任务做到一半也一样：消息在 Claude 自己的队列里等着时是 👀，Claude 收下了就是 👍。点 ⚡ 立即发送，不等这一步结束就把消息递过去。",
       },
@@ -173,6 +177,8 @@ export const zhHans: Dict = {
     ],
     heard: "我听到的是：",
     said: "修一下那个不稳定的登录 e2e 测试",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "把截图发给我",
   },
 
   app: {

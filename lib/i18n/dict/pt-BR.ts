@@ -146,6 +146,10 @@ export const ptBR: Dict = {
         b: "Fotos e arquivos caem numa pasta do seu computador e o Claude recebe o caminho, com a sua legenda como mensagem, ou “check this: …” quando não tem legenda. Mande vários de uma vez e eles vão como uma mensagem só.",
       },
       {
+        t: "Ele te manda arquivos",
+        b: "Peça com suas próprias palavras, “me manda o print”, e o arquivo chega no chat daquela sessão logo depois da resposta: imagens como fotos, vídeos e áudios do jeito que são, qualquer outra coisa como arquivo, e vários de uma vez como um álbum só. Nunca as configurações do aipager, as credenciais do Claude ou as suas chaves: isso é recusado antes de qualquer envio.",
+      },
+      {
         t: "Mande a próxima agora",
         b: "Sua mensagem chega no Claude no instante em que você envia, mesmo no meio de uma tarefa: 👀 enquanto ela espera na fila do próprio Claude, 👍 quando o Claude pega. O ⚡ Enviar agora entrega a mensagem sem esperar a etapa terminar.",
       },
@@ -172,6 +176,8 @@ export const ptBR: Dict = {
     ],
     heard: "Ouvi:",
     said: "arruma o teste e2e de login que está instável",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "me manda o print",
   },
 
   app: {

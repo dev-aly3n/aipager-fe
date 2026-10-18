@@ -74,6 +74,8 @@ export interface BotStrings {
     agentsDone2: string;
     agentDone11: string;
     agentDone7: string;
+    /** "📎 Sending 1 file", while Claude's file is on its way */
+    sending1: string;
   };
   /** the Mini App, in its own words, for the site's working copy of it */
   app: AppStrings;

@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ c1510c0 -->
+<!-- i18n-source: README.md @ eac6764 -->
 
 <h3>이제 Claude도 채팅 하나예요.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Claude가 고칠 폴더를 `/workspace` 아래에 마운트하세요. `~/.claude` 마운트로 Claude 로그인 정보와 저장된 대화가 함께 들어가요. 로그인하려면 호스트에서 `claude`를 한 번 실행하거나, 컨테이너 안에서 `docker exec -it aipager claude`로 로그인하세요.
 
-태그: `latest`, `1.3`, `1.3.6`(정확한 버전마다 하나, 마이너 버전마다 하나).
+태그: `latest`, `1.3`, `1.3.7`(정확한 버전마다 하나, 마이너 버전마다 하나).
 
 ### <a id="nix"></a>Nix
 

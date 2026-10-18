@@ -146,6 +146,10 @@ export const id: Dict = {
         b: "Foto dan file masuk ke folder di komputermu dan Claude diarahkan ke path-nya, dengan keteranganmu sebagai pesan, atau “check this: …” kalau tidak ada keterangan. Kirim beberapa sekaligus dan semuanya masuk sebagai satu pesan.",
       },
       {
+        t: "Ia juga mengirimimu file",
+        b: "Minta dengan kata-katamu sendiri, “kirim screenshot-nya”, dan file-nya datang ke chat sesi itu tepat setelah jawabannya: gambar sebagai foto, video dan audio apa adanya, sisanya sebagai file, beberapa sekaligus sebagai satu album. Tidak pernah pengaturan aipager, kredensial Claude, atau kuncimu: semua itu ditolak sebelum apa pun terkirim.",
+      },
+      {
         t: "Kirim yang berikutnya sekarang",
         b: "Pesanmu sampai ke Claude begitu kamu kirim, bahkan di tengah tugas: 👀 selama antrean Claude sendiri masih menahannya, 👍 begitu Claude mengambilnya. ⚡ Kirim sekarang menyerahkannya tanpa menunggu langkah itu selesai.",
       },
@@ -172,6 +176,8 @@ export const id: Dict = {
     ],
     heard: "Yang kudengar:",
     said: "perbaiki test e2e login yang suka gagal",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "kirim screenshot-nya",
   },
 
   app: {

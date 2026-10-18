@@ -837,7 +837,7 @@ export function Languages({ t }: { t: Dict }) {
               ))}
             </div>
           </div>
-          <div dir={L.rtl ? "rtl" : "ltr"} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] max-[719px]:order-2">
+          <div dir={L.rtl ? "rtl" : "ltr"} lang={L.code} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1621] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] max-[719px]:order-2">
             <div className="flex items-center gap-3 border-b border-black/40 bg-[#17212b] px-4 py-3" dir="ltr">
               <Mark size={34} className="rounded-full" />
               <div className="leading-tight">
@@ -932,7 +932,75 @@ export function App({ t, locale, version }: { t: Dict; locale: Locale; version: 
 /* ---------------- what a chat lets you do ---------------- */
 
 /** The marks on the eight, which carry across languages. */
-const DAY_ICONS = ["🎙️", "📎", "👀", "⏸", "🤖", "🔔", "⌨️", "📋"];
+const DAY_ICONS = ["🎙️", "📎", "📤", "👀", "⏸", "🤖", "🔔", "⌨️", "📋"];
+
+/**
+ * Claude sending a file back, as it lands: your request, the busy card's
+ * line while the file is on its way, then the photo as a reply under the
+ * answer, captioned 💬 and the session, with Claude's own caption below.
+ * Plays each time it comes into view.
+ */
+function FileBack({ t, locale }: { t: Dict; locale: Locale }) {
+  const bot = botOf(locale);
+  const box = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState<0 | 1 | 2>(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const timers: number[] = [];
+    const io = new IntersectionObserver(
+      ([e]) => {
+        timers.forEach((id) => window.clearTimeout(id));
+        timers.length = 0;
+        if (!e.isIntersecting) return setStep(0);
+        timers.push(window.setTimeout(() => setStep(1), 700));
+        timers.push(window.setTimeout(() => setStep(2), 2300));
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+  }, []);
+  return (
+    <div ref={box} className="mt-3 max-w-[290px] space-y-1.5">
+      <div className="flex justify-end">
+        <span className="rounded-[14px] rounded-ee-[5px] bg-[#2b5278] px-3 py-1.5 text-[13px] text-white">{t.day.ask}</span>
+      </div>
+      <div className="relative min-h-[150px]">
+        <AnimatePresence mode="wait" initial={false}>
+          {step === 1 && (
+            <motion.div key="sending" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.25 }} className="inline-flex rounded-[14px] rounded-es-[5px] bg-[#182533] px-3 py-1.5 text-[12.5px] text-[#c9d6e3]">
+              <span className="animate-pulse">{bot.count.sending1}</span>
+            </motion.div>
+          )}
+          {step === 2 && (
+            <motion.div key="photo" initial={{ opacity: 0, scale: 0.94, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 380, damping: 28 }} className="w-[230px] overflow-hidden rounded-[14px] rounded-es-[5px] bg-[#182533]">
+              {/* the screenshot itself: a test runner's window, which is English in every language */}
+              <div dir="ltr" lang="en" className="m-1 overflow-hidden rounded-[10px] bg-[#0d1117] p-2 font-mono text-[9.5px] leading-[1.5] text-[#8b949e]">
+                <div className="mb-1.5 flex gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f57]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#febc2e]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#28c840]" />
+                </div>
+                <div className="text-[#e6edf3]">e2e/login.spec.ts</div>
+                <div><span className="text-[#3fb950]">✓</span> opens the sign-in page</div>
+                <div><span className="text-[#f85149]">✗</span> signs in and lands on /home</div>
+                <div className="mt-1 rounded bg-[#f85149]/10 px-1.5 py-1 text-[#ffa198]">click 5.0s · Set-Cookie 5.3s</div>
+              </div>
+              <div className="px-2.5 pb-2 pt-1 text-[12.5px] leading-snug text-[#e6edf5]">
+                <div>💬 <b className="font-semibold">api</b></div>
+                <div dir="auto" className="text-[#c9d6e3]">{t.modes.auto.quote}</div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
 
 /** The one feature nobody expects, shown rather than claimed. */
 function VoiceNote({ t, locale }: { t: Dict; locale: Locale }) {
@@ -965,7 +1033,7 @@ function VoiceNote({ t, locale }: { t: Dict; locale: Locale }) {
 }
 
 export function Day({ t, locale }: { t: Dict; locale: Locale }) {
-  const items = t.day.items.map((d, i) => ({ ...d, icon: DAY_ICONS[i], voice: i === 0 }));
+  const items = t.day.items.map((d, i) => ({ ...d, icon: DAY_ICONS[i], voice: i === 0, file: i === 2 }));
   return (
     <section id="chat" className="border-t border-white/[0.06] py-20 sm:py-28 lg:py-32">
       <div className="wrap !max-w-[76rem]">
@@ -976,7 +1044,7 @@ export function Day({ t, locale }: { t: Dict; locale: Locale }) {
           </div>
           <p className="text-[16.5px] leading-relaxed text-fg-2"><Bidi text={t.day.lead} /></p>
         </div>
-        <ul className="mt-12 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+        <ul className="mt-12 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-10">
           {items.map((d) => (
             <li key={d.t} className="flex gap-4">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-[17px]">{d.icon}</span>
@@ -984,6 +1052,7 @@ export function Day({ t, locale }: { t: Dict; locale: Locale }) {
                 <div className="text-[16px] font-semibold tracking-[-0.02em] text-white"><Bidi text={d.t} /></div>
                 <p className="mt-1.5 text-[14.5px] leading-relaxed text-fg-2"><Bidi text={d.b} /></p>
                 {d.voice && <VoiceNote t={t} locale={locale} />}
+                {d.file && <FileBack t={t} locale={locale} />}
               </div>
             </li>
           ))}

@@ -121,8 +121,12 @@ html[data-layout="tablet"] [data-demo="pending"] {
   --color-fg-3: var(--fg-3);
   --color-fg-4: var(--fg-4);
   --color-ink: var(--ink);
-  --font-sans: "aipager emoji", var(--font-geist-sans);
-  --font-mono: "aipager emoji", var(--font-geist-mono);
+  /* By family name, not var(--font-geist-*): those carry next/font's local
+     fallback right after Geist, an Arial that has Arabic letters, which would
+     draw Persian before the browser ever reached Vazirmatn. So each
+     language's face (--font-script) sits between Geist and that fallback. */
+  --font-sans: "aipager emoji", var(--font-lead, "Geist"), var(--font-script, "Geist Fallback"), "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "aipager emoji", "Geist Mono", var(--font-script, "Geist Mono Fallback"), "Geist Mono Fallback", ui-monospace, monospace;
   --font-serif: var(--font-instrument-serif), Georgia, serif;
 }
 
@@ -130,6 +134,23 @@ html {
   background: var(--bg);
   color-scheme: dark;
   scroll-behavior: smooth;
+}
+
+/* Each language's own typeface, for the letters Geist does not have:
+   Persian in Vazirmatn, Arabic, Korean and Chinese in Noto, Vietnamese in Be
+   Vietnam Pro, which leads there because Geist lacks its accented letters.
+   Set on the page and on any part of it in another language (the languages
+   demo, the Mini App once its language is changed), which re-reads its font
+   stack so the variable takes. A font is only fetched when its letters show. */
+@layer base {
+  :lang(fa) { --font-script: var(--font-vazirmatn); }
+  :lang(ar) { --font-script: var(--font-noto-arabic); }
+  :lang(ko) { --font-script: var(--font-noto-kr); }
+  :lang(zh) { --font-script: var(--font-noto-sc); }
+  :lang(vi) { --font-lead: var(--font-be-vietnam); --font-script: var(--font-be-vietnam); }
+  [lang]:not(html) {
+    font-family: "aipager emoji", var(--font-lead, "Geist"), var(--font-script, "Geist Fallback"), "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  }
 }
 body {
   background: var(--bg);
@@ -415,52 +436,92 @@ html[lang="tr"] .code-bar .lang {
   30% { opacity: 1; transform: translateY(-2px); }
 }
 /* from Claude Code's side to your chats' side, which is the other way round
-   in a right-to-left language, so it runs from the start, not the left */
+   in a right-to-left language, so it runs from the start, not the left.
+
+   The dot hops from box to box in equal steps, and takes each box's colour
+   the moment it reaches it (tint-*, which steps rather than blends). The
+   stops are the five boxes, a quarter of the run apart, so the phone's
+   boxes knock exactly as it arrives (their delays in sections.tsx are the
+   same 0.54s steps). The colours are NODE_COLOURS in sections.tsx. */
 .flow-dot {
   inset-inline-start: 10%;
-  animation: flow 4.8s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  margin-inline-start: -4.5px;
+  animation:
+    flow 4.8s cubic-bezier(0.35, 0, 0.65, 1) infinite,
+    tint-out 4.8s step-end infinite;
 }
 .flow-dot.flow-back {
-  animation: flow-back 4.8s cubic-bezier(0.45, 0, 0.35, 1) infinite 2.4s;
+  animation:
+    flow-back 4.8s cubic-bezier(0.35, 0, 0.65, 1) infinite 2.4s,
+    tint-back 4.8s step-end infinite 2.4s;
   opacity: 0;
 }
 @keyframes flow {
   0% { inset-inline-start: 10%; opacity: 0; }
-  8% { opacity: 1; }
+  3% { opacity: 1; }
+  11.25% { inset-inline-start: 30%; }
+  22.5% { inset-inline-start: 50%; }
+  33.75% { inset-inline-start: 70%; }
   45% { inset-inline-start: 90%; opacity: 1; }
-  52%, 100% { inset-inline-start: 90%; opacity: 0; }
+  50%, 100% { inset-inline-start: 90%; opacity: 0; }
 }
 @keyframes flow-back {
   0% { inset-inline-start: 90%; opacity: 0; }
-  8% { opacity: 1; }
+  3% { opacity: 1; }
+  11.25% { inset-inline-start: 70%; }
+  22.5% { inset-inline-start: 50%; }
+  33.75% { inset-inline-start: 30%; }
   45% { inset-inline-start: 10%; opacity: 1; }
-  52%, 100% { inset-inline-start: 10%; opacity: 0; }
+  50%, 100% { inset-inline-start: 10%; opacity: 0; }
+}
+@keyframes tint-out {
+  0% { background-color: #d97757; box-shadow: 0 0 12px #d97757; }
+  11.25% { background-color: #3fa9f5; box-shadow: 0 0 12px #3fa9f5; }
+  22.5% { background-color: #4fd693; box-shadow: 0 0 12px #4fd693; }
+  33.75% { background-color: #2aabee; box-shadow: 0 0 12px #2aabee; }
+  45%, 100% { background-color: #b18cff; box-shadow: 0 0 12px #b18cff; }
+}
+@keyframes tint-back {
+  0% { background-color: #b18cff; box-shadow: 0 0 12px #b18cff; }
+  11.25% { background-color: #2aabee; box-shadow: 0 0 12px #2aabee; }
+  22.5% { background-color: #4fd693; box-shadow: 0 0 12px #4fd693; }
+  33.75% { background-color: #3fa9f5; box-shadow: 0 0 12px #3fa9f5; }
+  45%, 100% { background-color: #d97757; box-shadow: 0 0 12px #d97757; }
 }
 
-/* The same flow on a phone, down the list and back up. The two dots keep the
-   row's timing, so a box lights the moment one reaches it. */
+/* The same flow on a phone, down the list and back up. */
 .flow-down,
 .flow-up {
   top: calc(26px - 4.5px);
   opacity: 0;
 }
 .flow-down {
-  animation: flow-down 4.8s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  animation:
+    flow-down 4.8s cubic-bezier(0.35, 0, 0.65, 1) infinite,
+    tint-out 4.8s step-end infinite;
 }
 .flow-up {
-  animation: flow-up 4.8s cubic-bezier(0.45, 0, 0.35, 1) infinite 2.4s;
+  animation:
+    flow-up 4.8s cubic-bezier(0.35, 0, 0.65, 1) infinite 2.4s,
+    tint-back 4.8s step-end infinite 2.4s;
 }
 @keyframes flow-down {
-  0% { top: calc(26px - 4.5px); opacity: 0; }
-  8% { opacity: 1; }
-  45% { top: calc(100% - 26px - 4.5px); opacity: 1; }
-  52%, 100% { top: calc(100% - 26px - 4.5px); opacity: 0; }
+  0% { top: calc(26px + (100% - 52px) * 0 / 4 - 4.5px); opacity: 0; }
+  3% { opacity: 1; }
+  11.25% { top: calc(26px + (100% - 52px) * 1 / 4 - 4.5px); }
+  22.5% { top: calc(26px + (100% - 52px) * 2 / 4 - 4.5px); }
+  33.75% { top: calc(26px + (100% - 52px) * 3 / 4 - 4.5px); }
+  45% { top: calc(26px + (100% - 52px) * 4 / 4 - 4.5px); opacity: 1; }
+  50%, 100% { top: calc(26px + (100% - 52px) * 4 / 4 - 4.5px); opacity: 0; }
 }
 @keyframes flow-up {
-  0% { top: calc(100% - 26px - 4.5px); opacity: 0; }
-  8% { opacity: 1; }
-  45% { top: calc(26px - 4.5px); opacity: 1; }
-  52%, 100% { top: calc(26px - 4.5px); opacity: 0; }
+  0% { top: calc(26px + (100% - 52px) * 4 / 4 - 4.5px); opacity: 0; }
+  3% { opacity: 1; }
+  11.25% { top: calc(26px + (100% - 52px) * 3 / 4 - 4.5px); }
+  22.5% { top: calc(26px + (100% - 52px) * 2 / 4 - 4.5px); }
+  33.75% { top: calc(26px + (100% - 52px) * 1 / 4 - 4.5px); }
+  45% { top: calc(26px + (100% - 52px) * 0 / 4 - 4.5px); opacity: 1; }
+  50%, 100% { top: calc(26px + (100% - 52px) * 0 / 4 - 4.5px); opacity: 0; }
 }
 @media (max-width: 639px) {
   .node-out {

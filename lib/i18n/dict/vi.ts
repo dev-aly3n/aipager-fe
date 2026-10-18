@@ -145,6 +145,10 @@ export const vi: Dict = {
         b: "Ảnh và file được lưu vào một thư mục trên máy tính của bạn, rồi Claude nhận đường dẫn tới đó, với chú thích của bạn làm tin nhắn, hoặc “check this: …” khi không có chú thích. Gửi nhiều cái một lúc thì chúng đi chung một tin nhắn.",
       },
       {
+        t: "Nó gửi cả file cho bạn",
+        b: "Cứ nhờ bằng lời của bạn, “gửi mình ảnh chụp màn hình”, là file sẽ tới chat của phiên đó ngay sau câu trả lời: ảnh thành ảnh, video và âm thanh giữ nguyên, còn lại thành file, nhiều cái một lúc thì gộp thành một album. Không bao giờ có cài đặt của aipager, thông tin đăng nhập của Claude hay khóa của bạn: những thứ đó bị từ chối trước khi gửi đi.",
+      },
+      {
         t: "Gửi tin tiếp theo ngay",
         b: "Tin nhắn của bạn đến Claude ngay lúc bạn gửi, kể cả giữa chừng một việc: 👀 khi hàng đợi của chính Claude còn giữ nó, 👍 khi Claude đã nhận. ⚡ Gửi ngay đưa nó cho Claude mà không chờ bước hiện tại kết thúc.",
       },
@@ -171,6 +175,8 @@ export const vi: Dict = {
     ],
     heard: "Nghe được:",
     said: "sửa test e2e login hay chập chờn",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "gửi mình ảnh chụp màn hình",
   },
 
   app: {

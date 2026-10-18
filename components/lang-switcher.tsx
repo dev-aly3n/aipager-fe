@@ -78,7 +78,12 @@ export function LangSwitcher({ locale, label }: { locale: Locale; label: string 
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
             role="listbox"
             aria-label={label}
-            className="absolute end-0 top-[calc(100%+10px)] z-50 max-h-[min(70vh,28rem)] w-[min(92vw,30rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#11161c]/95 p-1.5 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] backdrop-blur-xl sm:w-[30rem]"
+            // Under 640px it spans the bar, a margin from each edge, instead of
+            // hanging off the globe: with the GitHub button beside the globe,
+            // a menu the width of the screen anchored there ran off one side.
+            // (The bar's backdrop blur makes it the box "fixed" is measured
+            // in, which is the whole width at the top of the screen.)
+            className="fixed inset-x-3 top-[64px] z-50 max-h-[min(70vh,28rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#11161c]/95 p-1.5 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] backdrop-blur-xl sm:absolute sm:inset-x-auto sm:end-0 sm:top-[calc(100%+10px)] sm:w-[30rem]"
           >
             <ul className="grid gap-0.5 sm:grid-cols-2">
               {LISTED.map((l) => {

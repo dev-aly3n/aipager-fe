@@ -300,6 +300,8 @@ def render(code: str) -> dict:
             "agentsDone2": n(m("agents.head.done"), 2, kind="text", clock=C),
             "agentDone11": n(m("card.row.agent_done"), 11, kind="text", agent=A, clock=C),
             "agentDone7": n(m("card.row.agent_done"), 7, kind="text", agent=A, clock=C),
+            # the busy card's line while Claude's file is on its way
+            "sending1": n(m("card.row.sending_files"), 1, kind="text"),
         },
         "app": app(code),
     }

@@ -6,7 +6,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ c1510c0 -->
+<!-- i18n-source: README.md @ eac6764 -->
 
 <h3>أصبح Claude مجرد دردشة أخرى.</h3>
 
@@ -243,7 +243,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 المجلدات التي سيعدّلها Claude تُربط تحت &lrm;`/workspace`. ربط &lrm;`~/.claude` ينقل بيانات دخولك إلى Claude وسجل محادثاتك: لتسجيل الدخول يكفي تشغيل `claude` مرة واحدة على الكمبيوتر نفسه (خارج الحاوية)، أو `docker exec -it aipager claude` داخل الحاوية.
 
-الوسوم: `latest`،&rlm; `1.3`،&rlm; `1.3.6` (واحد لكل إصدار بعينه وواحد لكل إصدار فرعي).
+الوسوم: `latest`،&rlm; `1.3`،&rlm; `1.3.7` (واحد لكل إصدار بعينه وواحد لكل إصدار فرعي).
 
 ### <a id="nix"></a>Nix
 

@@ -146,6 +146,10 @@ export const tr: Dict = {
         b: "Fotoğraflar ve dosyalar bilgisayarındaki bir klasöre kaydedilir, Claude'a da yolu gösterilir; mesaj olarak senin açıklaman kullanılır, açıklama yoksa “check this: …” gider. Aynı anda birkaç tane gönder, hepsi tek mesaj olarak gider.",
       },
       {
+        t: "Sana dosya da gönderir",
+        b: "Kendi sözlerinle iste, “ekran görüntüsünü gönder”, dosya cevabın hemen ardından o oturumun sohbetine gelir: görseller fotoğraf olarak, videolar ve sesler olduğu gibi, geri kalan her şey dosya olarak, birkaç tanesi birden tek albüm olarak. aipager'ın ayarları, Claude'un kimlik bilgileri ya da anahtarların asla gönderilmez: bunlar daha gönderilmeden reddedilir.",
+      },
+      {
         t: "Sıradakini hemen gönder",
         b: "Mesajın, gönderdiğin anda Claude'a gider, görevin ortasında bile: Claude'un kendi kuyruğunda beklerken 👀, Claude aldığında 👍. ⚡ Şimdi gönder, adımın bitmesini beklemeden mesajı teslim eder.",
       },
@@ -172,6 +176,8 @@ export const tr: Dict = {
     ],
     heard: "Duyulan:",
     said: "flaky login e2e testini düzelt",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "ekran görüntüsünü gönder",
   },
 
   app: {

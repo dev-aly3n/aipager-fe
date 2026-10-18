@@ -146,6 +146,10 @@ export const de: Dict = {
         b: "Fotos und Dateien landen in einem Ordner auf deinem Computer, und Claude bekommt den Pfad, mit deiner Bildunterschrift als Nachricht oder mit „check this: …“, wenn du keine geschrieben hast. Schick mehrere auf einmal, und sie gehen als eine Nachricht raus.",
       },
       {
+        t: "Es schickt dir Dateien",
+        b: "Bitte in deinen eigenen Worten darum, „schick mir den Screenshot“, und die Datei kommt direkt nach der Antwort in den Chat dieser Sitzung: Bilder als Fotos, Videos und Audio als das, was sie sind, alles andere als Datei, mehrere auf einmal als ein Album. Nie die Einstellungen von aipager, die Zugangsdaten von Claude oder deine Schlüssel: Die werden abgelehnt, bevor irgendetwas gesendet wird.",
+      },
+      {
         t: "Schick die nächste sofort",
         b: "Deine Nachricht geht in dem Moment an Claude, in dem du sie sendest, auch mitten in einer Aufgabe: 👀, solange Claudes eigene Warteschlange sie hält, 👍, wenn Claude sie annimmt. „⚡ Jetzt senden“ gibt sie weiter, ohne das Ende des Schritts abzuwarten.",
       },
@@ -172,6 +176,8 @@ export const de: Dict = {
     ],
     heard: "Gehört:",
     said: "fix den flaky Login-E2E-Test",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "schick mir den Screenshot",
   },
 
   app: {

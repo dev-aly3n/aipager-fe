@@ -61,16 +61,27 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <main>
         {/* clipped sideways only: a clip that also ran up and down would stop
             the tablet's side column from staying in view */}
-        <section className="relative overflow-x-clip pb-20 pt-[72px]">
+        <section className="relative overflow-x-clip pb-20 pt-[84px]">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[700px] bg-[radial-gradient(ellipse_at_30%_0%,rgb(42_171_238/0.16),transparent_62%)]" />
-          <div className="wrap relative grid !max-w-[92rem] grid-cols-1 items-center gap-10 xl:grid-cols-[26rem_minmax(0,1fr)] xl:gap-14">
-            {/* what it is, and the one command, never below the fold */}
-            <div className="text-center xl:text-start">
+          {/* Three parts: what it is, the evening itself, and the one command.
+              Stacked on a laptop the evening comes straight after the
+              headline and the command follows it; in the hand the command
+              stays above the tall phone demo, so it is never a screen and a
+              half down; from 1280px the words sit beside the evening. */}
+          <div className="wrap relative grid !max-w-[92rem] grid-cols-1 gap-10 xl:grid-cols-[26rem_minmax(0,1fr)] xl:grid-rows-[auto_auto] xl:gap-x-14 xl:gap-y-0">
+            <div className="text-center xl:col-start-1 xl:row-start-1 xl:self-end xl:text-start">
               <Headline text={t.hero.title} className="text-[clamp(36px,3.6vw,52px)] font-semibold leading-[1.02] tracking-[-0.045em]" />
               <p className="mx-auto mt-4 max-w-xl text-[16.5px] leading-relaxed text-fg-2 xl:mx-0">{t.hero.lead}</p>
-              <div className="mt-7">
-                <InstallLine cmd={INSTALL} label={t.cta.copy} done={t.install.copied} />
-              </div>
+            </div>
+
+            {/* the evening itself, with the height it needs */}
+            <div className="min-w-0 handheld:order-1 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:self-center">
+              <Desktop t={t} locale={locale} />
+            </div>
+
+            {/* the one command, and where to read more */}
+            <div className="text-center xl:col-start-1 xl:row-start-2 xl:mt-7 xl:self-start xl:text-start">
+              <InstallLine cmd={INSTALL} label={t.cta.copy} done={t.install.copied} />
               <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13.5px] text-fg-3 xl:justify-start">
                 {/* the agent route is its own guide, not the four lines below */}
                 <a href={`/${locale}/docs/install-with-an-agent`} className="transition-colors hover:text-foreground">
@@ -88,11 +99,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </div>
               {/* written as each name is spelled: uppercase would make macOS "MACOS" */}
               <p className="mt-5 font-mono text-[12px] tracking-[0.02em] text-fg-4"><Bidi text={t.hero.meta} /></p>
-            </div>
-
-            {/* the evening itself, with the height it needs */}
-            <div className="min-w-0">
-              <Desktop t={t} locale={locale} />
             </div>
           </div>
         </section>

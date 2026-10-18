@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ c1510c0 -->
+<!-- i18n-source: README.md @ eac6764 -->
 
 <h3>Claude, c'est une discussion de plus.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Montez sous `/workspace` les dossiers que Claude doit modifier. Le montage de `~/.claude` apporte vos identifiants Claude et l'historique de vos conversations : lancez `claude` une fois sur l'hôte pour vous connecter, ou `docker exec -it aipager claude` pour vous connecter dans le conteneur.
 
-Tags : `latest`, `1.3`, `1.3.6` (un par version exacte et un par version mineure).
+Tags : `latest`, `1.3`, `1.3.7` (un par version exacte et un par version mineure).
 
 ### <a id="nix"></a>Nix
 

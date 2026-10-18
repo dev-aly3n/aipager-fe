@@ -146,6 +146,10 @@ export const fr: Dict = {
         b: "Les photos et les fichiers arrivent dans un dossier sur votre ordinateur et Claude reçoit le chemin, avec votre légende comme message, ou « check this: … » quand il n'y en a pas. Envoyez-en plusieurs d'un coup et ils partent en un seul message.",
       },
       {
+        t: "Il vous renvoie des fichiers",
+        b: "Demandez-le avec vos propres mots, « envoie-moi la capture d'écran », et le fichier arrive dans le chat de cette session juste après la réponse : les images en photos, les vidéos et l'audio tels quels, le reste en fichier, et plusieurs d'un coup en un seul album. Jamais les réglages d'aipager, les identifiants de Claude ni vos clés : ils sont refusés avant tout envoi.",
+      },
+      {
         t: "Envoyez le suivant tout de suite",
         b: "Votre message part vers Claude au moment où vous l'envoyez, même en pleine tâche : 👀 pendant que la file d'attente de Claude le garde, 👍 quand Claude le prend. ⚡ Envoyer maintenant le lui passe sans attendre la fin de l'étape.",
       },
@@ -172,6 +176,8 @@ export const fr: Dict = {
     ],
     heard: "J'ai entendu :",
     said: "corrige le test e2e de login instable",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "envoie-moi la capture d'écran",
   },
 
   app: {

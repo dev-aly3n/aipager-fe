@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Be_Vietnam_Pro, Geist, Geist_Mono, Instrument_Serif, Noto_Sans_Arabic, Noto_Sans_KR, Noto_Sans_SC, Vazirmatn } from "next/font/google";
 import { notFound } from "next/navigation";
 import { dirOf, isLocale, LOCALES } from "@/lib/i18n/locales";
 import { LAYOUT_SCRIPT } from "@/lib/layout";
@@ -21,6 +21,26 @@ const serif = Instrument_Serif({
   style: ["normal", "italic"],
   subsets: ["latin"],
 });
+
+/*
+ * A typeface for each script Geist does not draw. None is preloaded: each is
+ * declared with its characters' range, so a browser fetches it only when
+ * text in that script is on screen, which on most visits is never. The font
+ * stacks in globals.css reach them through --font-script (and Vietnamese,
+ * whose letters Geist lacks, through --font-lead), set per language there.
+ */
+const vazirmatn = Vazirmatn({ variable: "--font-vazirmatn", subsets: ["arabic"], preload: false, display: "swap" });
+const notoArabic = Noto_Sans_Arabic({ variable: "--font-noto-arabic", subsets: ["arabic"], preload: false, display: "swap" });
+const notoKr = Noto_Sans_KR({ variable: "--font-noto-kr", preload: false, display: "swap" });
+const notoSc = Noto_Sans_SC({ variable: "--font-noto-sc", preload: false, display: "swap" });
+const beVietnam = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["vietnamese", "latin", "latin-ext"],
+  preload: false,
+  display: "swap",
+});
+const scripts = [vazirmatn, notoArabic, notoKr, notoSc, beVietnam].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
   title: "aipager: Claude Code, paging you",
@@ -69,7 +89,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dirOf(locale)}
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${serif.variable}`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${serif.variable} ${scripts}`}
       // the layout script writes data-layout before React hydrates
       suppressHydrationWarning
     >

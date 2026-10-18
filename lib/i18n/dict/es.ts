@@ -146,6 +146,10 @@ export const es: Dict = {
         b: "Las fotos y los archivos se guardan en una carpeta de tu computadora y a Claude se le pasa la ruta, con tu pie de foto como mensaje, o «check this: …» cuando no hay ninguno. Manda varios a la vez y van como un solo mensaje.",
       },
       {
+        t: "Te devuelve archivos",
+        b: "Pídeselo con tus propias palabras, «envíame la captura de pantalla», y el archivo llega al chat de esa sesión justo después de la respuesta: las imágenes como fotos, los videos y los audios tal cual, cualquier otra cosa como archivo, y varios a la vez como un solo álbum. Nunca la configuración de aipager, las credenciales de Claude ni tus claves: eso se rechaza antes de enviar nada.",
+      },
+      {
         t: "Manda el siguiente ya",
         b: "Tu mensaje llega a Claude en cuanto lo envías, incluso a mitad de una tarea: 👀 mientras la cola de Claude lo guarda, 👍 cuando Claude lo toma. ⚡ Enviar ahora se lo pasa sin esperar a que termine el paso.",
       },
@@ -172,6 +176,8 @@ export const es: Dict = {
     ],
     heard: "Escuché:",
     said: "arregla el test e2e de login que falla a veces",
+    /** what you ask for under the third one (Claude's caption is modes.auto.quote) */
+    ask: "envíame la captura de pantalla",
   },
 
   app: {

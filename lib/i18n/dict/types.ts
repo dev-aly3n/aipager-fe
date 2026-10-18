@@ -38,6 +38,7 @@ export type Three<T> = [T, T, T];
 export type Four<T> = [T, T, T, T];
 export type Six<T> = [T, T, T, T, T, T];
 export type Eight<T> = [T, T, T, T, T, T, T, T];
+export type Nine<T> = [T, T, T, T, T, T, T, T, T];
 export type Thirteen<T> = [T, T, T, T, T, T, T, T, T, T, T, T, T];
 
 export interface Dict {
@@ -98,10 +99,12 @@ export interface Dict {
     eyebrow: string;
     title: string;
     lead: string;
-    items: Eight<Titled>;
+    items: Nine<Titled>;
     /** the voice note shown under the first one */
     heard: string;
     said: string;
+    /** the request under the third: Claude sends the file back */
+    ask: string;
   };
 
   app: {
