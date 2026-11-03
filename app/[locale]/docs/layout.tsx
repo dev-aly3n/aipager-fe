@@ -3,7 +3,7 @@ import { Nav } from "@/components/nav";
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { Footer } from "@/components/footer";
 import { GROUPS, navTitle, listDocs } from "@/lib/docs";
-import { getAipagerVersion } from "@/lib/version";
+import { AIPAGER_VERSION } from "@/lib/version";
 import { notFound } from "next/navigation";
 import { isLocale, type Locale } from "@/lib/i18n/locales";
 import { dictOf } from "@/lib/i18n";
@@ -13,7 +13,6 @@ export default async function DocsLayout({ children, params }: { children: React
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   const docs = listDocs(locale);
-  const version = await getAipagerVersion();
   const t = dictOf(locale);
   const flat = GROUPS.flatMap((g) => g.slugs);
   const bySlug = new Map(docs.map((d) => [d.slug, d]));
@@ -43,7 +42,7 @@ export default async function DocsLayout({ children, params }: { children: React
         <div className="mx-auto grid max-w-[90rem] grid-cols-1 gap-12 px-5 py-12 sm:px-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14 lg:px-10">
           <aside className="hidden lg:block">
             <div className="sticky top-[88px] max-h-[calc(100vh-7rem)] overflow-y-auto pb-10">
-              <DocsSidebar docs={docs} version={version} locale={locale} t={t} />
+              <DocsSidebar docs={docs} version={AIPAGER_VERSION} locale={locale} t={t} />
             </div>
           </aside>
           <main className="min-w-0">{children}</main>

@@ -9,7 +9,7 @@ import { Desktop } from "@/components/tg/desktop";
 import { App, Ask, Day, Languages, Modes, Places, Saved, Trust, Under } from "@/components/tg/sections";
 import { dictOf } from "@/lib/i18n";
 import { isLocale, LOCALES, type Locale } from "@/lib/i18n/locales";
-import { getAipagerVersion } from "@/lib/version";
+import { AIPAGER_VERSION } from "@/lib/version";
 import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/share";
 
 const INSTALL = "curl -fsSL aipager.run/install | sh";
@@ -54,7 +54,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   const t = dictOf(locale);
-  const version = await getAipagerVersion();
 
   return (
     <>
@@ -106,7 +105,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Modes t={t} locale={locale} />
         <Places t={t} locale={locale} />
         <Day t={t} locale={locale} />
-        <App t={t} locale={locale} version={version} />
+        <App t={t} locale={locale} version={AIPAGER_VERSION} />
         <Languages t={t} />
         <Under t={t} />
         <Trust t={t} locale={locale} />

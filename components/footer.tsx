@@ -1,10 +1,9 @@
 import { Mark } from "@/components/brand";
-import { getAipagerVersion } from "@/lib/version";
+import { AIPAGER_VERSION } from "@/lib/version";
 import { dictOf } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/locales";
 
-export async function Footer({ locale }: { locale: Locale }) {
-  const version = await getAipagerVersion();
+export function Footer({ locale }: { locale: Locale }) {
   const t = dictOf(locale);
   const links: { href: string; label: string }[] = [
     { href: "https://github.com/dev-aly3n/aipager", label: "GitHub" },
@@ -21,7 +20,7 @@ export async function Footer({ locale }: { locale: Locale }) {
           <span className="text-fg-2">
             aipager<span className="text-accent">.</span>run
           </span>
-          <span className="font-mono text-xs">v{version}</span>
+          <span className="font-mono text-xs">v{AIPAGER_VERSION}</span>
           <span aria-hidden>·</span>
           <a href="https://github.com/dev-aly3n/aipager/blob/main/LICENSE" className="hover:text-foreground">
             MIT
