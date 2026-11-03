@@ -13,7 +13,9 @@
 #
 # It refuses, changing nothing, when the path is not a git repo, the tag is
 # missing or not a release, the tag's pyproject.toml names another version,
-# the tag has no docs/, or the release is older than the one the site shows.
+# the tag has no docs/ or holds anything but plain files there (a symlink
+# would copy a file from this machine into the site), or the release is older
+# than the one the site shows.
 #
 # content/docs becomes an exact copy of the release, so a page that was
 # dropped upstream is dropped here too. Run after every aipager release, then
@@ -66,6 +68,11 @@ git -C "$REPO" rev-parse -q --verify "$REF^{commit}" > /dev/null || fail "✗ no
   "  fetch it first: git -C $REPO fetch --tags"
 [[ "$(git -C "$REPO" cat-file -t "$REF:docs" 2>/dev/null || true)" == "tree" ]] || fail "✗ $TAG has no docs/ directory"
 git -C "$REPO" cat-file -e "$REF:pyproject.toml" 2>/dev/null || fail "✗ $TAG has no pyproject.toml"
+# Only plain files are copied. A symlink would be followed by cp and copy
+# whatever it points at on this machine into the site (and from CI, onto the
+# public repo); a submodule would be dropped without a word.
+BAD=$(git -C "$REPO" ls-tree -r "$REF" -- docs | awk '$1 != "100644" && $1 != "100755"')
+[[ -z "$BAD" ]] || fail "✗ $TAG's docs/ holds something other than plain files" "$BAD"
 
 # git archive reads the tag's tree straight from the object store: no
 # checkout, no worktree, nothing written inside the aipager repo.
