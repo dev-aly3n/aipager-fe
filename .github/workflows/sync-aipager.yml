@@ -79,19 +79,21 @@ jobs:
               sleep 10
             done
             if [[ "$served" != true ]]; then
-              echo "::error::PyPI did not serve aipager ${WANT} within 5 minutes"
+              echo "::error::PyPI did not serve aipager ${WANT} after 30 tries, 10 seconds apart"
               exit 1
             fi
             target="$WANT"
           else
             target=$(curl -fsS --retry 3 --max-time 15 https://pypi.org/pypi/aipager/json | jq -r .info.version)
-            # A post-release (1.4.0.post1) repackages a release without a
-            # tag of its own, so there is nothing new to sync, and failing
-            # would turn every scheduled run red until the next release.
+            # A post-release (1.4.0.post1) repackages the release it builds
+            # on and has no tag of its own, so that release (1.4.0) is the
+            # one to sync. Skipping it instead could leave the site behind
+            # on every scheduled run, green, until the next release.
+            post_of=""
             if [[ "$target" =~ $post ]]; then
-              echo "::notice::PyPI's newest aipager is the post-release ${target}, which is not synced. To sync the release it builds on, run this workflow by hand with that version."
-              echo "go=false" >> "$GITHUB_OUTPUT"
-              exit 0
+              post_of="$target"
+              target="${target%.post*}"
+              echo "::notice::PyPI's newest aipager is the post-release ${post_of}, so the release it builds on, ${target}, is the one compared with the site"
             fi
             if [[ ! "$target" =~ $release ]]; then
               echo "::error::PyPI's newest aipager is not of the form 1.4.0"
@@ -104,6 +106,12 @@ jobs:
             echo "aipager.run already shows ${have}"
             echo "go=false" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+          # PyPI named the post-release, not its base, so make sure the base
+          # release itself was published before syncing its tag.
+          if [[ -n "${post_of:-}" ]] && ! curl -sf --retry 3 --max-time 15 "https://pypi.org/pypi/aipager/${target}/json" > /dev/null; then
+            echo "::error::PyPI does not serve aipager ${target}, the release ${post_of} builds on"
+            exit 1
           fi
           echo "syncing aipager ${target} (the site shows ${have})"
           echo "go=true" >> "$GITHUB_OUTPUT"
