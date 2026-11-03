@@ -1,6 +1,6 @@
 # 문제 해결
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de34258 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > 이 페이지는 영어 문서를 번역한 거예요. 내용이 서로 다르면 영어 문서가 맞아요. ([English](../../troubleshooting.md))
 
@@ -142,6 +142,44 @@ aipager session <label>            # 또는 기록 없는 새 세션
 aipager session <label> --continue # 새 dtach, 이 폴더의 가장 최근 대화
 ```
 
+채팅의 알림은 `claude`가 남긴 종료 코드로 세션이 왜 끝났는지 알려 줘요(aipager는 `claude`가 끝날 때 그 코드를 `claude-exit-<session>.json`에 기록해요):
+
+- `🔴 x1 · 세션 비정상 종료 또는 종료됨`: 종료 코드가 기록되지 않았어요(컴퓨터가 재시작됐거나, 세션 프로세스가 함께 강제로 종료됐어요).
+- `🔴 x1 · 세션 닫힘`: `claude`가 정상적으로 끝났어요(종료 코드 0).
+- `🔴 x1 · 오류 코드 2(으)로 세션 종료됨`: `claude`가 그 코드로 실패했어요.
+- `🔴 x1 · 시그널 SIGKILL(으)로 세션 종료됨`: 무언가가 `claude`를 강제로 종료했어요(128보다 큰 종료 코드는 시그널을 나타내요).
+- `🔴 x1 · Claude Code가 시작하자마자 종료됨 (종료 코드 1)`: `claude`가 시작하고 10초 안에 포기했어요. 대개 자기 인수나 설정 때문이에요. `aipager session x1`로 연결해서 메시지를 보거나, 터미널에서 직접 실행해 보세요.
+- `🔴 x1 · 대화가 Claude Code 백그라운드에서 실행 중이라 Claude Code가 시작하자마자 종료됨`: Claude Code는 백그라운드 작업이 아직 붙잡고 있는 대화를 재개하지 않아요. `↩️ 지금 다시 가져오기`를 누르세요. aipager가 그 작업이 쉬고 있으면 멈추고(일하고 있으면 먼저 물어봐요) 여기서 대화를 재개해요. 다음 절을 보세요.
+
+## <a id="a-session-moved-to-claude-codes-background"></a>세션이 Claude Code 백그라운드로 옮겨 갔어요
+
+`🌙 x1 세션이 Claude Code 백그라운드로 옮겨졌고, 다음 메시지를 보내면 다시 여기로 가져와요.`
+
+Claude Code에서 입력란이 비어 있을 때 ←를 누르면 세션의 대화가 Claude Code 백그라운드 작업으로 옮겨지고, 터미널에는 대화 대신 Claude Code의 에이전트 보기가 나와요. aipager는 몇 초 안에 이것을 알아채고 그 터미널에 입력하는 것을 멈춰요. 지금 거기에 입력하는 것은 무엇이든 또 다른 백그라운드 작업을 시작할 수 있기 때문이에요. 작업은 계속 진행되고, 그 카드, 답변, 권한 요청은 여전히 세션의 것으로 채팅에 도착해요. Mini App에서는 세션이 “백그라운드에 있음”으로 표시되고, 작업이 채팅에서 답할 수 있는 권한 요청을 기다리는 동안에는 “답변 대기 중”으로 표시돼요.
+
+다시 가져오려면:
+
+- 세션에 메시지를 보내세요. 메시지는 기다리고(👀), aipager가 백그라운드 작업을 멈추고(`claude stop <job>`), aipager 자체 설정으로 작업의 대화에서 세션을 재시작한 다음 메시지를 보내요. 작업이 아직 진행 중이거나 ←로 함께 옮겨 간 작업이 아직 실행 중이면 먼저 물어봐요. `멈추고 다시 가져오기`는 하던 일을 멈추고, `그대로 두기`는 끝까지 하게 둬요(나중에 다시 가져오세요). ← 직후 몇 초 동안은 새 백그라운드 작업이 그 작업을 이어 가기 직전에 쉬는 것처럼 보일 수 있어서, 그때 보낸 메시지는 aipager가 결정하기 전에 잠깐 기다려요. 역할상 세션을 재시작할 수 없는 사람은 `x1 세션에 보낸 메시지는 누군가 이 세션을 Claude Code 백그라운드에서 다시 가져올 때까지 기다려요.`라는 답을 받아요.
+- 또는 알림 아래의 `↩️ 지금 다시 가져오기`, `/restart x1`, Mini App의 “다시 가져오기”를 누르세요. 작업이 진행 중일 때 `/stop`을 보내면 그 작업을 멈추고 세션을 다시 가져와요. 예전에 백그라운드로 옮겨 갔을 때 남은 버튼은 `x1 세션은 Claude Code 백그라운드에 있지 않아요.`라고 답하고 아무것도 하지 않아요. 세션을 재시작하는 모드 전환(전체 권한 모드로 바꾸거나 전체 권한 모드에서 나오기)을 작업이 진행 중일 때 하면, 이때 나오는 `멈추고 다시 가져오기`는 요청한 모드로 세션을 다시 가져와요.
+
+세션이 백그라운드에 있는 동안 안전 규칙이 세션의 작업을 멈추면, aipager가 백그라운드 작업을 멈춰요. 멈추지 못하면 중단 알림에 막힌 작업이 아직 거기서 실행 중일 수 있다고 나오고, 알림의 첫 줄이 `(중지됨)`으로 끝나지 않아요. 그럴 때는 터미널에서 `claude stop <job>`으로 그 작업을 멈추세요.
+
+그때까지 세션에 입력해야 하는 명령(`/compact`, `/model`, 확인 모드나 자동 모드로 전환, `/now`, 다시 시도)은 `먼저 x1 세션을 Claude Code 백그라운드에서 다시 가져오세요.`라고 답하고, aipager가 입력해야 하는 요청 답변은 `답하려면 먼저 x1 세션을 Claude Code 백그라운드에서 다시 가져오세요.`라는 답을 받아요. hook을 통하는 답변(대부분의 권한 요청)은 그대로 돼요.
+
+`/resume`, Mini App의 “재개”, `aipager resume`도 같은 방식으로 다른 대화로 이어진 대화를 따라가요. 가장 최근 대화를 재개하고, 그 대화를 아직 붙잡은 백그라운드 작업이 쉬고 있으면 먼저 멈춰요. `aipager session x1 --resume <id>`도 터미널에서 똑같이 해요. 작업이 진행 중이면 아무것도 시작하지 않고 `claude stop <job>`과 `claude attach <job>`을 출력한 뒤 코드 1로 끝나요.
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code가 대화를 재개할지 물어요
+
+`❓ x1: Claude Code가 이 대화를 재개할지 묻고 있어요. 오랫동안 쓰지 않은 대화라서, 재개하면 5시간 사용 한도의 일부를 쓰게 돼요.`
+
+Claude Code는 긴 대화를 이어 가기 전에 자기 터미널에서 질문을 하기도 하는데, 이때 어떤 hook에도 알리지 않아요. 큰 대화를 한동안 쓰지 않았을 때는 `Resume this conversation?`(재개하면 5시간 사용 한도의 일부를 써요), 오래되고 큰 대화를 다시 시작할 때는 `Resume from summary`, 그 밖에도 몇 가지가 있어요. aipager는 Claude Code가 직접 남기는 세션 기록을 읽기 때문에 이런 질문이 열려 있다는 걸 알아요. 질문이 열려 있는 동안 aipager는 그 터미널에 아무것도 입력하지 않아요. 보낸 메시지는 기다렸다가(👀) 질문에 답하면 바로 Claude에게 전달돼요.
+
+- **재시작, 모드 전환, 다시 가져오기, 재개 직후에는** Claude Code가 이 질문들 중 어느 것을 보여 주는지 aipager가 알 수 없어요. 그래서 카드에는 `❓ x1: Claude Code가 이 대화를 이어 가기 전에 터미널에서 질문하고 있어요.`라고 나오고 버튼은 `이 대화 계속하기` 하나뿐이에요. 이 버튼은 거기서 Escape를 누른 것처럼 질문에 답해요. 대화는 지금 그대로, 전체 기록과 함께 이어져요. 처음부터 다시 하거나 대화 압축을 하려면 이 버튼을 누른 다음 `/clear` 또는 `/compact`을(를) 보내세요.
+- **오랫동안 준비됨 상태로 쓰이지 않은 세션에서는** Claude Code가 스스로 물어요(구독 중이라면 마지막 답변 후 약 한 시간 뒤). 이때는 아무것도 표시되지 않아요. 메시지를 보내면 메시지는 기다리고, 위의 카드가 `재개하기`, `새 대화 시작하기` 버튼과 함께 나타나요. 재개하기는 대화를 이어 가요. 새 대화 시작하기는 대화를 떠나 빈 대화를 시작하고(aipager가 `/clear`을(를) 입력해요), 기다리던 메시지가 새 대화의 첫 메시지가 돼요. Claude Code 자체 옵션과 달리 새 대화는 이전 대화를 가리키지 않아요. 이 버튼을 쓰려면 그 채팅에서 `/clear`을(를) 보낼 수 있어야 해요.
+- **Claude Code가 터미널에 띄우는 그 밖의 질문이나 패널**(예를 들어 Telegram에서 보낸 `/config`)에는 버튼 없는 안내가 붙어요: `❓ x1 세션이 터미널에서 질문에 대한 답을 기다리고 있어요. 터미널에서 답하면 그동안 보낸 메시지가 바로 Claude에게 전달돼요.`
+
+언제든 터미널에서 답해도 돼요. 그러면 카드에 `x1: 터미널에서 질문에 답했어요.`라고 나와요. 질문이 닫힌 뒤에 누른 버튼은 아무것도 하지 않고 `이 질문은 이제 열려 있지 않아요.`라고 답해요. aipager는 `Don't ask me again`을 절대 보여 주지 않아요. 그 옵션은 모든 세션에 대해 Claude Code 자체 설정을 바꾸기 때문이에요.
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>권한 요청이 5분 동안 소식이 없어요
 
 세션이 권한 요청이나 질문을 기다리는데 Claude Code가 5분 동안 아무 소식도 보내지 않으면, aipager는 세션의 저장된 대화를 읽어요. Claude 자신과 요청한 에이전트의 소식만 쳐요. 계속 일하는 백그라운드 에이전트가 있어도 이 확인은 막히지 않아요. 거기에 요청이 끝났다고 나올 때만(터미널에서 답했는데 그 소식이 사라진 경우) aipager는 그 요청을 기다리지 않고 세션을 다시 작업 중으로 쳐요. 그렇지 않으면 요청은 얼마가 걸리든 열려 있어요. 카드와 고정된 상태 표시줄은 계속 세션에 답이 필요하다고 보여 주고, “아직 작업 중” 알림은 가지 않으며, 보낸 메시지는 답할 때까지 보류돼요([글](commands.md#text) 참고). 요청이 열린 채로 Claude Code가 종료되면 세션이 끝나요. 대화 상자가 아직 열려 있다면 요청의 버튼으로 여전히 답할 수 있어요([작업이 끝났을 때의 답변](commands.md#idle-responses) 참고).
@@ -161,6 +199,54 @@ AIPAGER_INTERACTIVE_TIMEOUT=300 aipager start    # 초 단위
 - Permission denied: venv가 읽기 전용이에요. `uv tool install`로 바꾸세요. 이 방법은 항상 내 사용자 소유의 venv를 써요.
 
 설치 도중 봇의 연결이 끊겼다면 컴퓨터에서의 설치 자체는 보통 끝나 있어요. aipager를 재시작하고 음성 메시지를 다시 보내 보세요.
+
+## <a id="the-mini-app-link-isnt-working"></a>Mini App 링크가 작동하지 않아요
+
+Mini App 링크를 만들 수 없으면 `/app`이 그 이유를 알려 줘요. 컴퓨터를 고칠 수 있는 사람(개인 설치에서는 봇 소유자, 그룹에서는 그 채팅의 관리자)은 원인과 해결 방법을 받고, 다른 사람은 `📱 지금은 Mini App을 쓸 수 없어요. 나중에 /app을 다시 보내 주세요.`를 받아요. `aipager doctor`도 `miniapp` 행에서 같은 내용을 보여 주고(경고로, 절대 실패로는 아님), 실패한 시도 횟수와 다음 시도 시간도 알려 줘요.
+
+aipager는 알아서 계속 다시 시도해요. 처음에는 빠르게 몇 번 시도하고, 그다음에는 10분마다 한 번씩 시도해요(`TUNNEL_RETRY_SLOW_SECONDS`, 60초보다 짧아지지 않아요). 이 느린 단계에서 `/app`을 보내면 바로 한 번 시도해요(1분에 최대 한 번). 컴퓨터를 고치면 재시작하지 않아도 Mini App이 돌아와요.
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>DNS 서버가 불완전한 답을 줬어요
+
+`/app`이 `이 컴퓨터의 DNS 서버가 불완전한 답을 줬어요`라고 해요. cloudflared가 Cloudflare 서버를 찾을 때 DNS 서버가 목록의 일부만 답했고(Cloudflare는 두 지역을 알리는데 한 지역만), 그러면 cloudflared는 멈춰요. 문제는 aipager가 아니라 컴퓨터가 받은 DNS 서버(주로 공유기나 가상 머신 네트워크의 것)에 있어요. 확인해 보세요:
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+레코드가 두 개 나와야 해요. 하나만 나오면 컴퓨터가 다른 DNS 서버(예: 1.1.1.1)를 쓰도록 설정하세요. netplan(Ubuntu)에서는 `/etc/netplan/` 아래 파일에서 DHCP가 주는 주소는 유지하고 DNS 서버만 쓰지 않도록 해요(`eth0`은 네트워크 인터페이스 이름이에요):
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+그다음 `sudo netplan apply`를 실행하세요. systemd-resolved만 쓴다면 `/etc/systemd/resolved.conf.d/dns.conf` 같은 파일을 만드세요:
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+그다음 `sudo systemctl restart systemd-resolved`를 실행하세요. `resolvectl`로 다시 확인해서 레코드가 두 개 나오면, aipager의 다음 시도에서 Mini App이 돌아와요.
+
+### <a id="what-the-other-answers-mean"></a>다른 답의 뜻
+
+- `이 컴퓨터가 DNS에서 Cloudflare 서버를 찾지 못했어요`: 조회 자체가 실패했어요(답이 없거나 시간 초과). 위와 같이 컴퓨터의 인터넷 연결과 DNS 서버를 확인하세요.
+- `cloudflared가 Cloudflare에서 링크를 받지 못했어요`: cloudflared가 링크를 받으려고 `api.trycloudflare.com`에 연결하지 못했어요. 컴퓨터에서 https://api.trycloudflare.com 을 열 수 있는지 확인하세요(방화벽이 막을 수 있어요).
+- `이 컴퓨터가 cloudflared에 필요한 7844 포트(UDP)로 Cloudflare 서버에 연결하지 못해요`: cloudflared는 UDP 7844 포트로 Cloudflare에 연결하는데, 무언가가 이를 막고 있어요. 컴퓨터의 방화벽이나 네트워크에서 나가는 UDP 7844를 허용하세요.
+- `aipager가 Mini App 링크를 만드는 프로그램인 cloudflared를 다운로드하거나 실행하지 못했어요`: aipager는 처음에 검증된 cloudflared를 다운로드해요. 다운로드, 검증 또는 실행이 실패했어요. 인터넷 연결을 확인하세요. `aipager logs`가 실패한 단계를 알려 줘요.
+- `cloudflared는 실행 중이지만 그 링크가 인터넷에서 한 번도 응답하지 않았어요`: cloudflared에 링크는 있지만 그 링크로 aipager에 아무것도 도착하지 않았어요. aipager가 그 터널을 멈추고 새 터널을 시작해요.
+- `지금은 Mini App이 작동하지 않아요`: aipager가 알지 못하는 원인이에요. `aipager logs`에서 cloudflared 자체의 메시지를 볼 수 있고, cloudflared의 파일은 `~/.claude/aipager-cloudflared.log`와 `~/.claude/aipager-cloudflared.err`예요.
+
+cloudflared 자체의 메시지는 aipager 로그에만 남고 채팅에는 절대 나오지 않아요. `MINIAPP_PUBLIC_URL`을 설정했다면 aipager는 터널을 만들지 않으니 이 내용은 해당되지 않아요. Tailscale도 있는 컴퓨터에서 터널이 작동하지 않는 동안에는 `/app`이 Tailscale 주소를 줘요.
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>앱을 열면 “로그인하려면 Telegram 앱에서 이 페이지를 여세요.”가 나와요
 
@@ -225,14 +311,14 @@ dtach가 거부한 시작은 채팅에 이유를 한 줄로 보여 줘요(소켓
 | `role_shell_access` | 멤버가 가진 역할 가운데 Bash를 실행할 수 있는 역할마다 한 번 경고해요(그 안전 규칙은 최선의 노력일 뿐 경계가 아니에요. [그룹](groups.md#roles) 참고) | `policy.yaml`에서 그 역할에 Bash를 주지 않거나, 받아들이기 |
 | `peer_messages` | Claude 세션 사이의 메시지: 영수증을 어디에 보관하고 그 폴더가 비공개인지, 이 시스템이 보낸 쪽의 시작 시각을 확인할 수 있는지, 그리고 규칙이 SendMessage를 허용하는 역할마다 경고해요([보안](security.md#messages-between-claude-sessions) 참고) | 함께 쓰는 영수증 폴더를 지우거나(aipager가 다시 만들어요), 그 역할에 SendMessage를 주지 않기 |
 | `claude` | 모든 시작이 하는 방식 그대로 `claude` 프로그램을 찾고(`aipager.yaml`의 `claude_path`나 `$AIPAGER_CLAUDE_BIN`이 바로 이겨요. 아니면 `~/.local/bin`, PATH, Homebrew 가운데 가장 새것), 찾은 다른 설치를 모두 나열해요 | Claude Code를 설치하거나, `claude_path` / `AIPAGER_CLAUDE_BIN`을 설정 |
-| `claude_auth` | 실제 세션이 받는 것과 같은 환경에서 `claude auth status`를 시험해요. **절대 FAIL이 아니에요**: “로그인 안 됨”과 “시험 자체가 실패함”을 따로 알려 주고, 둘 다 세션 시작을 막지 않아요 | `claude auth login`, 또는 API 키 / `CLAUDE_CODE_OAUTH_TOKEN` 설정 |
+| `claude_auth` | 실제 세션이 받는 것과 같은 환경에서 `claude auth status`를 시험해요. **절대 FAIL이 아니에요**: “로그인 안 됨”과 “시험 자체가 실패함”을 따로 알려 주고, 둘 다 세션 시작을 막지 않아요. 세션의 `ANTHROPIC_API_KEY`를 쓰지 말라는 답이 Claude Code에 기록되어 있고 다른 로그인 방법이 없을 때도 경고해요. | `claude auth login`, 또는 API 키 / `CLAUDE_CODE_OAUTH_TOKEN` 설정; `ANTHROPIC_BASE_URL`이 설정되어 있으면 그 주소의 키([제공자](#using-an-api-key-a-gateway-or-another-provider)) |
 | `dtach` | `dtach` 프로그램을 찾았어요(aipager 자체의 `dtach-bin`, 또는 PATH에 있는 것) | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook`과 `aipager-statusline`이 PATH에 있어요 | `uv tool install --reinstall aipager` |
-| `settings_json` | `~/.claude/settings.json`에 aipager hook이 연결되어 있어요 | `aipager config` |
+| `settings_json` | `~/.claude/settings.json` (또는 `$CLAUDE_CONFIG_DIR/settings.json`)에 aipager hook이 연결되어 있어요; `CLAUDE_CONFIG_DIR`가 설정되어 있으면 그 파일과 값이 어디서 왔는지 알려 줘요 | `aipager config` |
 | `daemon` | aipager가 실행 중이고 소켓이 응답해요. Telegram 속도 제한 상태도 보여 줘요([위](#the-bot-slowed-down-a-rate-limit-429) 참고) | `aipager start` |
 | `service_installed` | 선택: 서비스 파일이 있어요 | `aipager service install` |
 | `service_unit_path` | Linux만: *설치된* 서비스의 `Environment=PATH=`에 찾은 claude 프로그램의 폴더가 정말 들어 있어요. doctor는 봇 소유자의 대화형 shell에서 systemd 자체의 PATH를 볼 수 없으니 글로 읽어서 확인해요 | `aipager service install --yes` |
-| `miniapp` | Mini App이 켜져 있을 때 시작할 수 있는지. **절대 FAIL이 아니에요**: Mini App은 선택 사항이에요 | 알려 주는 해결 방법 |
+| `miniapp` | Mini App이 켜져 있을 때 시작할 수 있는지, 그리고 실행 중인 aipager가 Mini App용 터널을 붙잡고 있는 동안 그 터널이 작동하는지(작동하지 않으면 원인, 실패한 시도, 다음 시도; [위](#the-mini-app-link-isnt-working) 참고). **절대 FAIL이 아니에요**: Mini App은 선택 사항이에요 | 알려 주는 해결 방법 |
 
 `aipager doctor --json`은 같은 확인을 이 순서대로, 이 키로 출력해요([명령](commands.md#aipager-doctor---json) 참고).
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 이 파일이 무엇을 지키고 무엇을 지키지 못하는지는 [보안 모델: Claude 로그인 정보](security.md#the-claude-credential-what-actually-protects-it)를 보세요.
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>API 키, 게이트웨이, 다른 제공자를 쓸 때
+
+aipager는 설정해 둔 그대로 Claude Code를 실행해요. 그래서 Telegram에서 시작한 세션도 터미널의 `claude`와 같은 방법으로 로그인해요. claude.ai 로그인, Anthropic API 키, 게이트웨이(LiteLLM, Vercel, Cloudflare 등), 또는 `ANTHROPIC_BASE_URL`에 넣은 다른 회사의 Anthropic 형식 주소 중 하나로요. Anthropic은 Claude 모델에서만 Claude Code를 지원하고, 다른 모델은 다르게 동작할 수 있어요.
+
+- **설정을 넣는 곳.** 모든 Claude Code 세션이 읽는 `~/.claude/settings.json` (또는 `$CLAUDE_CONFIG_DIR/settings.json`)의 `env` 블록, 또는 aipager가 시작하는 세션만 받는 `~/.config/aipager/daemon.env`에 넣으세요. 한 줄에 `KEY=value` 하나씩, 따옴표 없이 써요(따옴표는 값의 일부가 돼요). 서비스(`aipager service install`)는 셸 프로필을 읽지 않으니 거기 있는 `export`는 닿지 않아요. `daemon.env`를 바꾼 뒤에는 aipager를 다시 시작하세요. 신뢰하는 시작 폴더의 `.claude/settings.json`과 `.claude/settings.local.json`, 그리고 관리형 설정(Linux는 `/etc/claude-code`, macOS는 `/Library/Application Support/ClaudeCode`의 `managed-settings.json`과 `managed-settings.d/`)의 `env` 블록도 Claude Code에서처럼 함께 계산돼요.
+- **어떤 키 설정을 쓸지.** 게이트웨이나 다른 제공자에는 Claude Code 문서가 `ANTHROPIC_AUTH_TOKEN`을 권하고, 이 값은 Claude Code가 묻지 않아요. `ANTHROPIC_API_KEY`는 한 번 “Do you want to use this API key?”라고 묻는데, Telegram에서 시작한 세션은 답할 수 없어서 세션이 시작되기 바로 전에 aipager가 `~/.claude.json` (또는 `CLAUDE_CONFIG_DIR`가 그것을 두는 파일)에 답해요.
+  - 예: 키가 `settings.json`이나 `daemon.env`에 있거나, 세션에 로그인시킬 다른 방법이 없을 때.
+  - 아니요: 키가 aipager를 시작한 환경에서만 오고 다른 방법으로 Claude에 이미 로그인되어 있을 때. 세션은 그 로그인과 요금제를 그대로 써요. 키를 쓰려면 그 키가 있는 터미널 세션에서 `/config`의 “Use custom API key”로 켜세요.
+  - 직접 한 답은 그대로 둬요. 다만 세션에 로그인시킬 다른 방법이 없을 때 `settings.json`이나 `daemon.env`에 있는 키에 대한 아니요는 바꿔요. 아니요 때문에 세션이 로그인할 수 없으면 `aipager doctor`가 알려 줘요. 터미널에서 `/config`의 “Use custom API key”로 키를 다시 켜세요.
+- **첫 실행 화면.** Claude Code가 첫 실행을 끝낸 적이 없는 곳(새 컴퓨터나 컨테이너)에서는 세션에 로그인 정보가 있으면 aipager가 첫 실행을 끝난 것으로 표시해서, 세션이 테마 선택 화면에서 멈추지 않게 해요. 로그인 정보가 하나도 없으면 터미널에서 `claude`를 한 번 실행해 로그인하세요.
+- **모델.** Opus, Sonnet, Haiku 버튼은 Claude Code의 `opus`, `sonnet`, `haiku`를 보내고, `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`을 설정하면 Claude Code가 이를 제공자의 모델로 연결해요. `claude-...` 버튼은 그 모델이 있는 제공자에서만 돼요. 다른 모델은 `/new`의 모델 단계나 Mini App에서 제공자가 쓰는 이름 그대로 입력하세요. 글자, 숫자, `. _ - : / @ ~ ,`로 최대 128자이고, Claude Code의 `[1m]` 접미사도 붙일 수 있어요. 버튼은 `keyboard.json`으로 바꿔요([고정 키보드](commands.md#persistent-keyboard) 참고).
+- **키 없는 `ANTHROPIC_BASE_URL`.** 이때 Claude Code는 claude.ai 로그인을 그 주소로 보내요. 그 주소가 로그인을 Anthropic에 넘겨 주도록 만든 게이트웨이가 아니라면 제공자의 키도 설정하세요.
+- **지원하지 않음:** 로컬 프록시를 거쳐 다른 회사의 채팅 구독(예를 들어 ChatGPT 요금제)으로 Claude Code를 돌리는 도구. 그 회사는 자사 요금제에 Claude Code를 승인하지 않았고, 이렇게 쓰면 그 계정이 위험해질 수 있어요.
+
+**다른 폴더에 있는 Claude Code 설정(`CLAUDE_CONFIG_DIR`).** Claude Code는 설정, 로그인, 기록, 전역 설정을 `~/.claude`와 `~/.claude.json`에, 또는 `CLAUDE_CONFIG_DIR`가 가리키는 폴더에 둬요. aipager도 같은 변수를 따르기 때문에, aipager의 hook과 상태 줄은 세션이 읽는 `settings.json`에, 답변은 Claude Code가 읽는 파일에 들어가요(Claude Code 2.1.303으로 확인):
+
+- **`~/.config/aipager/daemon.env`에 설정하고** aipager를 다시 시작하세요. 서비스는 셸 프로필을 절대 읽지 않으니, `export`는 그 셸의 `aipager start`에만 닿아요. 시작할 때 데몬은 `$CLAUDE_CONFIG_DIR/settings.json`에 hook을 연결하고 로그에 `sessions read Claude Code's config from ...`를 남겨요. 데몬이 도는 중에 값을 바꾸면 다음에 시작하는 세션이 hook을 받고, 그 사이에 hook을 잃은 설정 파일도 마찬가지예요. hook을 연결할 수 없으면 로그에 `sessions will start without aipager's hooks`가 남고 `aipager doctor`가 경고해요.
+- **전체 경로를 쓰세요.** Claude Code는 값을 그대로 받아요. `~`는 풀리지 않고, 상대 경로(빈 값도)는 각 세션 폴더 안의 폴더를 뜻해요. aipager는 거기에 아무것도 쓰지 않아요. 로그와 `aipager doctor`가 경고하고, `aipager setup`은 해결 방법과 함께 멈추며, `aipager config`는 해결 방법을 보여 주는 경고와 함께 Claude Code 단계를 건너뛰고 계속해요. 해결 방법에는 값이 들어 있는 파일이 나와요: `daemon.env`, 또는 `env` 블록에서 그 값을 설정하는 설정 파일이에요.
+- **Claude Code 자체 설정에서 설정한 경우.** `~/.claude/settings.json`(또는 관리형 설정)의 `env` 블록에 있는 `CLAUDE_CONFIG_DIR`는 설정 파일, 로그인, 기록을 옮기지만 `~/.claude.json`은 옮기지 않아요. aipager도 이를 따르고, `aipager doctor`가 위치를 알려 줘요.
+- **`aipager config`와 `aipager setup`은** 데몬의 세션이 읽는 파일을 고쳐요: 셸의 환경과 `daemon.env`예요. 다른 값이 있는 셸에서 시작한 `claude`는 다른 파일을 읽어서 aipager hook이 없어요. `aipager doctor`가 그 파일을 알려 줘요.
+- **예전 `.config.json`.** `<config folder>/.config.json`이 쓰이는 중이면(예를 들어 있고 비어 있지 않으면) Claude Code는 `.claude.json` 대신 그 파일을 읽고, aipager도 그래요. `CLAUDE_CONFIG_DIR`가 비어 있으면 그 파일은 세션 자신의 폴더에 있게 되고, aipager는 거기에 아무것도 쓰지 않아요.
+- **aipager가 읽을 수 없는 것.** MDM 프로필(macOS), Windows 레지스트리, Claude 서버로 전달되는 관리형 설정과 `--settings` 옵션이에요. 거기에만 설정된 키나 제공업체 스위치는 aipager가 시작 질문에 답할 때 보이지 않아요. 그러면 aipager가 없을 때처럼 Claude Code가 물어봐요.
+- **거부 목록.** 제한된 역할과 보내는 파일을 Claude의 로그인 정보에서 떼어 놓는 기본 규칙은 `~/.claude/**`와 `~/.claude.json*`을 가리켜요. 다른 곳에 있는 `CLAUDE_CONFIG_DIR`는 이 규칙에 포함되지 않으니, 관리자가 아닌 사람이 세션을 쓴다면 `~/.claude` 안에 두세요(Docker 이미지는 그렇게 되어 있어요) ([보안](security.md#who-decides-whether-a-tool-call-runs)).
 
 ## <a id="the-daemons-control-socket-moved"></a>aipager의 제어 소켓 위치가 바뀌었어요
 
@@ -313,6 +423,8 @@ git 주소로 만든 pipx 설치는 PyPI가 아니라 그 git 소스에서 업�
 제자리 시작이 실패하면 예전 프로세스가 끝난 뒤 따로 떨어진 복사본이 aipager를 시작해요. 그때 출력은 터미널이 아니라 자체 재시작 로그(인스턴스 폴더의 `aipager.log`, 또는 `/tmp/aipager.log`)로 가고, 그 복사본이 돌아오지 않으면 실행할 명령을 aipager 로그가 알려 줘요. 인터프리터 자체가 사라졌거나(환경이 지워짐) 아무것도 시작할 수 없으면 aipager는 코드 1로 종료하고, aipager 로그는 `restart.failed:`와 실행할 명령으로 끝나요. 다음에 시작할 때 업데이트를 알려 줘요.
 
 **지금 재시작** 버튼이 없을 때는 메시지가 내 환경에 맞는 단계를 알려 줘요. 터미널이나 tmux에서는 Ctrl+C를 누르고 `aipager start`를 실행하고, macOS에서는 `launchctl kickstart -k gui/<uid>/com.aipager.daemon`, Docker에서는 호스트에서 `docker restart <container>`를 실행해요. Docker 컨테이너를 다시 만들면(`down` 뒤의 `docker compose up`, 또는 `docker run`을 다시 실행) 이미지에서 시작하기 때문에 그 이미지에 든 aipager 버전으로 돌아가요. 더 새 aipager를 유지하려면 더 새 이미지를 쓰세요.
+
+이미지는 `CLAUDE_CONFIG_DIR=/home/aipager/.claude`를 설정하기 때문에, Claude Code의 전역 설정(`.claude.json`: 폴더 신뢰, 첫 실행 상태, API 키 답변, 계정, 사용자 MCP 서버)이 나머지와 함께 `.claude` 볼륨에 저장되고 컨테이너를 다시 만들어도 남아요. 이전 이미지는 이 파일을 컨테이너 안의 `/home/aipager/.claude.json`에 뒀어요. 새 이미지를 처음 시작하면 예전 파일은 읽지 않아요. 볼륨의 `.credentials.json`에 있는 로그인은 그대로 작동하고, 세션이 시작될 때 aipager가 폴더 신뢰와 첫 실행 질문에 다시 답하지만, `claude mcp add --scope user`로 추가한 사용자 MCP 서버는 다시 추가해야 해요. 호스트의 `~/.claude`를 bind-mount하면(README의 명령처럼) 파일이 거기에 `~/.claude/.claude.json`으로 나타나요. 호스트의 Claude Code는 이 파일을 읽지 않아요(`~/.claude.json`을 써요). 이름 있는 볼륨을 쓰면 둘이 섞이지 않아요.
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>업데이트 뒤에 aipager가 다시 실행되지 않아요
 

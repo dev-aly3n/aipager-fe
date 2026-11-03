@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ eac6764 -->
+<!-- i18n-source: README.md @ bd8a636 -->
 
 <h3>Claude artık sohbetlerinden biri.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Claude'un düzenlemesini istediğin klasörleri `/workspace` altına bağla. `~/.claude` bağlaması Claude kimlik bilgilerini ve konuşma geçmişini taşır: giriş yapmak için konteynerin dışında, bilgisayarın kendisinde bir kez `claude` çalıştır ya da konteynerin içinde giriş için `docker exec -it aipager claude` kullan.
 
-Etiketler: `latest`, `1.3`, `1.3.7` (biri tam sürüm, biri küçük sürüm için).
+Etiketler: `latest`, `1.4`, `1.4.0` (biri tam sürüm, biri küçük sürüm için).
 
 ### <a id="nix"></a>Nix
 
@@ -353,6 +353,15 @@ Bir terminali ayıran minik bir program. Terminal kapandığında ya da SSH kopt
 <br>
 
 Klavyedeki **Model** menüsü ve Mini App, Claude Code'un aile takma adlarını (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) ve `claude-opus-5-5`, `claude-sonnet-5-5` gibi sabit modelleri sunar. Anthropic API'sinde bir takma ad, ailesinin en yeni modelini gösterir. Bedrock ve Vertex'te aynı takma ad, sağlayıcının sunduğuna göre daha eski bir sürümü gösterebilir; belirli bir modeli seçmek için `/model <full-id>` gönder.
+
+</details>
+
+<details>
+<summary><b>API anahtarı, bir gateway ya da başka bir sağlayıcı kullanıyorum. aipager çalışır mı?</b></summary>
+
+<br>
+
+Evet. aipager, Claude Code'u senin kurduğun gibi çalıştırır ve Claude Code'un başlarken sorduğu soruları (klasör, API anahtarı, ilk açılış ekranları) yanıtlar; böylece Telegram'dan başlatılan bir oturum bunlarda takılmaz. Ayarları `~/.claude/settings.json` içindeki `env` bloğuna ya da `~/.config/aipager/daemon.env` dosyasına koy (her ayar için bir `KEY=value` satırı, tırnaksız). Opus, Sonnet ve Haiku düğmeleri `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` ve `ANTHROPIC_DEFAULT_HAIKU_MODEL` değerlerini izler, başka herhangi bir model de adıyla yazılabilir. Anthropic, Claude Code'u yalnızca Claude modelleriyle destekler. [Sorun giderme](troubleshooting.md#using-an-api-key-a-gateway-or-another-provider) sayfasına bak.
 
 </details>
 

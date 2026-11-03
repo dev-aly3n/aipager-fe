@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ eac6764 -->
+<!-- i18n-source: README.md @ bd8a636 -->
 
 <h3>Claude теперь просто ещё один чат.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Смонтируй в `/workspace` папки, которые Claude должен править. Монтирование `~/.claude` переносит твои учётные данные Claude и историю переписки: один раз запусти `claude` на самом компьютере, чтобы войти, или `docker exec -it aipager claude`, чтобы войти внутри контейнера.
 
-Теги: `latest`, `1.3`, `1.3.7` (по одному на точную версию и на минорную).
+Теги: `latest`, `1.4`, `1.4.0` (по одному на точную версию и на минорную).
 
 ### <a id="nix"></a>Nix
 
@@ -353,6 +353,15 @@ aipager отправляет в Telegram только то, что ты види
 <br>
 
 Меню **Модель** на клавиатуре и Mini App предлагают псевдонимы семейств моделей Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) и конкретные версии моделей вроде `claude-opus-5-5` и `claude-sonnet-5-5`. В API Anthropic псевдоним указывает на самую новую модель семейства. На Bedrock и Vertex тот же псевдоним может указывать на более старую версию, в зависимости от того, что предлагает твой провайдер; отправь `/model <full-id>`, чтобы выбрать точную модель.
+
+</details>
+
+<details>
+<summary><b>У меня API-ключ, шлюз или другой провайдер. aipager будет работать?</b></summary>
+
+<br>
+
+Да. aipager запускает Claude Code так, как он у тебя настроен, и отвечает на вопросы, которые Claude Code задаёт при старте (папка, API-ключ, экраны первого запуска), чтобы сессия, запущенная из Telegram, на них не останавливалась. Настройки положи в блок `env` файла `~/.claude/settings.json` или в `~/.config/aipager/daemon.env` (одна строка `KEY=value` на настройку, без кавычек). Кнопки Opus, Sonnet и Haiku следуют `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` и `ANTHROPIC_DEFAULT_HAIKU_MODEL`, а любую другую модель можно ввести по имени. Anthropic поддерживает Claude Code только с моделями Claude. Подробнее в [Решении проблем](troubleshooting.md#using-an-api-key-a-gateway-or-another-provider).
 
 </details>
 

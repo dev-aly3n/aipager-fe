@@ -1,6 +1,6 @@
 # Pemecahan masalah
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de3425 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > Halaman ini diterjemahkan dari bahasa Inggris; kalau keduanya berbeda, versi bahasa Inggris yang berlaku. ([English](../../troubleshooting.md))
 
@@ -142,6 +142,44 @@ aipager session <label>            # atau sesi baru, tanpa riwayat
 aipager session <label> --continue # dtach baru, percakapan terakhir di folder ini
 ```
 
+Pemberitahuan di chat menyebut kenapa sesi berakhir, berdasarkan kode keluar yang ditinggalkan `claude` (aipager mencatatnya di `claude-exit-<session>.json` saat `claude` keluar):
+
+- `🔴 x1 · Sesi crash atau diakhiri`: tidak ada kode keluar yang tercatat (komputer dinyalakan ulang, atau proses sesinya ikut dimatikan).
+- `🔴 x1 · Sesi berakhir`: `claude` berakhir dengan normal (kode keluar 0).
+- `🔴 x1 · Sesi berakhir dengan kode error 2`: `claude` gagal dengan kode itu.
+- `🔴 x1 · Sesi dihentikan oleh sinyal SIGKILL`: ada yang mematikan `claude` (kode keluar di atas 128 menunjukkan sinyalnya).
+- `🔴 x1 · Claude Code berhenti tepat setelah dimulai (kode keluar 1)`: `claude` menyerah dalam 10 detik setelah dimulai, biasanya karena argumen atau pengaturannya sendiri. Sambungkan dengan `aipager session x1` untuk melihat pesannya, atau jalankan sendiri di terminal.
+- `🔴 x1 · Claude Code berhenti tepat setelah dimulai karena percakapannya sedang berjalan di latar belakang Claude Code`: Claude Code menolak melanjutkan percakapan yang masih dipegang tugas latar belakang. Ketuk `↩️ Kembalikan sekarang`: aipager menghentikan tugas itu kalau sedang tidak mengerjakan apa pun (kalau sedang bekerja, aipager bertanya dulu) lalu melanjutkan percakapannya di sini. Lihat bagian berikutnya.
+
+## <a id="a-session-moved-to-claude-codes-background"></a>Sesi pindah ke latar belakang Claude Code
+
+`🌙 x1 pindah ke latar belakang Claude Code, dan pesanmu berikutnya akan mengembalikannya ke sini.`
+
+Menekan ← di kolom input yang kosong di Claude Code memindahkan percakapan sesi ke tugas latar belakang Claude Code, dan terminal menampilkan tampilan agen Claude Code, bukan percakapannya. aipager menyadarinya dalam beberapa detik dan berhenti mengetik ke terminal itu: apa pun yang diketik di sana sekarang bisa memulai tugas latar belakang lain. Tugas itu tetap bekerja, dan kartu, jawaban, serta permintaan izinnya tetap sampai ke chat sebagai milik sesi itu. Di Mini App, sesi itu bertuliskan “di latar belakang”, atau “menunggu jawabanmu” selama tugasnya menunggu permintaan izin yang bisa kamu jawab dari chat.
+
+Untuk mengembalikannya:
+
+- Kirim pesan ke sesi itu. Pesannya menunggu (👀), aipager menghentikan tugas latar belakang (`claude stop <job>`), memulai ulang sesi dengan percakapan tugas itu dan pengaturan aipager sendiri, lalu mengirim pesannya. Kalau tugas itu masih bekerja, atau pekerjaan yang ikut pindah dengan ← masih berjalan, kamu ditanya dulu: `Hentikan dan kembalikan` menghentikan yang sedang dikerjakannya, `Biarkan saja` membiarkannya selesai (kembalikan sesinya nanti). Dalam beberapa detik pertama setelah ←, tugas latar belakang yang baru bisa tampak diam sesaat sebelum melanjutkan pekerjaan itu, jadi pesan yang dikirim saat itu menunggu sebentar sebelum aipager memutuskan. Orang yang perannya tidak boleh memulai ulang sesi itu mendapat `Pesanmu untuk x1 menunggu sampai seseorang mengembalikan sesinya dari latar belakang Claude Code.`
+- Atau ketuk `↩️ Kembalikan sekarang` di bawah pemberitahuan itu, `/restart x1`, atau Kembalikan di Mini App. `/stop` saat tugas itu bekerja menghentikan pekerjaan itu dan mengembalikan sesinya. Tombol yang tersisa dari perpindahan ke latar belakang sebelumnya menjawab `x1 tidak sedang di latar belakang Claude Code.` dan tidak melakukan apa-apa. Saat pergantian mode yang memulai ulang sesi (pindah ke Akses penuh atau keluar darinya) terjadi selagi tugasnya masih bekerja, `Hentikan dan kembalikan` mengembalikan sesinya dalam mode yang kamu minta.
+
+Saat aturan keamanan menghentikan pekerjaan sesi selagi sesi itu ada di latar belakang, aipager menghentikan tugas latar belakangnya. Kalau tidak bisa, pemberitahuan penghentian itu menyebut bahwa pekerjaan yang diblokir mungkin masih berjalan di sana, dan baris pertamanya tidak diakhiri dengan `(dihentikan)`; hentikan tugas itu dengan `claude stop <job>` di terminal.
+
+Sampai saat itu, perintah yang akan mengetik ke sesi (`/compact`, `/model`, pergantian ke Mode Tanya atau Mode Auto, `/now`, Coba lagi) menjawab `Kembalikan dulu x1 dari latar belakang Claude Code.`, dan jawaban untuk permintaan yang harus diketik aipager mendapat `Untuk menjawab, kembalikan dulu x1 dari latar belakang Claude Code.` Jawaban yang lewat hook (sebagian besar permintaan izin) tetap berfungsi.
+
+`/resume`, Lanjutkan di Mini App, dan `aipager resume` mengikuti percakapan yang sudah pindah dengan cara yang sama: percakapan terbaru yang dilanjutkan, dan tugas latar belakang yang masih memegangnya dihentikan dulu kalau sedang tidak mengerjakan apa pun. `aipager session x1 --resume <id>` melakukan hal yang sama di terminal; kalau tugasnya sedang bekerja, perintah ini mencetak `claude stop <job>` dan `claude attach <job>` lalu keluar dengan kode 1 tanpa memulai apa pun.
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code bertanya apakah percakapan mau dilanjutkan
+
+`❓ x1: Claude Code bertanya apakah percakapan ini mau dilanjutkan. Percakapan ini sudah lama tidak dipakai, dan melanjutkannya memakai sebagian batas pemakaian 5 jam kamu.`
+
+Kadang Claude Code mengajukan pertanyaan di terminalnya sendiri sebelum melanjutkan percakapan yang panjang, tanpa memberi tahu hook apa pun: `Resume this conversation?` saat percakapan besar sudah lama tidak dipakai (melanjutkannya memakai sebagian batas pemakaian 5 jam kamu), `Resume from summary` saat percakapan lama yang besar dimulai lagi, dan beberapa lainnya. aipager membaca catatan sesi milik Claude Code sendiri, jadi tahu kalau pertanyaan seperti itu sedang terbuka. Selama masih terbuka, aipager tidak mengetik apa pun ke terminal itu: pesan yang kamu kirim menunggu (👀) dan dikirim ke Claude begitu pertanyaannya dijawab.
+
+- **Tepat setelah mulai ulang, ganti mode, dikembalikan, atau dilanjutkan**, aipager tidak bisa tahu pertanyaan mana yang sedang ditampilkan Claude Code, jadi kartunya berbunyi `❓ x1: Claude Code sedang mengajukan pertanyaan di terminal sebelum melanjutkan percakapan ini.` dan hanya punya satu tombol, `Lanjutkan percakapan ini`. Tombol ini menjawab pertanyaan seperti Escape di sana: percakapan berlanjut apa adanya, dengan seluruh riwayatnya. Untuk mulai dari awal atau meringkasnya, ketuk tombol itu lalu kirim `/clear` atau `/compact`.
+- **Pada sesi yang lama siap tapi tidak dipakai**, Claude Code bertanya sendiri (untuk pelanggan, sekitar satu jam setelah jawaban terakhir). Saat itu tidak ada yang ditampilkan; begitu kamu mengirim pesan, pesannya menunggu dan kartu di atas muncul dengan `Lanjutkan` dan `Mulai percakapan baru`. Lanjutkan melanjutkan percakapan. Mulai percakapan baru meninggalkannya dan memulai percakapan kosong (aipager mengetik `/clear`), dan pesanmu yang menunggu jadi pesan pertama percakapan baru. Berbeda dengan pilihan Claude Code sendiri, percakapan baru tidak menunjuk ke yang lama. Untuk ini kamu perlu boleh mengirim `/clear` di chat itu.
+- **Pertanyaan atau panel lain apa pun** yang ditampilkan Claude Code di terminalnya (misalnya `/config` yang dikirim dari Telegram) mendapat catatan tanpa tombol: `❓ x1 sedang menunggu jawaban untuk sebuah pertanyaan di terminalnya. Jawab di sana, lalu pesan yang masuk selama itu langsung diteruskan ke Claude.`
+
+Kamu selalu bisa menjawab di terminal; kartunya lalu berbunyi `x1: pertanyaannya sudah dijawab di terminal.` Tombol yang diketuk setelah pertanyaannya tertutup tidak melakukan apa-apa dan berbunyi `Pertanyaan ini sudah tidak terbuka.` aipager tidak pernah menawarkan `Don't ask me again`: itu mengubah pengaturan Claude Code sendiri untuk semua sesi.
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>Permintaan izin tanpa kabar selama 5 menit
 
 Kalau sesi sedang menunggu permintaan izin atau pertanyaan dan Claude Code tidak melaporkan apa pun selama 5 menit, aipager membaca percakapan sesi yang tersimpan. Hanya kabar dari Claude sendiri dan dari agen yang bertanya yang dihitung: agen latar belakang yang terus bekerja tidak menghalangi pemeriksaan ini. Hanya kalau percakapan itu menunjukkan permintaannya sudah selesai (dijawab di terminal, dan kabarnya hilang), aipager berhenti menunggunya dan menganggap sesi itu sedang bekerja lagi. Kalau tidak, permintaan itu tetap terbuka berapa lama pun: kartu dan bilah yang disematkan tetap bilang sesi itu butuh jawabanmu, tidak ada catatan “masih bekerja”, dan pesanmu ditahan sampai kamu menjawab (lihat [teks](commands.md#text)). Claude Code yang tertutup saat permintaan masih terbuka mengakhiri sesinya. Tombol permintaan itu tetap menjawab di dialognya kalau dialog itu masih terbuka (lihat [jawaban](commands.md#idle-responses)).
@@ -161,6 +199,54 @@ Tombol `[📦 Pasang fitur pesan suara]` menjalankan installer dan mengedit pesa
 - Permission denied: venv-nya hanya-baca. Beralih ke `uv tool install`, yang selalu memakai venv milik penggunamu.
 
 Kalau bot kehilangan koneksi di tengah pemasangan, pemasangan di komputernya sendiri biasanya sudah selesai: mulai ulang aipager dan coba lagi pesan suara.
+
+## <a id="the-mini-app-link-isnt-working"></a>Tautan Mini App tidak berfungsi
+
+Kalau tautan Mini App tidak bisa dibuat, `/app` menyebutkan penyebabnya. Orang yang bisa memperbaiki komputernya (pemilik bot di pemasangan pribadi, admin chat itu di grup) mendapat penyebab dan apa yang harus dilakukan; yang lain mendapat `📱 Mini App sedang tidak tersedia. Coba /app lagi nanti.` `aipager doctor` menyebutkan hal yang sama di baris `miniapp` (sebagai peringatan, tidak pernah gagal), dengan jumlah percobaan yang gagal dan kapan percobaan berikutnya.
+
+aipager terus mencoba sendiri: mula-mula beberapa percobaan cepat, lalu satu kali tiap 10 menit (`TUNNEL_RETRY_SLOW_SECONDS`, tidak pernah kurang dari 60 detik), dan `/app` di fase lambat ini langsung memulai satu percobaan (paling sering sekali semenit). Begitu komputernya diperbaiki, Mini App kembali tanpa mulai ulang.
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>Server DNS memberi jawaban yang tidak lengkap
+
+`/app` berkata `server DNS komputer ini memberi jawaban yang tidak lengkap`. Server DNS menjawab pencarian cloudflared atas server Cloudflare dengan sebagian daftarnya saja (satu region, padahal Cloudflare menerbitkan dua), dan dalam kasus itu cloudflared berhenti. Yang salah adalah server DNS yang diberikan ke komputer itu (sering milik router atau jaringan mesin virtual), bukan aipager. Periksa:
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+Hasilnya harus dua record. Kalau hanya satu, atur komputer agar memakai server DNS lain, misalnya 1.1.1.1. Dengan netplan (Ubuntu), pertahankan alamat dari DHCP tapi jangan server DNS-nya, di file kamu di `/etc/netplan/` (`eth0` adalah nama antarmuka jaringan kamu):
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+Lalu jalankan `sudo netplan apply`. Kalau hanya memakai systemd-resolved, tulis file seperti `/etc/systemd/resolved.conf.d/dns.conf`:
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+Lalu jalankan `sudo systemctl restart systemd-resolved`. Periksa lagi dengan `resolvectl`: begitu hasilnya dua record, percobaan berikutnya dari aipager mengembalikan Mini App.
+
+### <a id="what-the-other-answers-mean"></a>Arti jawaban yang lain
+
+- `komputer ini tidak bisa menemukan server Cloudflare di DNS`: pencariannya gagal sama sekali (tidak ada jawaban, atau waktunya habis). Periksa koneksi internet komputer dan server DNS-nya seperti di atas.
+- `cloudflared tidak bisa mendapatkan tautan dari Cloudflare`: cloudflared tidak bisa mencapai `api.trycloudflare.com` untuk meminta tautan. Pastikan komputer bisa membuka https://api.trycloudflare.com (firewall bisa memblokirnya).
+- `komputer ini tidak bisa menjangkau server Cloudflare lewat port 7844 (UDP)`: cloudflared terhubung ke Cloudflare lewat port UDP 7844, dan ada yang memblokirnya. Izinkan UDP 7844 keluar di firewall atau jaringan komputer.
+- `aipager tidak bisa mengunduh atau menjalankan cloudflared`: pertama kali, aipager mengunduh salinan cloudflared yang sudah diperiksa; unduhan, pemeriksaan, atau menjalankannya gagal. Periksa koneksi internet; `aipager logs` menyebutkan langkah yang gagal.
+- `cloudflared sedang berjalan, tapi tautannya tidak pernah menjawab dari internet`: cloudflared punya tautan, tapi tidak ada yang sampai ke aipager lewat tautan itu. aipager menghentikan tunnel itu dan memulai yang baru.
+- `Mini App sedang tidak berfungsi`: penyebab yang tidak dikenali aipager. `aipager logs` menampilkan pesan cloudflared sendiri, dan file-filenya adalah `~/.claude/aipager-cloudflared.log` dan `~/.claude/aipager-cloudflared.err`.
+
+Pesan cloudflared sendiri hanya masuk ke log aipager, tidak pernah ke chat. Kalau `MINIAPP_PUBLIC_URL` diatur, aipager tidak menjalankan tunnel dan semua ini tidak berlaku. Selama tunnel tidak berfungsi di komputer yang juga punya Tailscale, `/app` memberikan alamat Tailscale.
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>Membuka aplikasi menampilkan “Buka halaman ini dari aplikasi Telegram untuk masuk.”
 
@@ -225,14 +311,14 @@ Urutannya penting: setiap pemeriksaan menganggap pemeriksaan sebelumnya sudah lo
 | `role_shell_access` | Memperingatkan sekali untuk setiap peran anggota yang bisa menjalankan Bash (aturan keamanannya bekerja sebisanya, bukan batas; lihat [grup](groups.md#roles)) | jangan beri peran itu Bash di `policy.yaml`, atau terima saja |
 | `peer_messages` | Pesan antarsesi Claude: di mana tanda terimanya disimpan dan apakah folder itu tertutup, apakah sistem ini bisa memeriksa waktu mulai pengirim, dan peringatan untuk setiap peran yang diberi SendMessage lewat aturan (lihat [keamanan](security.md#messages-between-claude-sessions)) | hapus folder tanda terima bersama (aipager membuatnya lagi), atau jangan beri peran itu SendMessage |
 | `claude` | Menemukan program `claude` dengan cara yang sama seperti setiap peluncuran (`claude_path` di `aipager.yaml` atau `$AIPAGER_CLAUDE_BIN` langsung menang; kalau tidak, yang terbaru dari `~/.local/bin`, PATH, dan Homebrew), dan mencantumkan setiap instalasi LAIN yang ditemukan | pasang Claude Code atau atur `claude_path` / `AIPAGER_CLAUDE_BIN` |
-| `claude_auth` | Mencoba `claude auth status` di environment yang sama dengan yang didapat sesi sungguhan. **Tidak pernah gagal**: “belum login” dan “percobaannya sendiri gagal” ditampilkan berbeda, dan keduanya tidak menghalangi peluncuran sesi | `claude auth login`, atau atur kunci API / `CLAUDE_CODE_OAUTH_TOKEN` |
+| `claude_auth` | Mencoba `claude auth status` di environment yang sama dengan yang didapat sesi sungguhan. **Tidak pernah gagal**: “belum login” dan “percobaannya sendiri gagal” ditampilkan berbeda, dan keduanya tidak menghalangi peluncuran sesi. Juga memberi peringatan kalau Claude Code diminta tidak memakai `ANTHROPIC_API_KEY` milik sesi dan tidak ada hal lain yang membuat sesi masuk. | `claude auth login`, atau atur kunci API / `CLAUDE_CODE_OAUTH_TOKEN`; kalau `ANTHROPIC_BASE_URL` diisi, kunci untuk alamat itu ([penyedia](#using-an-api-key-a-gateway-or-another-provider)) |
 | `dtach` | Program `dtach` ditemukan (`dtach-bin` milik aipager sendiri atau yang ada di PATH) | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook` dan `aipager-statusline` ada di PATH | `uv tool install --reinstall aipager` |
-| `settings_json` | Hook aipager terpasang di `~/.claude/settings.json` | `aipager config` |
+| `settings_json` | Hook aipager terpasang di `~/.claude/settings.json` (atau `$CLAUDE_CONFIG_DIR/settings.json`); dengan `CLAUDE_CONFIG_DIR` diatur, ia menyebut file-nya dan dari mana nilainya berasal | `aipager config` |
 | `daemon` | aipager berjalan dan soketnya menjawab; juga menampilkan keadaan batas Telegram (lihat [di atas](#the-bot-slowed-down-a-rate-limit-429)) | `aipager start` |
 | `service_installed` | Opsional: file layanan ada | `aipager service install` |
 | `service_unit_path` | Hanya Linux: `Environment=PATH=` milik layanan yang *terpasang* benar-benar memuat folder program claude yang ditemukan, dibaca sebagai teks karena doctor tidak bisa melihat PATH systemd dari shell interaktif operator | `aipager service install --yes` |
-| `miniapp` | Apakah Mini App bisa mulai saat dinyalakan. **Tidak pernah gagal**: Mini App opsional | perbaikan yang disebutkannya |
+| `miniapp` | Apakah Mini App bisa mulai saat dinyalakan, dan, selama aipager yang berjalan memegang tunnel untuknya, apakah tunnel itu berfungsi (kalau tidak: penyebabnya, percobaan yang gagal, dan percobaan berikutnya; lihat [di atas](#the-mini-app-link-isnt-working)). **Tidak pernah gagal**: Mini App opsional | perbaikan yang disebutkannya |
 
 `aipager doctor --json` mencetak pemeriksaan yang sama dengan urutan dan kunci ini (lihat [perintah](commands.md#aipager-doctor---json)).
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 Lihat [Model keamanan: kredensial Claude](security.md#the-claude-credential-what-actually-protects-it) tentang apa yang dilindungi file ini dan apa yang tidak.
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>Dengan kunci API, gateway, atau penyedia lain
+
+aipager menjalankan Claude Code sesuai pengaturanmu, jadi sesi yang dimulai dari Telegram masuk dengan cara yang sama seperti `claude` di terminalmu: dengan login claude.ai, kunci API Anthropic, gateway (LiteLLM, Vercel, Cloudflare, dan sejenisnya), atau alamat berformat Anthropic milik perusahaan lain yang diisi di `ANTHROPIC_BASE_URL`. Anthropic hanya mendukung Claude Code dengan model Claude; model lain bisa berperilaku berbeda.
+
+- **Tempat pengaturannya.** Di blok `env` pada `~/.claude/settings.json` (atau `$CLAUDE_CONFIG_DIR/settings.json`), yang dibaca setiap sesi Claude Code, atau di `~/.config/aipager/daemon.env`, yang hanya diterima sesi yang dimulai aipager: satu baris `KEY=value` per pengaturan, tanpa tanda kutip (tanda kutip akan ikut jadi bagian nilainya). Layanan (`aipager service install`) tidak pernah membaca profil shell-mu, jadi `export` di sana tidak sampai ke layanan itu. Mulai ulang aipager setelah mengubah `daemon.env`. Blok `env` di `.claude/settings.json` dan `.claude/settings.local.json` folder mulai yang tepercaya dan di pengaturan terkelola (`managed-settings.json` dan `managed-settings.d/` di `/etc/claude-code` pada Linux, `/Library/Application Support/ClaudeCode` pada macOS) juga dihitung, sama seperti untuk Claude Code.
+- **Pengaturan kunci yang mana.** Untuk gateway atau penyedia lain, dokumentasi Claude Code menyarankan `ANTHROPIC_AUTH_TOKEN`, yang tidak pernah ditanyakan Claude Code. Untuk `ANTHROPIC_API_KEY`, Claude Code bertanya sekali “Do you want to use this API key?”, dan sesi yang dimulai dari Telegram tidak bisa menjawab, jadi aipager menjawabnya di `~/.claude.json` (atau di file tempat `CLAUDE_CONFIG_DIR` menaruhnya) tepat sebelum sesi dimulai:
+  - Ya, kalau kuncinya ada di `settings.json` atau `daemon.env`, atau kalau tidak ada hal lain yang bisa membuat sesi masuk.
+  - Tidak, kalau kuncinya hanya berasal dari lingkungan tempat aipager dijalankan dan kamu sudah masuk ke Claude dengan cara lain: sesimu tetap memakai login itu dan paketnya. Untuk memakai kuncinya, nyalakan di sesi terminal yang punya kunci itu, lewat `/config` dan “Use custom API key”.
+  - Jawaban yang kamu berikan sendiri tetap dipakai, kecuali Tidak untuk kunci di `settings.json` atau `daemon.env` saat tidak ada hal lain yang bisa membuat sesi masuk. `aipager doctor` memberi tahu kalau sebuah Tidak membuat sesi tidak punya login; nyalakan lagi kuncinya di terminal lewat `/config` dan “Use custom API key”.
+- **Layar saat pertama kali dijalankan.** Di tempat Claude Code belum pernah menyelesaikan proses pertamanya (mesin atau container baru), aipager menandainya selesai kalau sesi punya kredensial, supaya sesi tidak berhenti di pemilihan tema. Kalau tidak ada kredensial sama sekali, jalankan `claude` sekali di terminal dan login.
+- **Model.** Tombol Opus, Sonnet, dan Haiku mengirim `opus`, `sonnet`, dan `haiku` milik Claude Code, yang dipetakan ke model penyedia kalau kamu mengisi `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, dan `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Tombol `claude-...` butuh penyedia yang punya model itu. Model lain diketik di langkah model `/new` atau di Mini App, persis seperti yang ditulis penyedia: sampai 128 karakter berupa huruf, angka, dan `. _ - : / @ ~ ,`, boleh dengan akhiran `[1m]` milik Claude Code. `keyboard.json` mengubah tombolnya (lihat [Keyboard tetap](commands.md#persistent-keyboard)).
+- **`ANTHROPIC_BASE_URL` tanpa kunci.** Claude Code lalu mengirim login claude.ai-mu ke alamat itu. Isi juga kunci penyedianya, kecuali alamat itu gateway yang memang dibuat untuk meneruskan login-mu ke Anthropic.
+- **Tidak didukung:** alat yang menjalankan Claude Code dengan langganan chat perusahaan lain (misalnya paket ChatGPT) lewat proxy lokal. Perusahaan itu tidak menyetujui Claude Code untuk paketnya, dan pemakaian seperti itu bisa membahayakan akun tersebut.
+
+**Konfigurasi Claude Code di folder lain (`CLAUDE_CONFIG_DIR`).** Claude Code menyimpan pengaturan, login, transkrip, dan konfigurasi globalnya di `~/.claude` dan `~/.claude.json`, atau di folder yang disebut `CLAUDE_CONFIG_DIR`. aipager mengikuti variabel yang sama, jadi hook dan baris statusnya masuk ke `settings.json` yang dibaca sesi-sesimu dan jawabannya ke file yang dibaca Claude Code (dicek dengan Claude Code 2.1.303):
+
+- **Atur di `~/.config/aipager/daemon.env`** lalu restart aipager. Service tidak pernah membaca profil shell-mu, jadi `export` hanya sampai ke `aipager start` di shell itu. Saat mulai, daemon memasang hook-nya ke `$CLAUDE_CONFIG_DIR/settings.json` dan mencatat `sessions read Claude Code's config from ...`; kalau kamu mengubah nilainya saat daemon berjalan, sesi berikutnya yang dimulainya mendapatkannya, begitu juga file pengaturan yang kehilangan hook sejak itu. Kalau hook tidak bisa dipasang, log berbunyi `sessions will start without aipager's hooks` dan `aipager doctor` memberi peringatan.
+- **Pakai path lengkap.** Claude Code mengambil nilainya apa adanya: `~` tidak diubah, dan nilai relatif (yang kosong juga) berarti folder di dalam folder masing-masing sesi. aipager tidak menulis apa pun di sana: log dan `aipager doctor` memberi peringatan, `aipager setup` berhenti dengan perbaikannya, dan `aipager config` melewati langkah Claude Code-nya dengan peringatan yang menunjukkan perbaikannya lalu lanjut. Perbaikannya menyebut file yang berisi nilai itu: `daemon.env`, atau file pengaturan yang blok `env`-nya mengaturnya.
+- **Diatur di pengaturan Claude Code sendiri.** `CLAUDE_CONFIG_DIR` di blok `env` milik `~/.claude/settings.json` (atau pengaturan terkelola) memindahkan file pengaturan, login, dan transkrip, tapi tidak `~/.claude.json`. aipager juga mengikuti itu; `aipager doctor` memberi tahu di mana.
+- **`aipager config` dan `aipager setup`** mengubah file yang dibaca sesi-sesi daemon: lingkungan shell-mu ditambah `daemon.env`. `claude` yang kamu jalankan di shell dengan nilai lain membaca file lain dan tidak punya hook aipager; `aipager doctor` menyebutnya.
+- **`.config.json` lama.** Kalau `<config folder>/.config.json` sedang dipakai (misalnya ada dan tidak kosong), Claude Code membacanya alih-alih `.claude.json`, dan aipager juga. Dengan `CLAUDE_CONFIG_DIR` kosong, file itu ada di folder sesi itu sendiri, dan aipager tidak menulis apa pun di sana.
+- **Yang tidak bisa dibaca aipager.** Pengaturan terkelola yang dikirim lewat profil MDM (macOS), registry Windows, atau server Claude, dan opsi `--settings`. Key atau sakelar penyedia yang hanya diatur di sana tidak terlihat saat aipager menjawab pertanyaan awal; Claude Code lalu bertanya, sama seperti tanpa aipager.
+- **Daftar larangan.** Aturan bawaan yang menjauhkan peran terbatas dan file yang dikirim dari kredensial Claude menyebut `~/.claude/**` dan `~/.claude.json*`. `CLAUDE_CONFIG_DIR` di tempat lain tidak tercakup olehnya, jadi simpan di dalam `~/.claude` (milik image Docker sudah begitu) kalau orang yang bukan admin memakai sesi-sesimu ([keamanan](security.md#who-decides-whether-a-tool-call-runs)).
 
 ## <a id="the-daemons-control-socket-moved"></a>Soket kontrol aipager pindah
 
@@ -313,6 +423,8 @@ Instalasi pipx dari URL git diperbarui dari sumber git itu, bukan dari PyPI. Saa
 Kalau menjalankan di tempat gagal, salinan terpisah menjalankan aipager setelah proses lama hilang. Keluarannya lalu masuk ke log mulai ulang sendiri (`aipager.log` di folder instans, atau `/tmp/aipager.log`), bukan ke terminalmu, dan log aipager menyebut perintah yang harus dijalankan kalau salinan itu tidak kembali. Kalau interpreternya sendiri hilang (lingkungannya dihapus), atau tidak ada yang bisa dijalankan, aipager keluar dengan kode 1, log aipager berakhir dengan `restart.failed:` dan perintah yang harus dijalankan, dan saat aipager mulai lagi, pembaruan itu diumumkan.
 
 Kalau tidak ada tombol **Mulai ulang sekarang**, pesannya memberi langkah untuk penyiapanmu: di terminal atau tmux, tekan Ctrl+C lalu jalankan `aipager start`; di macOS, `launchctl kickstart -k gui/<uid>/com.aipager.daemon`; di Docker, `docker restart <container>` di host. Membuat ulang kontainer Docker (`docker compose up` setelah `down`, atau `docker run` lagi) menjalankannya dari image-nya, yang mengembalikan versi aipager di image itu: untuk mempertahankan aipager yang lebih baru, pakai image yang lebih baru.
+
+Image ini mengatur `CLAUDE_CONFIG_DIR=/home/aipager/.claude`, jadi konfigurasi global Claude Code (`.claude.json`: kepercayaan folder, status penggunaan pertama, jawaban soal API key, akunmu, dan server MCP pengguna) disimpan di volume `.claude` bersama yang lain dan tetap ada saat container dibuat ulang. Image sebelumnya menyimpannya di `/home/aipager/.claude.json`, di dalam container itu sendiri. Saat image baru pertama kali berjalan, file lama tidak dibaca: login-mu di `.credentials.json` volume tetap berfungsi, dan aipager menjawab lagi pertanyaan kepercayaan folder dan penggunaan pertama saat sesi dimulai, tapi server MCP pengguna yang ditambahkan dengan `claude mcp add --scope user` harus ditambahkan lagi. Kalau kamu me-mount `~/.claude` milik host (seperti perintah di README), file itu muncul di sana sebagai `~/.claude/.claude.json`; Claude Code di host tidak membacanya (ia memakai `~/.claude.json`). Volume bernama menjaga keduanya tetap terpisah.
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>aipager tidak kembali setelah pembaruan
 

@@ -1,6 +1,6 @@
 # Risoluzione dei problemi
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de34258 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > Questa pagina è tradotta dalla pagina in inglese; se le due versioni non coincidono, vale quella in inglese. ([English](../../troubleshooting.md))
 
@@ -142,6 +142,44 @@ aipager session <label>            # oppure una sessione nuova, senza cronologia
 aipager session <label> --continue # dtach nuovo, l'ultima conversazione della cartella
 ```
 
+L'avviso nella chat dice perché la sessione è terminata, in base al codice di uscita lasciato da `claude` (aipager lo registra in `claude-exit-<session>.json` quando `claude` esce):
+
+- `🔴 x1 · La sessione è andata in crash o è stata terminata`: non è stato registrato nessun codice di uscita (il computer si è riavviato, o il processo della sessione è stato terminato insieme a lui).
+- `🔴 x1 · Sessione terminata`: `claude` è uscito normalmente (codice di uscita 0).
+- `🔴 x1 · Sessione chiusa con il codice di errore 2`: `claude` è fallito con quel codice.
+- `🔴 x1 · Sessione terminata dal segnale SIGKILL`: qualcosa ha terminato `claude` (i codici di uscita sopra 128 indicano il segnale).
+- `🔴 x1 · Claude Code si è chiuso subito dopo l'avvio (codice di uscita 1)`: `claude` ha rinunciato entro 10 secondi dall'avvio, di solito per colpa dei suoi argomenti o della sua configurazione. Collegati con `aipager session x1` per vedere il suo messaggio, oppure avvialo a mano in un terminale.
+- `🔴 x1 · Claude Code si è chiuso subito dopo l'avvio perché la sua conversazione è in esecuzione nel background di Claude Code`: Claude Code si rifiuta di riprendere una conversazione che un job in background tiene ancora. Tocca `↩️ Riportala qui ora`: aipager ferma quel job se non sta facendo nulla (se lavora, prima chiede) e riprende qui la conversazione. Vedi la sezione successiva.
+
+## <a id="a-session-moved-to-claude-codes-background"></a>Una sessione è passata nel background di Claude Code
+
+`🌙 x1 è passata nel background di Claude Code, e il tuo prossimo messaggio la riporta qui.`
+
+Premere ← su un campo di input vuoto in Claude Code sposta la conversazione della sessione in un job in background di Claude Code, e il terminale mostra la vista degli agenti di Claude Code al posto della conversazione. aipager se ne accorge entro un paio di secondi e smette di scrivere in quel terminale: qualsiasi cosa scritta lì adesso potrebbe avviare un altro job in background. Il job continua a lavorare, e la sua scheda, la sua risposta e le sue richieste di permesso arrivano ancora alla chat come quelle della sessione. Nella Mini App la sessione mostra «in background», oppure «ha bisogno di te» mentre il suo job aspetta una richiesta di permesso a cui puoi rispondere dalla chat.
+
+Per riportarla qui:
+
+- Mandale un messaggio. Il messaggio aspetta (👀), aipager ferma il job in background (`claude stop <job>`), riavvia la sessione sulla conversazione del job con le impostazioni di aipager e poi invia il messaggio. Se il job sta ancora lavorando, o se l'attività spostata con ← è ancora in corso, prima ti viene chiesto: `Ferma e riporta qui` ferma quello che sta facendo, `Lasciala andare` lo lascia finire (riportala qui più tardi). Nei primi secondi dopo ← un job nuovo può sembrare fermo poco prima di riprendere quell'attività, quindi un messaggio inviato in quel momento aspetta un attimo prima che aipager decida. Chi ha un ruolo che non può riavviare la sessione riceve `Il tuo messaggio per x1 aspetta finché qualcuno non riporta qui la sessione dal background di Claude Code.`
+- Oppure tocca `↩️ Riportala qui ora` sotto l'avviso, `/restart x1`, o «Riportala qui» nella Mini App. `/stop` mentre il job lavora ferma quel lavoro e riporta qui la sessione. Un pulsante rimasto da un passaggio precedente nel background risponde `x1 non è nel background di Claude Code.` e non fa nulla. Quando un cambio di modalità che riavvia la sessione (per passare alla modalità «Completo» o per uscirne) trova un job che sta lavorando, `Ferma e riporta qui` riporta qui la sessione nella modalità che hai chiesto.
+
+Quando una regola di sicurezza ferma il lavoro della sessione mentre è nel background, aipager ferma il job in background. Se non ci riesce, l'avviso del blocco dice che il lavoro bloccato potrebbe essere ancora in esecuzione lì, e la sua prima riga non finisce con `(fermata)`; ferma il job con `claude stop <job>` in un terminale.
+
+Fino ad allora, i comandi che scriverebbero nella sessione (`/compact`, `/model`, un passaggio alla modalità «Chiedi» o «Automatico», `/now`, «Riprova») rispondono `Prima riporta qui x1 dal background di Claude Code.`, e la risposta a una richiesta che aipager dovrebbe scrivere riceve `Per rispondere, riporta qui x1 dal background di Claude Code.` Le risposte che passano dall'hook (la maggior parte delle richieste di permesso) funzionano ancora.
+
+`/resume`, «Riprendi» nella Mini App e `aipager resume` seguono allo stesso modo una conversazione passata a un'altra: viene ripresa la conversazione più recente, e un job in background che la tiene ancora viene prima fermato se non sta facendo nulla. `aipager session x1 --resume <id>` fa lo stesso nel terminale; quando il job lavora, stampa `claude stop <job>` e `claude attach <job>` ed esce con il codice 1 invece di avviare qualcosa.
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code chiede se riprendere una conversazione
+
+`❓ x1: Claude Code chiede se riprendere questa conversazione. È rimasta inutilizzata a lungo, e riprenderla consuma parte del tuo limite di utilizzo di 5 ore.`
+
+A volte Claude Code fa una domanda nel suo terminale prima di andare avanti con una conversazione lunga, senza dirlo a nessun hook: `Resume this conversation?` quando una conversazione grande è rimasta inutilizzata per un po' (riprenderla consuma parte del tuo limite di utilizzo di 5 ore), `Resume from summary` quando una conversazione vecchia e grande viene riavviata, e poche altre. aipager legge il registro della sessione tenuto da Claude Code, quindi sa che una domanda del genere è aperta. Finché lo è, aipager non scrive niente in quel terminale: un messaggio che invii aspetta (👀) e arriva a Claude appena la domanda ha una risposta.
+
+- **Subito dopo un riavvio, un cambio di modalità, un ritorno dal background o una ripresa**, aipager non può sapere quale di queste domande sta mostrando Claude Code, quindi la scheda dice `❓ x1: Claude Code sta facendo una domanda nel terminale prima di andare avanti con questa conversazione.` e ha un solo pulsante, `Continua questa conversazione`. Risponde alla domanda come fa Esc lì: la conversazione continua così com'è, con tutta la sua cronologia. Per ricominciare da capo o accorciarla, toccalo e poi invia `/clear` o `/compact`.
+- **In una sessione rimasta pronta e inutilizzata a lungo**, Claude Code chiede da solo (con un abbonamento, circa un'ora dopo l'ultima risposta). Lì per lì non si vede niente; quando invii un messaggio, aspetta e compare la scheda qui sopra con `Riprendi` e `Inizia una nuova conversazione`. Riprendi va avanti con la conversazione. Inizia una nuova conversazione la lascia e ne inizia una vuota (aipager scrive `/clear`), e il tuo messaggio in attesa è il primo della nuova conversazione. A differenza dell'opzione di Claude Code, la nuova conversazione non rimanda alla vecchia. Serve poter inviare `/clear` in quella chat.
+- **Qualsiasi altra domanda o pannello** che Claude Code mostra nel suo terminale (per esempio un `/config` inviato da Telegram) riceve una nota senza pulsanti: `❓ x1 aspetta la risposta a una domanda nel suo terminale. Rispondi lì, e i messaggi inviati nel frattempo arriveranno a Claude subito dopo.`
+
+Puoi sempre rispondere nel terminale; la scheda allora dice `x1: alla domanda è stata data risposta nel terminale.` Un pulsante toccato dopo che la domanda si è chiusa non fa nulla e dice `Questa domanda non è più aperta.` aipager non offre mai `Don't ask me again`: cambierebbe le impostazioni di Claude Code stesso per tutte le sessioni.
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>Una richiesta di permesso senza notizie da 5 minuti
 
 Se una sessione aspetta una richiesta di permesso o una domanda e Claude Code non dà notizie per 5 minuti, aipager legge la conversazione salvata della sessione. Contano solo le notizie di Claude e quelle dell'agente che ha chiesto: un agente in background che continua a lavorare non impedisce questo controllo. Solo se questa mostra che la richiesta è finita (risposta nel terminale, e la notizia è andata persa) aipager smette di aspettarla e conta di nuovo la sessione come al lavoro. Altrimenti la richiesta resta aperta per tutto il tempo che serve: la scheda e la barra fissata continuano a dire che la sessione ha bisogno della tua risposta, non arriva nessuna nota "ancora al lavoro", e i tuoi messaggi restano trattenuti finché non rispondi (vedi [testo](commands.md#text)). Un Claude Code che si chiude con la richiesta aperta termina la sessione. I pulsanti della richiesta rispondono ancora al dialogo, se è ancora aperto (vedi [risposte a riposo](commands.md#idle-responses)).
@@ -161,6 +199,54 @@ Il pulsante `[📦 Installa la funzione vocale]` esegue l'installatore e modific
 - Permission denied: venv in sola lettura. Passa a `uv tool install`, che usa sempre un venv del tuo utente.
 
 Se il bot ha perso la connessione a metà installazione, l'installazione sul computer di solito è arrivata in fondo: riavvia aipager e riprova con un vocale.
+
+## <a id="the-mini-app-link-isnt-working"></a>Il link della Mini App non funziona
+
+Quando il link della Mini App non si riesce a creare, `/app` dice perché. Chi può sistemare il computer (il proprietario del bot in un'installazione personale, un admin della chat in un gruppo) riceve la causa e cosa fare; tutti gli altri ricevono `📱 La Mini App non è disponibile in questo momento. Riprova /app più tardi.` `aipager doctor` dice lo stesso nella sua riga `miniapp` (un avviso, mai un errore), con il numero di tentativi falliti e quando arriva il prossimo.
+
+aipager continua a riprovare da solo: prima qualche tentativo rapido, poi uno ogni 10 minuti (`TUNNEL_RETRY_SLOW_SECONDS`, mai meno di 60 secondi), e un `/app` in questa fase lenta avvia subito un tentativo (al massimo una volta al minuto). Quando il computer è sistemato, la Mini App torna senza riavvio.
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>Il server DNS ha dato una risposta incompleta
+
+`/app` dice `il server DNS di questo computer ha dato una risposta incompleta`. Il server DNS ha risposto alla ricerca dei server di Cloudflare fatta da cloudflared con solo una parte dell'elenco (una regione dove Cloudflare ne pubblica due), e in quel caso cloudflared si ferma. Il problema è il server DNS che il computer ha ricevuto (spesso quello di un router o della rete di una macchina virtuale), non aipager. Controllalo:
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+Deve mostrare due record. Se ne mostra uno, imposta il computer su un altro server DNS, per esempio 1.1.1.1. Con netplan (Ubuntu), tieni l'indirizzo che dà DHCP ma non il suo server DNS, nel tuo file sotto `/etc/netplan/` (`eth0` è il nome della tua interfaccia di rete):
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+Poi esegui `sudo netplan apply`. Con solo systemd-resolved, scrivi un file come `/etc/systemd/resolved.conf.d/dns.conf`:
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+Poi esegui `sudo systemctl restart systemd-resolved`. Ripeti il controllo con `resolvectl`: quando mostra due record, il prossimo tentativo di aipager riporta la Mini App.
+
+### <a id="what-the-other-answers-mean"></a>Cosa vogliono dire le altre risposte
+
+- `questo computer non è riuscito a trovare i server di Cloudflare nel DNS`: la ricerca è fallita del tutto (nessuna risposta, o tempo scaduto). Controlla la connessione a internet del computer e il suo server DNS come sopra.
+- `cloudflared non è riuscito a ottenere un link da Cloudflare`: cloudflared non è riuscito a raggiungere `api.trycloudflare.com` per chiedere un link. Controlla che il computer possa aprire https://api.trycloudflare.com (un firewall può bloccarlo).
+- `questo computer non raggiunge i server di Cloudflare sulla porta 7844 (UDP)`: cloudflared si collega a Cloudflare sulla porta UDP 7844, e qualcosa la blocca. Consenti l'UDP 7844 in uscita nel firewall o nella rete del computer.
+- `aipager non è riuscito a scaricare o avviare cloudflared`: la prima volta aipager scarica una copia verificata di cloudflared; il download, la verifica o l'avvio non sono riusciti. Controlla la connessione a internet; `aipager logs` dice quale passo non è riuscito.
+- `cloudflared è in esecuzione, ma il suo link non ha mai risposto da internet`: cloudflared ha un link, ma da lì non è arrivato niente ad aipager. aipager chiude quel tunnel e ne avvia uno nuovo.
+- `La Mini App non funziona in questo momento`: una causa che aipager non riconosce. `aipager logs` mostra il messaggio di cloudflared stesso, e i suoi file sono `~/.claude/aipager-cloudflared.log` e `~/.claude/aipager-cloudflared.err`.
+
+I messaggi di cloudflared vanno solo nel log di aipager, mai nella chat. Con `MINIAPP_PUBLIC_URL` impostato, aipager non avvia nessun tunnel e niente di tutto questo vale. Finché il tunnel non funziona su un computer che ha anche Tailscale, `/app` dà l'indirizzo di Tailscale.
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>Aprendo l'app compare «Apri questa pagina dall'app di Telegram per accedere.»
 
@@ -225,14 +311,14 @@ L'ordine conta: ogni controllo dà per scontato che i precedenti siano passati. 
 | `role_shell_access` | Avvisa una volta per ogni ruolo di un membro che può eseguire Bash (le sue regole di sicurezza sono al meglio delle possibilità, non un confine; vedi [gruppi](groups.md#roles)) | non dare Bash a quel ruolo in `policy.yaml`, oppure accettalo |
 | `peer_messages` | Messaggi tra sessioni di Claude: dove si tengono le loro ricevute e se quella cartella è privata, se questo sistema può controllare l'ora di avvio di chi invia, e un avviso per ogni ruolo a cui una regola permette SendMessage (vedi [sicurezza](security.md#messages-between-claude-sessions)) | togli una cartella delle ricevute condivisa (aipager la ricrea), oppure non dare SendMessage a quel ruolo |
 | `claude` | Trova il programma `claude` come fa ogni avvio (`claude_path` in `aipager.yaml` o `$AIPAGER_CLAUDE_BIN` vincono subito; altrimenti il più recente tra `~/.local/bin`, PATH e Homebrew) ed elenca ogni ALTRA installazione trovata | installa Claude Code, oppure imposta `claude_path` / `AIPAGER_CLAUDE_BIN` |
-| `claude_auth` | Prova `claude auth status` nello stesso ambiente che riceve una sessione vera. **Non dà mai FAIL**: «non hai fatto l'accesso» e «la prova stessa non è riuscita» vengono segnalati in modo distinto, e nessuno dei due impedisce l'avvio di una sessione | `claude auth login`, oppure imposta una chiave API / `CLAUDE_CODE_OAUTH_TOKEN` |
+| `claude_auth` | Prova `claude auth status` nello stesso ambiente che riceve una sessione vera. **Non dà mai FAIL**: «non hai fatto l'accesso» e «la prova stessa non è riuscita» vengono segnalati in modo distinto, e nessuno dei due impedisce l'avvio di una sessione. Avvisa anche quando a Claude Code è stato detto di non usare l'`ANTHROPIC_API_KEY` delle sessioni e nient'altro le fa accedere. | `claude auth login`, oppure imposta una chiave API / `CLAUDE_CODE_OAUTH_TOKEN`; con `ANTHROPIC_BASE_URL` impostato, la chiave di quell'indirizzo ([provider](#using-an-api-key-a-gateway-or-another-provider)) |
 | `dtach` | Il programma `dtach` è stato trovato (il `dtach-bin` di aipager, o uno nel PATH) | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook` e `aipager-statusline` sono nel PATH | `uv tool install --reinstall aipager` |
-| `settings_json` | `~/.claude/settings.json` ha collegati gli hook di aipager | `aipager config` |
+| `settings_json` | `~/.claude/settings.json` (o `$CLAUDE_CONFIG_DIR/settings.json`) ha collegati gli hook di aipager; con `CLAUDE_CONFIG_DIR` impostato indica il file e da dove viene il valore | `aipager config` |
 | `daemon` | aipager è in esecuzione e il suo socket risponde; mostra anche lo stato dei limiti di Telegram (vedi [sopra](#the-bot-slowed-down-a-rate-limit-429)) | `aipager start` |
 | `service_installed` | Facoltativo: il file del servizio esiste | `aipager service install` |
 | `service_unit_path` | Solo Linux: l'`Environment=PATH=` del servizio *installato* contiene davvero la cartella del programma claude trovato, letto come testo, perché doctor non vede il PATH di systemd dalla shell interattiva del proprietario del bot | `aipager service install --yes` |
-| `miniapp` | Se la Mini App può partire quando è attiva. **Non dà mai FAIL**: la Mini App è facoltativa | la soluzione che indica |
+| `miniapp` | Se la Mini App può partire quando è attiva e, finché l'aipager in esecuzione tiene un tunnel per lei, se quel tunnel funziona (se no: la causa, i tentativi falliti e il prossimo tentativo; vedi [sopra](#the-mini-app-link-isnt-working)). **Non dà mai FAIL**: la Mini App è facoltativa | la soluzione che indica |
 
 `aipager doctor --json` stampa gli stessi controlli, in quest'ordine, con queste chiavi (vedi [comandi](commands.md#aipager-doctor---json)).
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 Vedi [Modello di sicurezza: la credenziale di Claude](security.md#the-claude-credential-what-actually-protects-it) per cosa protegge questo file e cosa no.
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>Con una chiave API, un gateway o un altro provider
+
+aipager avvia Claude Code come l'hai configurato, quindi una sessione avviata da Telegram accede come `claude` nel tuo terminale: con un login claude.ai, una chiave API di Anthropic, un gateway (LiteLLM, Vercel, Cloudflare e simili) o l'indirizzo in formato Anthropic di un'altra azienda impostato in `ANTHROPIC_BASE_URL`. Anthropic supporta Claude Code solo con i modelli Claude; altri modelli possono comportarsi in modo diverso.
+
+- **Dove vanno le impostazioni.** Nel blocco `env` di `~/.claude/settings.json` (o `$CLAUDE_CONFIG_DIR/settings.json`), che ogni sessione di Claude Code legge, oppure in `~/.config/aipager/daemon.env`, che ricevono solo le sessioni avviate da aipager: una riga `KEY=value` per impostazione, senza virgolette (diventerebbero parte del valore). Un servizio (`aipager service install`) non legge mai il profilo della tua shell, quindi un `export` lì non lo raggiunge. Riavvia aipager dopo aver modificato `daemon.env`. Contano anche i blocchi `env` di `.claude/settings.json` e `.claude/settings.local.json` di una cartella di avvio attendibile e delle impostazioni gestite (`managed-settings.json` e `managed-settings.d/` in `/etc/claude-code` su Linux, `/Library/Application Support/ClaudeCode` su macOS), come per Claude Code.
+- **Quale impostazione per la chiave.** Per un gateway o un altro provider, la documentazione di Claude Code consiglia `ANTHROPIC_AUTH_TOKEN`, per cui Claude Code non chiede mai nulla. Per `ANTHROPIC_API_KEY` chiede una volta «Do you want to use this API key?», e una sessione avviata da Telegram non può rispondere, quindi aipager risponde in `~/.claude.json` (o nel file dove `CLAUDE_CONFIG_DIR` lo mette) subito prima che la sessione parta:
+  - Sì, quando la chiave è impostata in `settings.json` o `daemon.env`, o quando nient'altro può far accedere la sessione.
+  - No, quando la chiave arriva solo dall'ambiente in cui è stato avviato aipager e hai già un altro accesso a Claude: le tue sessioni restano su quell'accesso e sul suo piano. Per usare la chiave, attivala in una sessione di terminale che la abbia, con `/config` e «Use custom API key».
+  - Una risposta data da te resta, tranne un No per una chiave impostata in `settings.json` o `daemon.env` quando nient'altro può far accedere una sessione. `aipager doctor` avvisa quando un No lascia le sessioni senza accesso; riattiva la chiave in un terminale con `/config` e «Use custom API key».
+- **Schermate del primo avvio.** Dove Claude Code non ha mai finito il primo avvio (una macchina o un container nuovi), aipager lo segna come fatto quando la sessione ha un modo per accedere, così non si ferma alla scelta del tema. Se non c'è nessuna credenziale, avvia `claude` una volta in un terminale ed esegui l'accesso.
+- **Modelli.** I pulsanti Opus, Sonnet e Haiku inviano `opus`, `sonnet` e `haiku` di Claude Code, che li collega ai modelli del tuo provider quando imposti `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` e `ANTHROPIC_DEFAULT_HAIKU_MODEL`. I pulsanti `claude-...` richiedono un provider che abbia quei modelli. Qualsiasi altro modello si scrive nel passo del modello di `/new` o nella Mini App, come lo scrive il tuo provider: fino a 128 caratteri tra lettere, cifre e `. _ - : / @ ~ ,`, anche con il suffisso `[1m]` di Claude Code. `keyboard.json` cambia i pulsanti (vedi [Tastiera fissa](commands.md#persistent-keyboard)).
+- **`ANTHROPIC_BASE_URL` senza chiave.** Allora Claude Code invia il tuo login claude.ai a quell'indirizzo. Imposta anche la chiave del provider, a meno che l'indirizzo sia un gateway fatto apposta per passare il tuo login ad Anthropic.
+- **Non supportati:** gli strumenti che fanno girare Claude Code sull'abbonamento chat di un'altra azienda (un piano ChatGPT, per esempio) tramite un proxy locale. Quell'azienda non ha approvato Claude Code per i suoi piani, e un uso del genere può mettere a rischio quell'account.
+
+**La configurazione di Claude Code in un'altra cartella (`CLAUDE_CONFIG_DIR`).** Claude Code tiene impostazioni, accesso, trascrizioni e configurazione globale in `~/.claude` e `~/.claude.json`, o nella cartella indicata da `CLAUDE_CONFIG_DIR`. aipager segue la stessa variabile, quindi i suoi hook e la sua riga di stato vanno nel `settings.json` che leggono le tue sessioni e le sue risposte nel file che legge Claude Code (verificato con Claude Code 2.1.303):
+
+- **Impostala in `~/.config/aipager/daemon.env`** e riavvia aipager. Un servizio non legge mai il profilo della tua shell, quindi un `export` arriva solo all'`aipager start` di quella shell. All'avvio il daemon aggiunge i suoi hook a `$CLAUDE_CONFIG_DIR/settings.json` e registra `sessions read Claude Code's config from ...`; se cambi il valore mentre gira, la prossima sessione che avvia li riceve, come pure un file di impostazioni che li ha persi nel frattempo. Quando gli hook non si possono aggiungere, il log dice `sessions will start without aipager's hooks` e `aipager doctor` avvisa.
+- **Usa un percorso completo.** Claude Code prende il valore così com'è: niente `~`, e un valore relativo (anche vuoto) indica una cartella dentro la cartella di ogni sessione. aipager non scrive nulla lì: il log e `aipager doctor` avvisano, `aipager setup` si ferma con la soluzione e `aipager config` salta il suo passaggio per Claude Code con un avviso che mostra la soluzione, poi prosegue. La soluzione indica il file che contiene il valore: `daemon.env`, o il file di impostazioni il cui blocco `env` lo imposta.
+- **Impostata nelle impostazioni di Claude Code stesso.** Un `CLAUDE_CONFIG_DIR` nel blocco `env` di `~/.claude/settings.json` (o delle impostazioni gestite) sposta il file delle impostazioni, l'accesso e le trascrizioni, ma non `~/.claude.json`. aipager segue anche questo; `aipager doctor` dice dove.
+- **`aipager config` e `aipager setup`** modificano il file che leggono le sessioni del daemon: l'ambiente della tua shell più `daemon.env`. Un `claude` avviato in una shell con un altro valore legge un altro file e non ha gli hook di aipager; `aipager doctor` lo indica.
+- **Il vecchio `.config.json`.** Quando `<config folder>/.config.json` è in uso (per esempio esiste e non è vuoto), Claude Code lo legge al posto di `.claude.json`, e lo stesso fa aipager. Con un `CLAUDE_CONFIG_DIR` vuoto quel file sarebbe nella cartella della sessione stessa, e aipager non scrive nulla lì.
+- **Cosa aipager non può leggere.** Le impostazioni gestite che arrivano da un profilo MDM (macOS), dal registro di Windows o dai server di Claude, e l'opzione `--settings`. Una chiave o un interruttore del provider impostato solo lì non si vede quando aipager risponde alle domande di avvio; allora chiede Claude Code, come farebbe senza aipager.
+- **La lista di blocco.** Le regole predefinite che tengono i ruoli limitati e i file inviati lontani dalle credenziali di Claude indicano `~/.claude/**` e `~/.claude.json*`. Un `CLAUDE_CONFIG_DIR` altrove non è coperto da queste, quindi tienilo dentro `~/.claude` (quello dell'immagine Docker lo è) quando le tue sessioni le usano persone che non sono admin ([sicurezza](security.md#who-decides-whether-a-tool-call-runs)).
 
 ## <a id="the-daemons-control-socket-moved"></a>Il socket di controllo di aipager si è spostato
 
@@ -313,6 +423,8 @@ Un'installazione con pipx fatta da un URL git si aggiorna da quella sorgente git
 Se l'avvio sul posto non riesce, una copia separata avvia aipager quando il vecchio processo non c'è più. Il suo output va allora nel log del riavvio automatico (`aipager.log` nella cartella dell'istanza, o `/tmp/aipager.log`) invece che nel tuo terminale, e il log di aipager indica il comando da eseguire se quella copia non torna. Se l'interprete stesso non c'è più (il suo ambiente è stato rimosso), o non si è potuto avviare niente, aipager esce con codice 1, il log di aipager finisce con `restart.failed:` e il comando da eseguire, e l'avvio successivo annuncia l'aggiornamento.
 
 Quando non c'è il pulsante **Riavvia ora**, il messaggio dà i passaggi per il tuo ambiente: in un terminale o in tmux, premi Ctrl+C ed esegui `aipager start`; su macOS, `launchctl kickstart -k gui/<uid>/com.aipager.daemon`; in Docker, `docker restart <container>` sull'host. Ricreare un container Docker (`docker compose up` dopo `down`, o di nuovo `docker run`) lo fa partire dalla sua immagine, e questo riporta la versione di aipager di quell'immagine: per tenere un aipager più nuovo, usa un'immagine più nuova.
+
+L'immagine imposta `CLAUDE_CONFIG_DIR=/home/aipager/.claude`, quindi la configurazione globale di Claude Code (`.claude.json`: la fiducia nelle cartelle, lo stato del primo avvio, le risposte sulla chiave API, il tuo account e i server MCP dell'utente) resta nel volume `.claude` con il resto e sopravvive alla ricreazione del container. Le immagini precedenti la tenevano in `/home/aipager/.claude.json`, nel container stesso. Al primo avvio della nuova immagine il vecchio file non viene letto: il tuo accesso nel `.credentials.json` del volume continua a funzionare, e aipager risponde di nuovo alle domande sulla fiducia nella cartella e sul primo avvio quando parte una sessione, ma i server MCP dell'utente aggiunti con `claude mcp add --scope user` vanno aggiunti di nuovo. Se monti il `~/.claude` del tuo host (come fanno i comandi del README), il file compare lì come `~/.claude/.claude.json`; il Claude Code del tuo host non lo legge (usa `~/.claude.json`). Un volume con nome tiene separati i due.
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>aipager non è ripartito dopo un aggiornamento
 

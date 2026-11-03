@@ -100,7 +100,8 @@ From `aipager/cli/daemon.py`:
    the daemon lock (`~/.local/share/aipager/daemon.lock`).
 3. Check the bot token with Telegram (`getMe`).
 4. Fix up Claude Code's own files: add any missing aipager hook and the
-   status line to `~/.claude/settings.json`, and answer the
+   status line to the `settings.json` sessions read (`~/.claude/settings.json`,
+   or `$CLAUDE_CONFIG_DIR`'s), and answer the
    first-launch questions a Telegram user could not answer (see
    [security](security.md#who-decides-whether-a-tool-call-runs)).
 5. `SessionRegistry.load()`: reads `~/.claude/aipager-sessions.json`.
@@ -141,6 +142,7 @@ behaviour.
 | `$XDG_RUNTIME_DIR/aipager.sock` | Unix datagram socket for hook events (`/tmp/aipager.sock` without `$XDG_RUNTIME_DIR`; `$AIPAGER_SOCKET_PATH` overrides both) | aipager daemon (binds) |
 | `aipager-reply-<id>.sock` (beside the control socket) | One short-lived reply socket per permission prompt the hook waits on | `aipager-hook` |
 | `aipager-flood-mute.json`, `aipager-flood-backoff.json` (beside the control socket) | The current Telegram rate-limit state, for `aipager status` and the doctor | aipager daemon |
+| `aipager-spill-<uid>/ev-<id>.json` (beside the control socket) | A hook event too big for one datagram, read and deleted by the daemon when its pointer datagram arrives; files older than 5 minutes are swept at start ([hooks](hooks.md)) | `aipager-hook` (written), aipager daemon (folder created, files read and deleted) |
 | `aipager-modelswitch-<name>.json` (beside the control socket) | Marks a model switch aipager typed, for 30 s ([hooks](hooks.md#premodelswitch)) | aipager daemon (written), `aipager-hook` (claimed) |
 | `/tmp/claude-dtach-<name>.sock` | dtach control socket per session | dtach |
 | `/tmp/claude-status-<name>.json` | Statusline data per session | `aipager-statusline` |
@@ -148,18 +150,21 @@ behaviour.
 | `/tmp/claude-policy-<name>.json` | Canonical permission snapshot for the running turn | `aipager-hook` (written at pick-up), read by the `PreToolUse` check |
 | `/tmp/claude-policy-.floor-<uid>.json` | The safety floor, built-in list plus your `safety:` section, for the hook's fallbacks | aipager daemon |
 | `/tmp/claude-reply-<name>.txt` | The message you replied to, when you reply to an older message | aipager daemon |
+| `/tmp/claude-bgjob-<job>.json` | Links a Claude Code background job to the session whose conversation moved into it (`job`, `session`, the job's conversation id, the session's claude pid, when, and `ended` once the job's own `SessionEnd` came), so the hooks of that job count for the session ([hooks](hooks.md#what-the-daemon-receives)); mode 0600, removed when the session is brought back or ends | aipager daemon (written), `aipager-hook` and `aipager-statusline` (read) |
+| `/tmp/claude-bgjob-pids.json` | The pid of each live session's own `claude`, for a background job's hooks that run before its link file exists (mode 0600) | aipager daemon (written), `aipager-hook` and `aipager-statusline` (read) |
+| `/tmp/claude-exit-<name>.json` | `claude`'s exit code and when it started and ended (`{"code", "start", "end"}`, mode 0600): the launch shell removes it before `claude` starts and writes it when `claude` exits, and the session's end notice says why from it ([troubleshooting](troubleshooting.md#a-session-dropped-off-the-pinned-status-bar-it-is-gone)) | the session's launch shell (written), aipager daemon (read) |
 | `/tmp/aipager-files/<chat>/` | Files and voice notes sent from Telegram, one private folder per chat (`0700`, files `0600`) | aipager daemon |
 | `/tmp/aipager.log` | Output of a self-restart when there is no service | aipager daemon |
 | `~/.claude/aipager-sessions.json` | Durable registry state | aipager daemon |
 | `~/.claude/aipager-audit.jsonl` | Allow / Deny / answer log | aipager daemon (append-only) |
 | `~/.claude/aipager-flood-state.json` | Each chat's Telegram rate-limit history, kept across restarts ([troubleshooting](troubleshooting.md#the-bot-went-quiet-flood-control)) | aipager daemon |
-| `~/.claude/aipager-tunnel.json`, `aipager-cloudflared.log` | The Mini App tunnel aipager holds: its process, local ports and a hash of its address (never the address), so the next daemon can take it over after a planned restart (mode 600); cloudflared's warnings | aipager daemon; the record is also removed by the kept tunnel's guard and `aipager uninstall` |
+| `~/.claude/aipager-tunnel.json`, `aipager-cloudflared.log`, `aipager-cloudflared.err` | The Mini App tunnel aipager holds: its process, local ports and a hash of its address (never the address), so the next daemon can take it over after a planned restart (mode 600); cloudflared's warnings; cloudflared's last error output (mode 600), which says why a tunnel could not start ([troubleshooting](troubleshooting.md#the-mini-app-link-isnt-working)) | aipager daemon; the record is also removed by the kept tunnel's guard and `aipager uninstall` |
 | `~/.claude/aipager-pending-users.json` | People who addressed the bot in a group it does not serve, or who are not members of a group it serves, for `aipager config` to add (mode 0600, replaced whole on each write, the newest 200 seen in the last 30 days) | aipager daemon (written), `aipager config` (read) |
 | `~/aipager-users/<label>/` | Members' default [root folders](groups.md#root-folders) (mode 0700), where `user` and `read_only` members start their sessions; kept by `aipager uninstall` | aipager daemon (created on a member's first `/new` or Mini App New session) |
-| `~/.claude/settings.json` | Claude Code hook config | `aipager config` / `aipager setup`; at every start the daemon adds any missing aipager hook or status line and sets `skipDangerousModePermissionPrompt` ([security](security.md#who-decides-whether-a-tool-call-runs)) |
-| `~/.claude/settings.json.bak.*` | Backups before each rewrite | `aipager config`, `aipager setup`, `aipager uninstall` |
-| `~/.claude.json` | Claude Code's own file: aipager marks the folder a session starts in as trusted right before it starts (the home folder included, never `/` or a folder above home), so Claude Code's trust question does not block a session started from Telegram. Nothing is marked at daemon start. Never rewritten when it cannot be read whole or a running Claude changed it meanwhile | aipager daemon |
-| `~/.claude/.credentials.json` → `.credentials.json.stale` | Claude Code's login file, moved aside when a session starts with `CLAUDE_CODE_OAUTH_TOKEN` set and the file holds only an expired or empty login (it would otherwise win over the token); move it back to undo | aipager daemon |
+| `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`) | Claude Code hook config: the `settings.json` the daemon's sessions read, from Claude Code's config folder for the environment they get (`CLAUDE_CONFIG_DIR` from the daemon's environment or `daemon.env`, or a `CLAUDE_CONFIG_DIR` in that file's own `env` block, which moves it; [troubleshooting](troubleshooting.md#using-an-api-key-a-gateway-or-another-provider)) | `aipager config` / `aipager setup`; at every start the daemon adds any missing aipager hook or status line and sets `skipDangerousModePermissionPrompt` ([security](security.md#who-decides-whether-a-tool-call-runs)), and again before a session starts when that file is a new one |
+| `settings.json.bak.*` beside it | Backups before each rewrite | `aipager config`, `aipager setup`, `aipager uninstall` |
+| `~/.claude.json` (or `$CLAUDE_CONFIG_DIR/.claude.json`, `.claude-custom-oauth.json` with `CLAUDE_CODE_CUSTOM_OAUTH_URL`, or the legacy `.config.json` in the config folder when Claude Code uses it) | Claude Code's global config: right before a session starts, aipager marks its folder as trusted (the home folder included, never `/` or a folder above home), answers the "use this API key?" question for the session's `ANTHROPIC_API_KEY` (`customApiKeyResponses`, the key's last 20 characters) and marks Claude Code's first run done when the session has a credential (`hasCompletedOnboarding`), so none of these questions blocks a session started from Telegram ([providers](troubleshooting.md#using-an-api-key-a-gateway-or-another-provider)). Nothing is marked at daemon start. Never rewritten when it cannot be read whole or a running Claude changed it meanwhile | aipager daemon |
+| `~/.claude/.credentials.json` (or the config folder's) → `.credentials.json.stale` | Claude Code's login file, moved aside when a session starts with `CLAUDE_CODE_OAUTH_TOKEN` set and the file holds only an expired or empty login (it would otherwise win over the token); move it back to undo | aipager daemon |
 | `~/.config/aipager/aipager.yaml` | Bot token, chats, members + roles, Mini App settings | `aipager config` (mode 600); the daemon moves a group's entry when Telegram upgrades it to a supergroup, and keeps an `aipager.yaml.bak.<time>` copy when it moves old Mini App settings into it |
 | `~/.config/aipager/policy.yaml` | Per-role rules + safety overrides | user (checked via `aipager policy validate`); a commented starter is written once when an old install is migrated |
 | `~/.config/aipager/preferences.json` | The `/settings` choices of each chat and session | aipager daemon |
@@ -173,6 +178,7 @@ behaviour.
 | `~/.local/state/aipager/reports.json` | Problem reports: recorded error fingerprints, counts and the offer state (mode 600); see [problem reports](problem-reports.md#what-is-kept-on-your-machine) | aipager daemon |
 | `~/.local/state/aipager/report-sends.json` | Problem reports sent today (the daily limit) | aipager daemon, `aipager report` |
 | `~/.local/state/aipager/languages.json` | The language state (mode 600): who already used aipager before languages were added, the last Telegram language seen from each person, whether the one-time language offer and first-contact line went out, and a hash of each bot description aipager set; see [Languages](commands.md#languages) | aipager daemon |
+| `~/.local/state/aipager/tunnel-status.json` | The Mini App tunnel's state (starting, working, or not working with a reason, and when it tries next; never its address; mode 600), for `aipager doctor` ([troubleshooting](troubleshooting.md#the-mini-app-link-isnt-working)) | aipager daemon (written, removed when it stops), `aipager doctor` (read) |
 | `~/.config/systemd/user/aipager.service` (Linux), `~/Library/LaunchAgents/com.aipager.daemon.plist` (macOS), and a `.bak.<time>` copy of the one an install replaces (on Linux only when it differs) | The background service | `aipager service install` |
 | `~/Library/Logs/aipager.log` (macOS) | The launchd service's log, read by `aipager logs` | launchd, for the service |
 
@@ -187,9 +193,11 @@ socket. aipager never elevates; see
 
 Set `AIPAGER_INSTANCE_DIR` to an absolute folder you own and every
 shared runtime file above moves into it: the control socket (and the
-reply sockets, flood signal files and model-switch marker beside it),
+reply sockets, flood signal files, model-switch marker and hook spill
+folder beside it),
 the `claude-dtach-*` sockets, the `claude-policy-*`, `claude-notes-*`,
-`claude-status-*` and `claude-reply-*` files, the policy floor file,
+`claude-status-*`, `claude-reply-*`, `claude-bgjob-*` and `claude-exit-*`
+files, the policy floor file,
 the `aipager-files` download folder and the self-restart log. Sessions
 the instance starts inherit the setting, so their hooks talk only to
 that instance, and the safety rules protect the moved files the same
@@ -231,6 +239,23 @@ A session that really ended returns to the shell after the wait
 (Ctrl-C ends it sooner). The attach runs with dtach's detach key
 turned off, so `Ctrl-\` goes to Claude; to leave, close the terminal
 or tmux pane and the session keeps running.
+
+Inside the dtach session, a session the daemon starts runs
+`dtach -> bash -> claude`, and one started with `aipager session` runs
+`dtach -> sh -> claude`: the shell waits for `claude` so it can record
+its exit code (`claude-exit-<name>.json`), which the session's end
+notice reads. The arguments of `aipager session` reach `claude` as
+they are, never through the shell's parsing.
+
+A restart from Telegram kills the session's dtach and starts it again on
+the same conversation. A session whose conversation moved into Claude
+Code's background (← on an empty prompt; see
+[troubleshooting](troubleshooting.md#a-session-moved-to-claude-codes-background))
+is restarted the same way after one more step first: aipager runs
+`claude stop <job>` and waits until no background process holds the
+conversation, then kills the session's dtach and starts it on the job's
+conversation with aipager's own settings. While a session is in Claude
+Code's background, the daemon types nothing into its dtach.
 
 The result: Claude Code runs as if you typed in a terminal, but
 that terminal can come and go without disturbing the running session.
