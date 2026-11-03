@@ -24,7 +24,15 @@
 
 set -euo pipefail
 
-SITE=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# The site is the checkout this script lives in, found through any symlink
+# to the script, with CDPATH unset so cd prints nothing into the result.
+SELF="${BASH_SOURCE[0]}"
+while [[ -L "$SELF" ]]; do
+  LINK=$(readlink -- "$SELF")
+  [[ "$LINK" == /* ]] || LINK="$(dirname -- "$SELF")/$LINK"
+  SELF="$LINK"
+done
+SITE=$(CDPATH='' cd -- "$(dirname -- "$SELF")/.." && pwd -P)
 RELEASE='^v[0-9]+\.[0-9]+\.[0-9]+$'
 
 fail() {
@@ -37,12 +45,14 @@ fail() {
 ARG="${1:-$SITE/../aipager}"
 [[ -d "$ARG" ]] || fail "✗ no directory at $ARG" \
   "  pass the path to your aipager clone: ./scripts/sync-docs.sh ~/code/aipager"
-REPO=$(cd "$ARG" && pwd -P)
-cd "$SITE"
+REPO=$(CDPATH='' cd -- "$ARG" && pwd -P)
+cd -- "$SITE"
+# content/docs is deleted below, so be sure this really is the site.
+[[ -f lib/docs-nav.ts && -f app/_og/card.tsx ]] || fail "✗ $SITE is not the aipager.run site"
 
 # A plain folder of docs cannot say which release it came from.
 TOP=$(git -C "$REPO" rev-parse --show-toplevel 2>/dev/null || true)
-[[ -n "$TOP" && "$(cd "$TOP" && pwd -P)" == "$REPO" ]] || fail "✗ $REPO is not a git repository" \
+[[ -n "$TOP" && "$(CDPATH='' cd -- "$TOP" && pwd -P)" == "$REPO" ]] || fail "✗ $REPO is not a git repository" \
   "  the docs are read from a release tag, so pass the root of an aipager git clone"
 
 if [[ -n "${2:-}" ]]; then
@@ -138,12 +148,12 @@ AFTER=$(pages "$DEST")
 if [[ -n "$BEFORE" ]]; then
   while IFS= read -r f; do
     [[ -n "$f" ]] || continue
-    grep -qxF "$f" <<< "$BEFORE" \
+    grep -qxF -- "$f" <<< "$BEFORE" \
       || echo "! new upstream: $DEST/$f is copied but not published until its slug is added to GROUPS in lib/docs-nav.ts"
   done <<< "$AFTER"
   while IFS= read -r f; do
     [[ -n "$f" ]] || continue
-    grep -qxF "$f" <<< "$AFTER" \
+    grep -qxF -- "$f" <<< "$AFTER" \
       || echo "! gone upstream: $DEST/$f was removed, and the build fails while GROUPS in lib/docs-nav.ts still lists it"
   done <<< "$BEFORE"
 fi
