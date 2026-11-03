@@ -1,0 +1,170 @@
+name: sync aipager
+
+# Keep aipager.run on the newest aipager release. When PyPI serves a newer
+# aipager than lib/aipager-version.json, this copies that release's docs and
+# version from its tag (scripts/sync-docs.sh), runs the checks and the build,
+# and pushes the result to main, which Vercel deploys. Anything that fails
+# leaves main alone, so a red run is safe to retry.
+#
+# Three ways in: aipager's release workflow can dispatch aipager-release
+# straight after a tag; the schedule is the safety net if that never comes;
+# and Run workflow is for doing it by hand. PyPI is the proof of a release
+# in every case, so a tag that never shipped is never synced.
+#
+# check-locales.mjs is not run here: it needs a browser that only exists on
+# Aly's Mac. Run it locally after a sync that changes much.
+
+on:
+  schedule:
+    # four times a day, away from the top of the hour when runners are busiest
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "aipager version to sync (e.g. 1.4.0). Empty means the newest on PyPI."
+        required: false
+        default: ""
+  repository_dispatch:
+    types: [aipager-release]
+
+permissions:
+  contents: write
+
+# A scheduled run and a dispatched one must never race each other to push.
+concurrency:
+  group: sync-aipager
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sync:
+    # forks have nowhere to push and no site to deploy
+    if: github.repository == 'dev-aly3n/aipager-fe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Untrusted input reaches the shell only through here, never written
+      # into a script, and decide checks its shape before anything uses it.
+      WANT: ${{ inputs.version || github.event.client_payload.version || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Decide whether there is a newer release
+        id: decide
+        run: |
+          release='^[0-9]+\.[0-9]+\.[0-9]+$'
+          if [[ -n "$WANT" ]]; then
+            if [[ ! "$WANT" =~ $release ]]; then
+              echo "::error::the version asked for is not of the form 1.4.0"
+              exit 1
+            fi
+            # A dispatch sent when the tag is pushed can arrive before PyPI
+            # serves the release, so wait for it as the tap bump does.
+            served=false
+            for _ in $(seq 1 30); do
+              if curl -sf "https://pypi.org/pypi/aipager/${WANT}/json" > /dev/null; then
+                served=true
+                break
+              fi
+              sleep 10
+            done
+            if [[ "$served" != true ]]; then
+              echo "::error::PyPI did not serve aipager ${WANT} within 5 minutes"
+              exit 1
+            fi
+            target="$WANT"
+          else
+            target=$(curl -fsS --retry 3 https://pypi.org/pypi/aipager/json | jq -r .info.version)
+            if [[ ! "$target" =~ $release ]]; then
+              echo "::error::PyPI's newest aipager is not of the form 1.4.0"
+              exit 1
+            fi
+          fi
+          have=$(jq -r .version lib/aipager-version.json)
+          newest=$(printf '%s\n%s\n' "$target" "$have" | sort -V | tail -1)
+          if [[ "$target" == "$have" || "$newest" == "$have" ]]; then
+            echo "aipager.run already shows ${have}"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "syncing aipager ${target} (the site shows ${have})"
+          echo "go=true" >> "$GITHUB_OUTPUT"
+          echo "version=${target}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch the release tag
+        if: steps.decide.outputs.go == 'true'
+        env:
+          V: ${{ steps.decide.outputs.version }}
+        # Only the tag, and outside the workspace so none of it can ever be
+        # staged. aipager is public, so no token is needed. The refspec names
+        # the local tag so the sync script certainly finds it.
+        run: |
+          git init -q "$RUNNER_TEMP/aipager"
+          git -C "$RUNNER_TEMP/aipager" fetch -q --depth 1 https://github.com/dev-aly3n/aipager.git "refs/tags/v${V}:refs/tags/v${V}"
+
+      - uses: actions/setup-node@v4
+        if: steps.decide.outputs.go == 'true'
+        with:
+          node-version: 20
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.decide.outputs.go == 'true'
+        with:
+          bun-version: 1.3.x
+
+      - name: Install dependencies
+        if: steps.decide.outputs.go == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Sync docs and version from the tag
+        if: steps.decide.outputs.go == 'true'
+        env:
+          V: ${{ steps.decide.outputs.version }}
+        run: ./scripts/sync-docs.sh "$RUNNER_TEMP/aipager" "v${V}"
+
+      # The quick checks first, so a bad upstream file fails before the build.
+      - name: Check directions
+        if: steps.decide.outputs.go == 'true'
+        run: node scripts/check-rtl.mjs
+
+      - name: Check dictionaries
+        if: steps.decide.outputs.go == 'true'
+        run: node scripts/check-dict.mjs
+
+      - name: Build
+        if: steps.decide.outputs.go == 'true'
+        run: npm run build
+
+      - name: Check every page is static
+        if: steps.decide.outputs.go == 'true'
+        run: node scripts/check-static.mjs
+
+      # after the build, which writes the route types tsc reads
+      - name: Type check
+        if: steps.decide.outputs.go == 'true'
+        run: node_modules/.bin/tsc --noEmit
+
+      - name: Commit and push
+        if: steps.decide.outputs.go == 'true'
+        env:
+          V: ${{ steps.decide.outputs.version }}
+        # Only the synced paths are staged: the build can rewrite tsconfig.json,
+        # and that must never ride along. -A stages pages removed upstream.
+        # A push that loses a race with another push fails, and the next run
+        # starts again from the new main, so what is pushed is always exactly
+        # what was built and checked.
+        run: |
+          git add -A -- content/docs public/agent.md lib/aipager-version.json
+          if git diff --cached --quiet; then
+            echo "nothing changed for aipager ${V}"
+            exit 0
+          fi
+          git config user.name "dev-aly3n"
+          git config user.email "dev.aly3n@gmail.com"
+          git commit -q -m "sync docs and version for aipager ${V}"
+          git push origin HEAD:main
