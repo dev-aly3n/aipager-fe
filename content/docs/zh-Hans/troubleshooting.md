@@ -1,6 +1,6 @@
 # 故障排除
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de34258 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > 本页译自英文；如果两者不一致，以英文版为准。（[English](../../troubleshooting.md)）
 
@@ -142,6 +142,44 @@ aipager session <label>            # 或者一个全新的会话，没有历史
 aipager session <label> --continue # 新的 dtach，接着这个文件夹最近的对话
 ```
 
+聊天里的通知会根据 `claude` 留下的退出码说明会话为什么结束（`claude` 退出时，aipager 把它记录在 `claude-exit-<session>.json` 里）：
+
+- `🔴 x1 · 会话崩溃或被结束`：没有记录到退出码（电脑重启了，或者会话的进程被一起结束了）。
+- `🔴 x1 · 会话已关闭`：`claude` 正常结束了（退出码 0）。
+- `🔴 x1 · 会话以错误码 2 退出`：`claude` 以这个代码失败了。
+- `🔴 x1 · 会话被信号 SIGKILL 结束`：有东西强行结束了 `claude`（大于 128 的退出码对应信号）。
+- `🔴 x1 · Claude Code 刚启动就退出了（退出码 1）`：`claude` 启动后 10 秒内就放弃了，通常是因为它自己的参数或设置。用 `aipager session x1` 连接上去看它的消息，或者在终端里手动启动它。
+- `🔴 x1 · Claude Code 刚启动就退出了，因为它的对话正在 Claude Code 后台运行`：Claude Code 拒绝恢复仍被后台任务占着的对话。点 `↩️ 现在带回来`：如果那个任务空闲，aipager 就停止它（如果它在工作，会先询问），然后在这里恢复对话。见下一节。
+
+## <a id="a-session-moved-to-claude-codes-background"></a>会话移到了 Claude Code 后台
+
+`🌙 x1 已转到 Claude Code 后台，你的下一条消息会把它带回这里。`
+
+在 Claude Code 的空输入框里按 ← 会把会话的对话移到一个 Claude Code 后台任务里，终端显示的不再是对话，而是 Claude Code 的代理视图。aipager 会在几秒内发现，并停止向那个终端输入：现在在那里输入的任何东西都可能启动另一个后台任务。这个任务会继续工作，它的卡片、回答和权限请求仍会作为该会话的内容到达聊天。在 Mini App 里，这个会话显示为“在后台”；它的任务在等一个你可以在聊天里回答的权限请求时，显示为“等你回复”。
+
+把它带回来：
+
+- 给它发一条消息。消息会等着（👀），aipager 停止后台任务（`claude stop <job>`），用 aipager 自己的设置在该任务的对话上重启会话，然后发送消息。如果任务还在工作，或者随 ← 移过去的那个任务还在运行，会先问你：`停止并带回来` 停止它正在做的事，`让它继续` 让它做完（之后再把会话带回来）。按 ← 后的头几秒里，新的后台任务在继续那个任务之前可能看起来是空闲的，所以这时发来的消息会先等一会儿，再由 aipager 决定。角色不能重启该会话的人会收到 `你发给 x1 的消息会一直等着，直到有人把这个会话从 Claude Code 后台带回来。`
+- 或者点通知下面的 `↩️ 现在带回来`、发送 `/restart x1`，或在 Mini App 里点“带回来”。任务在工作时发送 `/stop` 会停止那项工作，并把会话带回来。之前移到后台时留下的按钮会回复 `x1 不在 Claude Code 后台。`，什么也不做。在任务工作时进行需要重启会话的模式切换（切换到完全访问模式或离开完全访问模式），这时出现的 `停止并带回来` 会以你选择的模式把会话带回来。
+
+会话在后台时，如果某条安全规则让会话的工作停下，aipager 会停止后台任务。如果停不下来，停止通知会说明被拦下的工作可能仍在那里运行，而且它的第一行末尾没有 `（已停止）`；这时请在终端里用 `claude stop <job>` 停止该任务。
+
+在此之前，需要向会话输入的命令（`/compact`、`/model`、切换到询问模式或自动模式、`/now`、重试）会回复 `请先把 x1 从 Claude Code 后台带回来。`，需要 aipager 输入的请求回答会收到 `要回答这个，请先把 x1 从 Claude Code 后台带回来。`通过 hook 的回答（大多数权限请求）仍然有效。
+
+`/resume`、Mini App 里的“恢复”和 `aipager resume` 也会同样地跟随转到别处的对话：恢复的是最新的对话，仍占着它的后台任务如果空闲，会先被停止。`aipager session x1 --resume <id>` 在终端里也是这样；任务在工作时，它会打印 `claude stop <job>` 和 `claude attach <job>`，并以代码 1 退出，不启动任何东西。
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code 询问是否恢复一个对话
+
+`❓ x1：Claude Code 在问是否恢复这个对话。这个对话已经很久没用了，恢复它会用掉你 5 小时用量限额的一部分。`
+
+Claude Code 有时会在继续一个很长的对话之前，在自己的终端里提一个问题，而且不会通知任何 hook：一个很大的对话闲置一段时间后会问 `Resume this conversation?`（恢复它会用掉你 5 小时用量限额的一部分），一个又旧又大的对话重新启动时会问 `Resume from summary`，另外还有几种。aipager 会读取 Claude Code 自己为这个会话保存的记录，所以知道有这样的问题还开着。问题开着的时候，aipager 不会往那个终端里输入任何内容：你发送的消息会等待（👀），问题一回答就发给 Claude。
+
+- **刚重启、切换模式、带回或恢复会话之后**，aipager 无法知道 Claude Code 显示的是这些问题中的哪一个，所以卡片会写 `❓ x1：Claude Code 在继续这个对话之前，正在终端里提一个问题。`，并且只有一个按钮：`继续这个对话`。它回答问题的方式和在那里按 Escape 一样：对话保持原样继续，完整的历史都在。如果想重新开始或压缩对话，点它之后再发送 `/clear` 或 `/compact`。
+- **在一个就绪后很久没用的会话里**，Claude Code 会自己发问（订阅用户大约在最后一次回答一小时后）。这时什么都不会显示；你发送消息时，消息会等待，上面的卡片随即出现，带有 `恢复` 和 `开始新对话`。“恢复”会继续这个对话。“开始新对话”会离开它并开始一个空对话（aipager 会输入 `/clear`），你等待中的消息就是新对话的第一条。和 Claude Code 自己的选项不同，新对话不会指向旧对话。使用它需要有在这个聊天里发送 `/clear` 的权限。
+- **Claude Code 在终端里显示的其他任何问题或面板**（例如从 Telegram 发送的 `/config`）会得到一条不带按钮的提示：`❓ x1 正在终端里等待一个问题的回答。请在终端回答，期间发送的消息随后就会发给 Claude。`
+
+你随时都可以在终端里回答；这时卡片会写 `x1：问题已在终端中回答。` 问题关闭后再点按钮，什么也不会发生，并会显示 `这个问题已经关闭了。` aipager 从不提供 `Don't ask me again`：它会为所有会话更改 Claude Code 自己的设置。
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>一个权限请求 5 分钟没有消息
 
 如果一个会话在等一个权限请求或问题，而 Claude Code 5 分钟没有任何消息，aipager 会读取这个会话保存的对话。只算 Claude 自己和提出请求的代理的消息：一直在工作的后台代理不会让这项检查无法进行。只有对话显示请求已经结束（在终端里回答了，而这个消息丢了），aipager 才不再等它，并重新把会话算作工作中。否则请求会一直开着，不管多久：卡片和置顶栏会一直显示会话需要你回答，不会发出“仍在工作”的提示，你的消息会被暂存，直到你回答（见[文本](commands.md#text)）。Claude Code 在请求打开时退出，会话就结束了。如果对话框仍然开着，请求上的按钮仍然可以回答它（见[任务结束后的回答](commands.md#idle-responses)）。
@@ -161,6 +199,54 @@ AIPAGER_INTERACTIVE_TIMEOUT=300 aipager start    # 以秒为单位
 - Permission denied：venv 是只读的。改用 `uv tool install`，它总是使用属于你的用户的 venv。
 
 如果机器人在安装中途断开了连接，电脑上的安装本身通常已经完成：重启 aipager，再试一次语音消息。
+
+## <a id="the-mini-app-link-isnt-working"></a>Mini App 链接无法使用
+
+Mini App 的链接建立不起来时，`/app` 会说明原因。能修好这台电脑的人（个人安装时是机器人主人，群组里是该聊天的管理员）会收到原因和处理方法；其他人收到 `📱 Mini App 现在不可用。请稍后再发送 /app。` `aipager doctor` 在它的 `miniapp` 一行里也会说同样的内容（只是警告，从不算失败），并给出失败的次数和下一次尝试的时间。
+
+aipager 会自己不断重试：先快速试几次，然后每 10 分钟试一次（`TUNNEL_RETRY_SLOW_SECONDS`，从不少于 60 秒），在这个慢速阶段发送 `/app` 会立即开始一次尝试（每分钟最多一次）。电脑修好后，Mini App 不用重启就会回来。
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>DNS 服务器给出的回答不完整
+
+`/app` 说 `这台电脑的 DNS 服务器给出的回答不完整`。cloudflared 查找 Cloudflare 服务器时，DNS 服务器只回答了列表的一部分（Cloudflare 发布了两个区域，它只给了一个），遇到这种情况 cloudflared 会停止。问题出在这台电脑拿到的 DNS 服务器上（通常是路由器的，或虚拟机网络的），而不是 aipager。检查一下：
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+结果应该列出两条记录。如果只有一条，请把电脑改用其他 DNS 服务器，例如 1.1.1.1。用 netplan（Ubuntu）时，在 `/etc/netplan/` 下你的文件里保留 DHCP 分配的地址，但不用它的 DNS 服务器（`eth0` 是你的网络接口名）：
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+然后运行 `sudo netplan apply`。只用 systemd-resolved 时，写一个文件，例如 `/etc/systemd/resolved.conf.d/dns.conf`：
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+然后运行 `sudo systemctl restart systemd-resolved`。再用 `resolvectl` 检查一次：列出两条记录后，aipager 的下一次尝试就会让 Mini App 回来。
+
+### <a id="what-the-other-answers-mean"></a>其他回答的意思
+
+- `这台电脑无法通过 DNS 找到 Cloudflare 的服务器`：查询完全失败了（没有回答，或者超时）。像上面那样检查电脑的网络连接和 DNS 服务器。
+- `cloudflared 无法从 Cloudflare 获取链接`：cloudflared 无法连到 `api.trycloudflare.com` 来申请链接。检查电脑能否打开 https://api.trycloudflare.com （防火墙可能会拦住它）。
+- `这台电脑无法通过 7844 端口（UDP）连接 Cloudflare 的服务器`：cloudflared 通过 UDP 7844 端口连接 Cloudflare，而有东西拦住了它。在电脑的防火墙或网络里放行出站的 UDP 7844。
+- `aipager 无法下载或启动 cloudflared`：aipager 第一次会下载一份经过校验的 cloudflared；下载、校验或启动失败了。检查网络连接；`aipager logs` 会指出失败的那一步。
+- `cloudflared 正在运行，但它的链接从互联网上一直没有响应`：cloudflared 有链接，但没有任何请求通过它到达 aipager。aipager 会停掉这个隧道，再启动一个新的。
+- `Mini App 现在无法使用`：aipager 不认识的原因。`aipager logs` 会显示 cloudflared 自己的消息，它的文件是 `~/.claude/aipager-cloudflared.log` 和 `~/.claude/aipager-cloudflared.err`。
+
+cloudflared 自己的消息只写进 aipager 的日志，从不发到聊天里。设置了 `MINIAPP_PUBLIC_URL` 时，aipager 不启动隧道，以上都不适用。在一台也装了 Tailscale 的电脑上，隧道无法使用期间，`/app` 会给出 Tailscale 地址。
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>打开应用时显示“请从 Telegram 应用中打开此页面来登录。”
 
@@ -225,14 +311,14 @@ aipager 把它的会话保存在 `~/.claude/aipager-sessions.json` 里，以原�
 | `role_shell_access` | 对成员拥有的每个能运行 Bash 的角色警告一次（它的安全规则只是尽力而为，不是边界；见[群组](groups.md#roles)） | 在 `policy.yaml` 里不给那个角色 Bash，或者接受这一点 |
 | `peer_messages` | Claude 会话之间的消息：它们的回执保存在哪里、那个文件夹是否私密、这个系统能否核对发送者的启动时间，并对每个被规则允许使用 SendMessage 的角色发出警告（见[安全](security.md#messages-between-claude-sessions)） | 删除共用的回执文件夹（aipager 会重新创建），或者不给那个角色 SendMessage |
 | `claude` | 用每次启动时相同的方式找到 `claude` 程序（`aipager.yaml` 里的 `claude_path` 或 `$AIPAGER_CLAUDE_BIN` 直接优先；否则在 `~/.local/bin`、PATH 和 Homebrew 中选最新的），并列出找到的所有其他安装 | 安装 Claude Code，或者设置 `claude_path` / `AIPAGER_CLAUDE_BIN` |
-| `claude_auth` | 在真实会话得到的同样环境里试运行 `claude auth status`。**从不 FAIL**：“未登录”和“试运行本身失败”会分别报告，两者都不会阻止会话启动 | `claude auth login`，或者设置 API 密钥 / `CLAUDE_CODE_OAUTH_TOKEN` |
+| `claude_auth` | 在真实会话得到的同样环境里试运行 `claude auth status`。**从不 FAIL**：“未登录”和“试运行本身失败”会分别报告，两者都不会阻止会话启动。当 Claude Code 被告知不要使用会话的 `ANTHROPIC_API_KEY`、而又没有别的方式让会话登录时，它也会警告。 | `claude auth login`，或者设置 API 密钥 / `CLAUDE_CODE_OAUTH_TOKEN`；设置了 `ANTHROPIC_BASE_URL` 时，是那个地址的密钥（[服务商](#using-an-api-key-a-gateway-or-another-provider)） |
 | `dtach` | 找到了 `dtach` 程序（aipager 自带的 `dtach-bin`，或 PATH 上的） | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook` 和 `aipager-statusline` 在 PATH 上 | `uv tool install --reinstall aipager` |
-| `settings_json` | `~/.claude/settings.json` 已接入 aipager 的 hook | `aipager config` |
+| `settings_json` | `~/.claude/settings.json`（或 `$CLAUDE_CONFIG_DIR/settings.json`） 已接入 aipager 的 hook；设置了 `CLAUDE_CONFIG_DIR` 时会指出该文件以及这个值的来源 | `aipager config` |
 | `daemon` | aipager 正在运行，它的套接字有应答；同时显示 Telegram 的限流状态（见[上文](#the-bot-slowed-down-a-rate-limit-429)） | `aipager start` |
 | `service_installed` | 可选：服务文件存在 | `aipager service install` |
 | `service_unit_path` | 仅 Linux：*已安装的*服务的 `Environment=PATH=` 确实包含找到的 claude 程序所在的文件夹，按文本解析，因为 doctor 从机器人主人的交互式 shell 里看不到 systemd 自己的 PATH | `aipager service install --yes` |
-| `miniapp` | Mini App 开启时能否启动。**从不 FAIL**：Mini App 是可选的 | 它给出的修复方法 |
+| `miniapp` | Mini App 开启时能否启动，以及在运行中的 aipager 为它持有隧道期间，这个隧道是否正常（不正常时：原因、失败的尝试和下一次尝试；见[上文](#the-mini-app-link-isnt-working)）。**从不 FAIL**：Mini App 是可选的 | 它给出的修复方法 |
 
 `aipager doctor --json` 以同样的顺序、用这些键打印同样的检查（见[命令](commands.md#aipager-doctor---json)）。
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 这个文件能防护什么、不能防护什么，见[安全模型：Claude 的登录信息](security.md#the-claude-credential-what-actually-protects-it)。
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>使用 API 密钥、网关或其他服务商
+
+aipager 按你的设置运行 Claude Code，所以从 Telegram 启动的会话和你终端里的 `claude` 用同样的方式登录：claude.ai 登录、Anthropic 的 API 密钥、网关（LiteLLM、Vercel、Cloudflare 等），或写在 `ANTHROPIC_BASE_URL` 里的其他公司的 Anthropic 格式地址。Anthropic 只支持 Claude Code 搭配 Claude 模型使用；其他模型的表现可能不同。
+
+- **设置放在哪里。**放进 `~/.claude/settings.json`（或 `$CLAUDE_CONFIG_DIR/settings.json`） 的 `env` 块（每个 Claude Code 会话都会读取），或放进 `~/.config/aipager/daemon.env`（只有 aipager 启动的会话会拿到）：每行一个 `KEY=value`，不加引号（引号会变成值的一部分）。服务（`aipager service install`）从不读取你 shell 的配置文件，所以写在那里的 `export` 到不了服务。改完 `daemon.env` 后重启 aipager。受信任的启动文件夹中 `.claude/settings.json` 和 `.claude/settings.local.json` 的 `env` 块，以及托管设置（Linux 上 `/etc/claude-code`、macOS 上 `/Library/Application Support/ClaudeCode` 中的 `managed-settings.json` 和 `managed-settings.d/`）的 `env` 块也同样算数，和 Claude Code 一样。
+- **用哪个密钥设置。**对网关或其他服务商，Claude Code 的文档建议用 `ANTHROPIC_AUTH_TOKEN`，Claude Code 从不为它提问。对 `ANTHROPIC_API_KEY`，它会问一次“Do you want to use this API key?”，而从 Telegram 启动的会话无法回答，所以 aipager 会在会话启动前一刻在 `~/.claude.json`（或 `CLAUDE_CONFIG_DIR` 把它放进的文件） 里替你回答：
+  - 是：密钥写在 `settings.json` 或 `daemon.env` 里，或者没有别的方式能让会话登录。
+  - 否：密钥只来自启动 aipager 的环境，而你已经用别的方式登录了 Claude；你的会话继续用那个登录和它的套餐。要用这个密钥，在带有这个密钥的终端会话里用 `/config` 的“Use custom API key”打开它。
+  - 你自己给过的回答会保留，只有一种例外：没有别的方式能让会话登录时，对写在 `settings.json` 或 `daemon.env` 里的密钥的“否”。当“否”让会话无法登录时，`aipager doctor` 会提示；在终端里用 `/config` 的“Use custom API key”重新打开这个密钥。
+- **首次运行的界面。**在 Claude Code 从没完成首次运行的地方（新机器或新容器），只要会话有登录凭据，aipager 就把首次运行标记为已完成，会话就不会停在主题选择界面。如果完全没有凭据，就在终端里运行一次 `claude` 并登录。
+- **模型。**Opus、Sonnet 和 Haiku 按钮发送 Claude Code 的 `opus`、`sonnet` 和 `haiku`；设置了 `ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL` 和 `ANTHROPIC_DEFAULT_HAIKU_MODEL` 后，Claude Code 会把它们对应到你服务商的模型。`claude-...` 按钮需要服务商有这些模型。其他模型在 `/new` 的模型步骤或 Mini App 里按服务商的写法输入：最多 128 个字符，由字母、数字和 `. _ - : / @ ~ ,` 组成，可以带 Claude Code 的 `[1m]` 后缀。`keyboard.json` 可以改按钮（见[固定键盘](commands.md#persistent-keyboard)）。
+- **没有密钥的 `ANTHROPIC_BASE_URL`。**这时 Claude Code 会把你的 claude.ai 登录发到那个地址。除非那个地址是专门把你的登录转给 Anthropic 的网关，否则也要设置服务商的密钥。
+- **不支持：**通过本地代理、用另一家公司的聊天订阅（比如 ChatGPT 套餐）运行 Claude Code 的工具。那家公司没有批准 Claude Code 用于它的套餐，这样用可能让那个账号面临风险。
+
+**Claude Code 的配置在另一个文件夹（`CLAUDE_CONFIG_DIR`）。** Claude Code 把设置、登录、对话记录和全局配置放在 `~/.claude` 和 `~/.claude.json` 中，或放在 `CLAUDE_CONFIG_DIR` 指定的文件夹中。aipager 遵循同一个变量，所以它的钩子和状态行会写进你的会话读取的 `settings.json`，它的应答会写进 Claude Code 读取的文件（已用 Claude Code 2.1.303 验证）：
+
+- **在 `~/.config/aipager/daemon.env` 中设置它**，然后重启 aipager。服务从不读取你的 shell 配置文件，所以 `export` 只能影响那个 shell 中的 `aipager start`。启动时，守护进程会把钩子写入 `$CLAUDE_CONFIG_DIR/settings.json`，并在日志中记录 `sessions read Claude Code's config from ...`；如果在它运行时修改这个值，它启动的下一个会话会得到钩子，此后丢失了钩子的设置文件也一样。钩子无法写入时，日志会显示 `sessions will start without aipager's hooks`，`aipager doctor` 也会发出警告。
+- **使用完整路径。** Claude Code 会原样使用这个值：不会展开 `~`，相对路径（空值也一样）表示每个会话自己文件夹里的一个文件夹。aipager 不会往那里写任何东西：日志和 `aipager doctor` 会警告，`aipager setup` 会停下并给出修复方法，`aipager config` 会跳过它的 Claude Code 步骤，显示带修复方法的警告后继续。修复方法会指出存放这个值的文件：`daemon.env`，或在 `env` 块中设置它的设置文件。
+- **在 Claude Code 自己的设置中设置。** `~/.claude/settings.json`（或托管设置）的 `env` 块中的 `CLAUDE_CONFIG_DIR` 会移动设置文件、登录和对话记录，但不会移动 `~/.claude.json`。aipager 也会跟着这样做；`aipager doctor` 会告诉你位置。
+- **`aipager config` 和 `aipager setup`** 修改的是守护进程的会话读取的文件：你的 shell 环境加上 `daemon.env`。在另一个值的 shell 中启动的 `claude` 会读取另一个文件，没有 aipager 的钩子；`aipager doctor` 会指出它。
+- **旧版 `.config.json`。** 当 `<config folder>/.config.json` 正在使用时（例如它存在且不为空），Claude Code 会读取它而不是 `.claude.json`，aipager 也一样。`CLAUDE_CONFIG_DIR` 为空时，这个文件会在会话自己的文件夹中，aipager 不会往那里写任何东西。
+- **aipager 读不到的内容。** 通过 MDM 配置描述文件（macOS）、Windows 注册表或 Claude 服务器下发的托管设置，以及 `--settings` 参数。只在那里设置的密钥或服务商开关，aipager 回答启动问题时看不到；这时 Claude Code 会询问，就像没有 aipager 时一样。
+- **拒绝列表。** 让受限角色和发送的文件远离 Claude 凭据的默认规则写的是 `~/.claude/**` 和 `~/.claude.json*`。放在别处的 `CLAUDE_CONFIG_DIR` 不在它们的范围内，所以当非管理员使用你的会话时，请把它放在 `~/.claude` 里面（Docker 镜像就是这样）（[安全](security.md#who-decides-whether-a-tool-call-runs)）。
 
 ## <a id="the-daemons-control-socket-moved"></a>aipager 的控制套接字换了位置
 
@@ -313,6 +423,8 @@ systemctl --user restart aipager.service
 如果原地启动失败，旧进程退出后会由一个分离的副本启动 aipager。这时它的输出会写入自重启日志（实例文件夹里的 `aipager.log`，或 `/tmp/aipager.log`），而不是你的终端；如果这个副本没有回来，aipager 的日志会写出要运行的命令。如果解释器本身已经没了（它的环境被删除了），或者什么都启动不了，aipager 会以代码 1 退出，aipager 的日志以 `restart.failed:` 和要运行的命令结尾，下一次启动会宣布这次更新。
 
 没有 **立即重启** 按钮时，消息会给出适合你的环境的步骤：在终端或 tmux 里，按 Ctrl+C 再运行 `aipager start`；在 macOS 上，运行 `launchctl kickstart -k gui/<uid>/com.aipager.daemon`；在 Docker 里，在主机上运行 `docker restart <container>`。重新创建 Docker 容器（在 `down` 之后运行 `docker compose up`，或再次运行 `docker run`）会从它的镜像启动，这会带回该镜像里的 aipager 版本：要保留更新的 aipager，请使用更新的镜像。
+
+镜像设置了 `CLAUDE_CONFIG_DIR=/home/aipager/.claude`，因此 Claude Code 的全局配置（`.claude.json`：文件夹信任、首次运行状态、API 密钥的应答、你的账号和用户级 MCP 服务器）会和其他内容一起保存在 `.claude` 卷中，重建容器后依然保留。之前的镜像把它放在容器内部的 `/home/aipager/.claude.json`。新镜像第一次启动时不会读取旧文件：卷中 `.credentials.json` 里的登录仍然有效，会话启动时 aipager 会重新回答文件夹信任和首次运行的问题，但用 `claude mcp add --scope user` 添加的用户级 MCP 服务器需要重新添加。如果你绑定挂载主机的 `~/.claude`（就像 README 中的命令那样），这个文件会以 `~/.claude/.claude.json` 出现在那里；主机上的 Claude Code 不会读取它（它使用 `~/.claude.json`）。使用命名卷可以把两者分开。
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>更新后 aipager 没有重新运行
 

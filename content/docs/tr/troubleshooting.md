@@ -1,6 +1,6 @@
 # Sorun giderme
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de34258 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > Bu sayfa İngilizceden çevrildi; ikisi birbirini tutmazsa İngilizce sürüm geçerlidir. ([English](../../troubleshooting.md))
 
@@ -142,6 +142,44 @@ aipager session <label>            # ya da geçmişi olmayan yeni bir oturum
 aipager session <label> --continue # yeni bir dtach, bu klasörün son konuşması
 ```
 
+Sohbetteki bildirim, oturumun neden sona erdiğini `claude` sürecinin bıraktığı çıkış kodundan söyler (aipager bu kodu `claude` çıkınca `claude-exit-<session>.json` dosyasına kaydeder):
+
+- `🔴 x1 · Oturum çöktü ya da sonlandırıldı`: hiçbir çıkış kodu kaydedilmedi (bilgisayar yeniden başladı ya da oturumun süreci onunla birlikte sonlandırıldı).
+- `🔴 x1 · Oturum sona erdi`: `claude` normal şekilde bitti (çıkış kodu 0).
+- `🔴 x1 · Oturum 2 hata koduyla sona erdi`: `claude` bu kodla başarısız oldu.
+- `🔴 x1 · Oturum SIGKILL sinyaliyle sonlandırıldı`: bir şey `claude` sürecini zorla sonlandırdı (128'in üstündeki çıkış kodları sinyali belirtir).
+- `🔴 x1 · Claude Code başlar başlamaz kapandı (çıkış kodu 1)`: `claude` başladıktan sonraki 10 saniye içinde vazgeçti; genellikle kendi argümanları ya da kurulumu yüzünden. Mesajını görmek için `aipager session x1` ile bağlan ya da onu bir terminalde elle başlat.
+- `🔴 x1 · Sohbeti Claude Code arka planında çalıştığı için Claude Code başlar başlamaz kapandı`: Claude Code, bir arka plan işinin hâlâ tuttuğu bir konuşmaya devam etmeyi reddeder. `↩️ Şimdi geri getir` düğmesine dokun: aipager o iş hiçbir şey yapmıyorsa onu durdurur (çalışıyorsa önce sorar) ve konuşmaya burada devam eder. Bir sonraki bölüme bak.
+
+## <a id="a-session-moved-to-claude-codes-background"></a>Bir oturum Claude Code arka planına geçti
+
+`🌙 x1 Claude Code arka planına geçti ve bir sonraki mesajın onu buraya geri getirir.`
+
+Claude Code'da boş bir giriş satırında ← tuşuna basmak, oturumun konuşmasını bir Claude Code arka plan işine taşır ve terminal konuşma yerine Claude Code'un ajan görünümünü gösterir. aipager bunu birkaç saniye içinde fark eder ve o terminale yazmayı bırakır: orada şimdi yazılan her şey başka bir arka plan işi başlatabilir. İş çalışmaya devam eder; kartı, yanıtı ve izin istekleri sohbete hâlâ oturumunkiler olarak ulaşır. Mini App'te oturumun durumu “arka planda” olarak, işi sohbetten yanıtlayabileceğin bir izin isteğini beklerken de “seni bekliyor” olarak görünür.
+
+Geri getirmek için:
+
+- Ona bir mesaj gönder. Mesaj bekler (👀), aipager arka plan işini durdurur (`claude stop <job>`), oturumu işin konuşmasıyla ve aipager'ın kendi ayarlarıyla yeniden başlatır, sonra mesajı gönderir. İş hâlâ çalışıyorsa ya da ← ile birlikte taşınan görev hâlâ sürüyorsa önce sana sorulur: `Durdur ve geri getir` yaptığı işi durdurur, `Bırak çalışsın` bitirmesine izin verir (oturumu sonra geri getir). ← tuşundan sonraki ilk saniyelerde yeni bir arka plan işi, o göreve devam etmeden hemen önce hiçbir şey yapmıyor gibi görünebilir; bu yüzden o sırada gönderilen bir mesaj, aipager karar vermeden önce biraz bekler. Rolü oturumu yeniden başlatamayan biri şu yanıtı alır: `x1 oturumuna gönderdiğin mesaj, biri oturumu Claude Code arka planından geri getirene kadar bekliyor.`
+- Ya da bildirimin altındaki `↩️ Şimdi geri getir` düğmesine dokun, `/restart x1` gönder ya da Mini App'te Geri getir seçeneğine dokun. İş çalışırken `/stop` o çalışmayı durdurur ve oturumu geri getirir. Arka plana daha önceki bir geçişten kalan bir düğme `x1 Claude Code arka planında değil.` yanıtını verir ve hiçbir şey yapmaz. Oturumu yeniden başlatan bir mod değişikliği (Tam erişim moduna geçiş ya da bu moddan çıkış) çalışan bir işe denk gelirse, o zaman çıkan `Durdur ve geri getir` oturumu istediğin modda geri getirir.
+
+Oturum arka plandayken bir güvenlik kuralı oturumun çalışmasını durdurursa aipager arka plan işini durdurur. Durduramazsa durdurma bildirimi, engellenen çalışmanın orada hâlâ sürüyor olabileceğini söyler ve bildirimin ilk satırı `(durduruldu)` ile bitmez; o zaman işi bir terminalde `claude stop <job>` ile durdur.
+
+O zamana kadar oturuma yazması gereken komutlar (`/compact`, `/model`, Sor ya da Otomatik moda geçiş, `/now`, Yeniden dene) şu yanıtı verir: `Önce x1 oturumunu Claude Code arka planından geri getir.` aipager'ın yazması gereken bir isteğe verilen yanıt da şunu alır: `Yanıtlamak için x1 oturumunu Claude Code arka planından geri getir.` Hook üzerinden giden yanıtlar (izin isteklerinin çoğu) çalışmaya devam eder.
+
+`/resume`, Mini App'teki Devam ettir ve `aipager resume` da taşınmış bir konuşmayı aynı şekilde izler: en yeni konuşmaya devam edilir ve onu hâlâ tutan bir arka plan işi hiçbir şey yapmıyorsa önce durdurulur. `aipager session x1 --resume <id>` aynısını terminalde yapar; iş çalışıyorsa hiçbir şey başlatmak yerine `claude stop <job>` ve `claude attach <job>` yazdırır ve 1 koduyla çıkar.
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code bir konuşmaya devam edilip edilmeyeceğini soruyor
+
+`❓ x1: Claude Code bu konuşmaya devam edilip edilmeyeceğini soruyor. Konuşma uzun süredir kullanılmıyordu ve devam etmek 5 saatlik kullanım sınırının bir kısmını harcar.`
+
+Claude Code bazen uzun bir konuşmaya devam etmeden önce kendi terminalinde bir soru sorar ve bunu hiçbir hook'a bildirmez: büyük bir konuşma bir süre kullanılmadığında `Resume this conversation?` (devam etmek 5 saatlik kullanım sınırının bir kısmını harcar), eski ve büyük bir konuşma yeniden başlatıldığında `Resume from summary` ve birkaç tane daha. aipager, Claude Code'un oturum için tuttuğu kendi kaydını okur, bu yüzden böyle bir sorunun açık olduğunu bilir. Soru açık olduğu sürece aipager o terminale hiçbir şey yazmaz: gönderdiğin mesaj bekler (👀) ve soru yanıtlanır yanıtlanmaz Claude'a gider.
+
+- **Yeniden başlatma, mod değişikliği, geri getirme ya da devam ettirmeden hemen sonra** aipager Claude Code'un bu sorulardan hangisini gösterdiğini anlayamaz, bu yüzden kartta `❓ x1: Claude Code bu konuşmaya devam etmeden önce terminalde bir soru soruyor.` yazar ve tek bir düğme vardır: `Bu konuşmaya devam et`. Bu düğme soruyu orada Escape'in yanıtladığı gibi yanıtlar: konuşma olduğu gibi, tüm geçmişiyle devam eder. Baştan başlamak ya da konuşmayı sıkıştırmak için ona dokun, sonra `/clear` veya `/compact` gönder.
+- **Uzun süre hazır bekleyip kullanılmayan bir oturumda** Claude Code kendiliğinden sorar (bir abonelikte, son yanıttan yaklaşık bir saat sonra). O anda hiçbir şey gösterilmez; bir mesaj gönderdiğinde mesaj bekler ve yukarıdaki kart `Devam ettir` ve `Yeni konuşma başlat` düğmeleriyle gelir. Devam ettir konuşmayı sürdürür. Yeni konuşma başlat konuşmadan çıkar ve boş bir konuşma başlatır (aipager `/clear` yazar), bekleyen mesajın da yeni konuşmanın ilk mesajı olur. Claude Code'un kendi seçeneğinden farklı olarak yeni konuşma eskisini göstermez. Bunun için o sohbette `/clear` gönderme iznin olmalı.
+- **Claude Code'un terminalinde gösterdiği başka herhangi bir soru ya da panel** (örneğin Telegram'dan gönderilen bir `/config`) düğmesiz bir not alır: `❓ x1 terminalinde bir sorunun yanıtını bekliyor. Orada yanıtla, bu arada gönderilen mesajlar hemen ardından Claude'a gider.`
+
+İstersen her zaman terminalde yanıtlayabilirsin; kart o zaman `x1: soru terminalde yanıtlandı.` der. Soru kapandıktan sonra dokunulan bir düğme hiçbir şey yapmaz ve `Bu soru artık açık değil.` der. aipager hiçbir zaman `Don't ask me again` seçeneğini sunmaz: bu, Claude Code'un kendi ayarlarını her oturum için değiştirir.
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>5 dakikadır haber gelmeyen bir izin isteği
 
 Bir oturum bir izin isteğini ya da soruyu bekliyorsa ve Claude Code 5 dakika boyunca hiçbir şey bildirmezse aipager oturumun konuşma geçmişini okur. Yalnızca Claude'un kendisinden ve soran ajandan gelen haberler sayılır: çalışmaya devam eden bir arka plan ajanı bu denetimin yapılmasını engellemez. aipager isteği beklemeyi ancak konuşma geçmişi isteğin bittiğini gösterirse (terminalde yanıtlanmış ve haberi kaybolmuşsa) bırakır ve oturumu yeniden çalışıyor sayar. Aksi halde istek ne kadar sürerse sürsün açık kalır: kart ve sabitlenmiş çubuk oturumun yanıtını beklediğini söylemeye devam eder, "hâlâ çalışıyor" notu gelmez ve mesajların sen yanıt verene kadar bekletilir (bkz. [metin](commands.md#text)). İstek açıkken kapanan bir Claude Code oturumu sona erdirir. İsteğin düğmeleri, iletişim kutusu hâlâ açıksa onda yanıt vermeye devam eder (bkz. [yanıtlar](commands.md#idle-responses)).
@@ -161,6 +199,54 @@ AIPAGER_INTERACTIVE_TIMEOUT=300 aipager start    # saniye cinsinden
 - Permission denied: venv salt okunur. Her zaman kullanıcına ait bir venv kullanan `uv tool install` yöntemine geç.
 
 Bot kurulumun ortasında bağlantıyı kaybettiyse bilgisayardaki kurulumun kendisi genelde tamamlanmıştır: aipager'ı yeniden başlat ve sesli mesajı yeniden dene.
+
+## <a id="the-mini-app-link-isnt-working"></a>Mini App bağlantısı çalışmıyor
+
+Mini App bağlantısı kurulamadığında `/app` nedenini söyler. Bilgisayarı düzeltebilecek kişi (kişisel kurulumda botun sahibi, grupta o sohbetin yöneticisi) nedeni ve ne yapılacağını alır; diğer herkes `📱 Mini App şu an kullanılamıyor. Daha sonra /app komutunu tekrar dene.` mesajını alır. `aipager doctor` da `miniapp` satırında aynı şeyi söyler (uyarı olarak, asla hata olarak değil); başarısız deneme sayısını ve bir sonraki denemenin ne zaman olacağını da gösterir.
+
+aipager kendi kendine denemeye devam eder: önce birkaç hızlı deneme, sonra her 10 dakikada bir (`TUNNEL_RETRY_SLOW_SECONDS`, asla 60 saniyeden kısa değil); bu yavaş aşamada gönderilen bir `/app` hemen bir deneme başlatır (en fazla dakikada bir). Bilgisayar düzeltilince Mini App yeniden başlatmaya gerek kalmadan geri gelir.
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>DNS sunucusu eksik bir yanıt verdi
+
+`/app` şunu söyler: `bu bilgisayarın DNS sunucusu eksik bir yanıt verdi`. DNS sunucusu, cloudflared'ın Cloudflare sunucularını aramasına listenin yalnızca bir kısmıyla yanıt verdi (Cloudflare iki bölge yayınlarken bir bölge) ve bu durumda cloudflared durur. Sorun aipager'da değil, bilgisayara verilen DNS sunucusunda (çoğunlukla modemin ya da bir sanal makine ağının sunucusu). Kontrol et:
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+İki kayıt görünmeli. Tek kayıt görünüyorsa bilgisayarı başka bir DNS sunucusuna ayarla, örneğin 1.1.1.1. netplan (Ubuntu) ile `/etc/netplan/` altındaki dosyanda DHCP'nin verdiği adresi koru ama onun DNS sunucusunu kullanma (`eth0` ağ arayüzünün adıdır):
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+Sonra `sudo netplan apply` komutunu çalıştır. Yalnızca systemd-resolved varsa `/etc/systemd/resolved.conf.d/dns.conf` gibi bir dosya yaz:
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+Sonra `sudo systemctl restart systemd-resolved` komutunu çalıştır. `resolvectl` ile tekrar kontrol et: iki kayıt görününce aipager'ın bir sonraki denemesi Mini App'i geri getirir.
+
+### <a id="what-the-other-answers-mean"></a>Diğer yanıtların anlamı
+
+- `bu bilgisayar DNS'te Cloudflare sunucularını bulamadı`: sorgu tamamen başarısız oldu (yanıt yok ya da zaman aşımı). Bilgisayarın internet bağlantısını ve DNS sunucusunu yukarıdaki gibi kontrol et.
+- `cloudflared, Cloudflare'dan bağlantı alamadı`: cloudflared bağlantı istemek için `api.trycloudflare.com` adresine ulaşamadı. Bilgisayarın https://api.trycloudflare.com adresini açabildiğini kontrol et (bir güvenlik duvarı bunu engelleyebilir).
+- `bu bilgisayar, cloudflared'ın ihtiyaç duyduğu 7844 (UDP) portu üzerinden Cloudflare sunucularına ulaşamıyor`: cloudflared Cloudflare'a UDP 7844 portu üzerinden bağlanır ve bir şey bunu engelliyor. Bilgisayarın güvenlik duvarında veya ağında giden UDP 7844'e izin ver.
+- `aipager, Mini App bağlantısını oluşturan program olan cloudflared'ı indiremedi veya başlatamadı`: aipager ilk seferde cloudflared'ın doğrulanmış bir kopyasını indirir; indirme, doğrulama ya da başlatma başarısız oldu. İnternet bağlantısını kontrol et; `aipager logs` başarısız olan adımı söyler.
+- `cloudflared çalışıyor ama bağlantısı internetten hiç yanıt vermedi`: cloudflared'ın bir bağlantısı var ama onun üzerinden aipager'a hiçbir şey ulaşmadı. aipager o tüneli durdurur ve yenisini başlatır.
+- `Mini App şu an çalışmıyor`: aipager'ın tanımadığı bir neden. `aipager logs` cloudflared'ın kendi mesajını gösterir; dosyaları `~/.claude/aipager-cloudflared.log` ve `~/.claude/aipager-cloudflared.err`.
+
+cloudflared'ın kendi mesajları yalnızca aipager'ın log'una gider, asla sohbete gitmez. `MINIAPP_PUBLIC_URL` ayarlıysa aipager tünel açmaz ve bunların hiçbiri geçerli olmaz. Tailscale'i de olan bir bilgisayarda tünel çalışmadığı sürece `/app` Tailscale adresini verir.
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>Uygulamayı açınca “Giriş yapmak için bu sayfayı Telegram uygulamasından aç.” görünüyor
 
@@ -225,14 +311,14 @@ Sıra önemlidir: her kontrol öncekilerin geçtiğini varsayar. Beklenmedik bir
 | `role_shell_access` | Bash çalıştırabilen her üye rolü için bir kez uyarır (o rolün güvenlik kuralları elden geldiğince çalışır, bir sınır değildir; bkz. [gruplar](groups.md#roles)) | bu role `policy.yaml` içinde Bash verme ya da kabullen |
 | `peer_messages` | Claude oturumları arasındaki mesajlar: makbuzlarının nerede tutulduğu ve bu klasörün kapalı olup olmadığı, bu sistemin gönderenin başlangıç zamanını doğrulayıp doğrulayamayacağı ve bir kuralın SendMessage izni verdiği her rol için bir uyarı (bkz. [güvenlik](security.md#messages-between-claude-sessions)) | paylaşılan makbuz klasörünü kaldır (aipager yeniden oluşturur) ya da bu role SendMessage verme |
 | `claude` | `claude` programını her başlatmanın bulduğu gibi bulur (`aipager.yaml` içindeki `claude_path` ya da `$AIPAGER_CLAUDE_BIN` hemen kazanır; yoksa `~/.local/bin`, PATH ve Homebrew içindeki en yenisi) ve bulunan DİĞER her kurulumu listeler | Claude Code'u kur ya da `claude_path` / `AIPAGER_CLAUDE_BIN` ayarla |
-| `claude_auth` | Gerçek bir oturumun aldığı ortamda `claude auth status` dener. **Asla başarısız olmaz**: “giriş yapılmamış” ve “denemenin kendisi başarısız oldu” farklı gösterilir ve ikisi de oturum başlatmayı engellemez | `claude auth login` ya da bir API anahtarı / `CLAUDE_CODE_OAUTH_TOKEN` ayarla |
+| `claude_auth` | Gerçek bir oturumun aldığı ortamda `claude auth status` dener. **Asla başarısız olmaz**: “giriş yapılmamış” ve “denemenin kendisi başarısız oldu” farklı gösterilir ve ikisi de oturum başlatmayı engellemez. Ayrıca Claude Code'a oturumların `ANTHROPIC_API_KEY` değerini kullanmaması söylenmişse ve onlara başka hiçbir şey giriş yaptırmıyorsa uyarır. | `claude auth login` ya da bir API anahtarı / `CLAUDE_CODE_OAUTH_TOKEN` ayarla; `ANTHROPIC_BASE_URL` ayarlıysa o adresin anahtarı ([sağlayıcılar](#using-an-api-key-a-gateway-or-another-provider)) |
 | `dtach` | `dtach` programı bulundu (aipager'ın kendi `dtach-bin` paketi ya da PATH'teki) | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook` ve `aipager-statusline` PATH'te | `uv tool install --reinstall aipager` |
-| `settings_json` | `~/.claude/settings.json` içinde aipager hook'ları bağlı | `aipager config` |
+| `settings_json` | `~/.claude/settings.json` (ya da `$CLAUDE_CONFIG_DIR/settings.json`) içinde aipager hook'ları bağlı; `CLAUDE_CONFIG_DIR` ayarlıysa dosyayı ve değerin nereden geldiğini söyler | `aipager config` |
 | `daemon` | aipager çalışıyor ve soketi yanıt veriyor; Telegram sınırlarının durumunu da gösterir (bkz. [yukarısı](#the-bot-slowed-down-a-rate-limit-429)) | `aipager start` |
 | `service_installed` | İsteğe bağlı: hizmet dosyası yerinde | `aipager service install` |
 | `service_unit_path` | Yalnızca Linux: *kurulu* hizmetin `Environment=PATH=` değeri gerçekten bulunan claude programının klasörünü içeriyor; metin olarak okunur, çünkü doctor systemd'nin PATH'ini operatörün etkileşimli shell'inden göremez | `aipager service install --yes` |
-| `miniapp` | Açıksa Mini App başlayabiliyor mu. **Asla başarısız olmaz**: Mini App isteğe bağlıdır | gösterdiği düzeltme |
+| `miniapp` | Açıksa Mini App başlayabiliyor mu ve çalışan aipager onun için bir tünel tuttuğu sürece o tünel çalışıyor mu (çalışmıyorsa: nedeni, başarısız denemeler ve bir sonraki deneme; [yukarıya](#the-mini-app-link-isnt-working) bak). **Asla başarısız olmaz**: Mini App isteğe bağlıdır | gösterdiği düzeltme |
 
 `aipager doctor --json` aynı kontrolleri bu sırayla, bu anahtarlarla yazdırır (bkz. [komutlar](commands.md#aipager-doctor---json)).
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 Bu dosyanın neye karşı koruduğu ve neye karşı korumadığı için bkz. [Güvenlik modeli: Claude kimlik bilgileri](security.md#the-claude-credential-what-actually-protects-it).
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>API anahtarı, gateway ya da başka bir sağlayıcıyla
+
+aipager, Claude Code'u senin kurduğun gibi çalıştırır; bu yüzden Telegram'dan başlatılan bir oturum, terminalindeki `claude` gibi giriş yapar: bir claude.ai girişiyle, Anthropic'in bir API anahtarıyla, bir gateway üzerinden (LiteLLM, Vercel, Cloudflare ve benzerleri) ya da `ANTHROPIC_BASE_URL` içine yazılmış, başka bir şirketin Anthropic biçimindeki adresiyle. Anthropic, Claude Code'u yalnızca Claude modelleriyle destekler; başka modeller farklı davranabilir.
+
+- **Ayarlar nereye konur.** Her Claude Code oturumunun okuduğu `~/.claude/settings.json` (ya da `$CLAUDE_CONFIG_DIR/settings.json`) dosyasındaki `env` bloğuna ya da yalnızca aipager'ın başlattığı oturumlara giden `~/.config/aipager/daemon.env` dosyasına: her ayar için bir `KEY=value` satırı, tırnaksız (tırnaklar değerin parçası olur). Bir servis (`aipager service install`) kabuğunun profilini hiç okumaz, yani oradaki bir `export` ona ulaşmaz. `daemon.env` dosyasını değiştirdikten sonra aipager'ı yeniden başlat. Güvenilen bir başlangıç klasörünün `.claude/settings.json` ve `.claude/settings.local.json` dosyalarındaki ve yönetilen ayarlardaki (`/etc/claude-code` içinde Linux'ta, `/Library/Application Support/ClaudeCode` içinde macOS'ta `managed-settings.json` ve `managed-settings.d/`) `env` blokları da Claude Code için sayıldığı gibi sayılır.
+- **Hangi anahtar ayarı.** Bir gateway ya da başka bir sağlayıcı için Claude Code'un belgeleri `ANTHROPIC_AUTH_TOKEN` önerir; Claude Code bunu hiç sormaz. `ANTHROPIC_API_KEY` için bir kez “Do you want to use this API key?” diye sorar ve Telegram'dan başlatılan bir oturum yanıt veremez; bu yüzden aipager, oturum başlamadan hemen önce `~/.claude.json` (ya da `CLAUDE_CONFIG_DIR`'ın onu koyduğu dosyada) içinde yanıtlar:
+  - Evet: anahtar `settings.json` ya da `daemon.env` içindeyse veya oturuma başka hiçbir şey giriş yaptıramıyorsa.
+  - Hayır: anahtar yalnızca aipager'ın başlatıldığı ortamdan geliyorsa ve Claude'a başka bir yoldan zaten giriş yapılmışsa; oturumların o girişte ve onun planında kalır. Anahtarı kullanmak için, anahtarın tanımlı olduğu bir terminal oturumunda onu `/config` ve “Use custom API key” ile aç.
+  - Kendi verdiğin bir yanıt kalır; tek istisna, başka hiçbir şey oturuma giriş yaptıramıyorken `settings.json` ya da `daemon.env` içindeki bir anahtar için verilmiş bir Hayır'dır. Bir Hayır oturumları girişsiz bıraktığında `aipager doctor` bunu söyler; anahtarı bir terminalde `/config` ve “Use custom API key” ile yeniden aç.
+- **İlk açılış ekranları.** Claude Code'un ilk açılışını hiç bitirmediği yerde (yeni bir makine ya da container), oturumun giriş bilgisi varsa aipager bunu bitmiş olarak işaretler; böylece oturum tema seçiminde takılmaz. Hiç giriş bilgisi yoksa bir terminalde bir kez `claude` çalıştır ve giriş yap.
+- **Modeller.** Opus, Sonnet ve Haiku düğmeleri Claude Code'un `opus`, `sonnet` ve `haiku` adlarını gönderir; `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` ve `ANTHROPIC_DEFAULT_HAIKU_MODEL` ayarlıysa Claude Code bunları sağlayıcının modellerine eşler. `claude-...` düğmeleri bu modellere sahip bir sağlayıcı ister. Başka bir modeli `/new` komutunun model adımında ya da Mini App'te sağlayıcının yazdığı gibi yaz: harf, rakam ve `. _ - : / @ ~ ,` karakterlerinden en fazla 128 karakter; Claude Code'un `[1m]` eki de olabilir. Düğmeleri `keyboard.json` değiştirir ([Kalıcı klavye](commands.md#persistent-keyboard) bölümüne bak).
+- **Anahtarsız `ANTHROPIC_BASE_URL`.** O zaman Claude Code claude.ai girişini o adrese gönderir. Adres, girişini Anthropic'e iletmek için kurulmuş bir gateway değilse sağlayıcının anahtarını da ayarla.
+- **Desteklenmez:** Claude Code'u yerel bir proxy üzerinden başka bir şirketin sohbet aboneliğiyle (örneğin bir ChatGPT planıyla) çalıştıran araçlar. O şirket Claude Code'u kendi planları için onaylamadı ve böyle bir kullanım o hesabı riske atabilir.
+
+**Claude Code'un ayarları başka bir klasörde (`CLAUDE_CONFIG_DIR`).** Claude Code ayarlarını, oturum açma bilgisini, transkriptlerini ve genel ayarlarını `~/.claude` ile `~/.claude.json` içinde ya da `CLAUDE_CONFIG_DIR`'ın gösterdiği klasörde tutar. aipager de aynı değişkeni izler; böylece hook'ları ve durum satırı oturumlarının okuduğu `settings.json` dosyasına, yanıtları da Claude Code'un okuduğu dosyaya gider (Claude Code 2.1.303 ile denendi):
+
+- **Onu `~/.config/aipager/daemon.env` içinde ayarla** ve aipager'ı yeniden başlat. Bir servis kabuğunun profilini hiç okumaz, bu yüzden bir `export` yalnızca o kabuktaki `aipager start` komutuna ulaşır. Başlarken daemon hook'larını `$CLAUDE_CONFIG_DIR/settings.json` dosyasına ekler ve günlüğe `sessions read Claude Code's config from ...` yazar; o çalışırken değeri değiştirirsen, başlattığı sonraki oturum onları alır, o zamandan beri onları kaybetmiş bir ayar dosyası da. Hook'lar eklenemediğinde günlükte `sessions will start without aipager's hooks` yazar ve `aipager doctor` uyarır.
+- **Tam yol kullan.** Claude Code değeri olduğu gibi alır: `~` açılmaz, göreli bir değer (boş bir değer de) her oturumun kendi klasörünün içindeki bir klasör demektir. aipager oraya hiçbir şey yazmaz: günlük ve `aipager doctor` uyarır, `aipager setup` çözümle durur, `aipager config` ise Claude Code adımını çözümü gösteren bir uyarıyla atlar ve devam eder. Çözüm, değeri tutan dosyayı söyler: `daemon.env` ya da `env` bloğu onu ayarlayan ayar dosyası.
+- **Claude Code'un kendi ayarlarında ayarlı.** `~/.claude/settings.json` (ya da yönetilen ayarlar) dosyasının `env` bloğundaki bir `CLAUDE_CONFIG_DIR`, ayar dosyasını, oturum açma bilgisini ve transkriptleri taşır, ama `~/.claude.json` dosyasını taşımaz. aipager bunu da izler; `aipager doctor` nerede olduğunu söyler.
+- **`aipager config` ve `aipager setup`** daemon'un oturumlarının okuduğu dosyayı düzenler: kabuğunun ortamı artı `daemon.env`. Başka bir değere sahip bir kabukta başlattığın bir `claude` başka bir dosya okur ve aipager hook'larına sahip olmaz; `aipager doctor` onu söyler.
+- **Eski `.config.json`.** `<config folder>/.config.json` kullanımdayken (örneğin varsa ve boş değilse) Claude Code `.claude.json` yerine onu okur, aipager da öyle. Boş bir `CLAUDE_CONFIG_DIR` ile o dosya oturumun kendi klasöründe olurdu ve aipager oraya hiçbir şey yazmaz.
+- **aipager'ın okuyamadıkları.** Bir MDM profiliyle (macOS), Windows kayıt defteriyle ya da Claude'un sunucularından gelen yönetilen ayarlar ve `--settings` seçeneği. Yalnızca orada ayarlı bir anahtar ya da sağlayıcı anahtarı, aipager başlangıç sorularını yanıtlarken görülmez; o zaman Claude Code, aipager olmadan yapacağı gibi sorar.
+- **Yasak listesi.** Kısıtlı rolleri ve gönderilen dosyaları Claude'un kimlik bilgilerinden uzak tutan varsayılan kurallar `~/.claude/**` ve `~/.claude.json*` yollarını adlandırır. Başka bir yerdeki `CLAUDE_CONFIG_DIR` bunlarca kapsanmaz, bu yüzden oturumlarını admin olmayan kişiler kullandığında onu `~/.claude` içinde tut (Docker imajınınki öyle) ([güvenlik](security.md#who-decides-whether-a-tool-call-runs)).
 
 ## <a id="the-daemons-control-socket-moved"></a>aipager'ın kontrol soketi taşındı
 
@@ -313,6 +423,8 @@ Bir git URL'inden yapılmış bir pipx kurulumu PyPI'dan değil, o git kaynağı
 Yerinde başlatma başarısız olursa, eski süreç gittikten sonra ayrı bir kopya aipager'ı başlatır. Bu durumda çıktısı terminaline değil kendi kendini yeniden başlatma günlüğüne (örnek klasöründeki `aipager.log` ya da `/tmp/aipager.log`) gider, ve bu kopya geri gelmezse aipager günlüğü çalıştırılacak komutu söyler. Yorumlayıcının kendisi yoksa (ortamı silindiyse) ya da hiçbir şey başlatılamadıysa, aipager 1 koduyla çıkar, aipager günlüğü `restart.failed:` ve çalıştırılacak komutla biter, ve bir sonraki başlangıç güncellemeyi duyurur.
 
 **Şimdi yeniden başlat** düğmesi yoksa, mesaj kurulumuna uygun adımları verir: bir terminalde ya da tmux'ta Ctrl+C'ye bas ve `aipager start` çalıştır; macOS'ta `launchctl kickstart -k gui/<uid>/com.aipager.daemon`; Docker'da, Docker'ın çalıştığı bilgisayarda `docker restart <container>`. Bir Docker konteynerini yeniden oluşturmak (`down` sonrasında `docker compose up` ya da yeniden `docker run`) onu imajından başlatır, bu da o imajdaki aipager sürümünü geri getirir: daha yeni bir aipager'ı tutmak için daha yeni bir imaj kullan.
+
+İmaj `CLAUDE_CONFIG_DIR=/home/aipager/.claude` ayarlar, bu yüzden Claude Code'un genel ayarları (`.claude.json`: klasörlere güven, ilk çalıştırma durumu, API anahtarı yanıtları, hesabın ve kullanıcı MCP sunucuları) geri kalanıyla birlikte `.claude` biriminde tutulur ve konteyner yeniden oluşturulunca kaybolmaz. Önceki imajlar onu `/home/aipager/.claude.json` konumunda, konteynerin kendi içinde tutuyordu. Yeni imajın ilk başlangıcında eski dosya okunmaz: birimdeki `.credentials.json` içindeki oturum açma bilgin çalışmaya devam eder ve bir oturum başladığında aipager klasör güveni ve ilk çalıştırma sorularını yeniden yanıtlar, ama `claude mcp add --scope user` ile eklenen kullanıcı MCP sunucularının yeniden eklenmesi gerekir. Ana makinenin `~/.claude` klasörünü bağlarsan (README'deki komutların yaptığı gibi), dosya orada `~/.claude/.claude.json` olarak görünür; ana makinedeki Claude Code onu okumaz (`~/.claude.json` kullanır). Adlandırılmış bir birim ikisini ayrı tutar.
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>aipager bir güncellemeden sonra geri gelmedi
 

@@ -1,6 +1,6 @@
 import { GitHubIcon, Mark } from "@/components/brand";
 import { LangSwitcher } from "@/components/lang-switcher";
-import { getAipagerVersion } from "@/lib/version";
+import { AIPAGER_VERSION } from "@/lib/version";
 import { dictOf } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/locales";
 
@@ -8,8 +8,7 @@ import type { Locale } from "@/lib/i18n/locales";
 // the bar keeps just brand + Docs + GitHub. Shared by the landing page and
 // the docs layout. The six section links only appear at lg: at md even the
 // English labels need three lines, and a longer language needs more.
-export async function Nav({ locale }: { locale: Locale }) {
-  const version = await getAipagerVersion();
+export function Nav({ locale }: { locale: Locale }) {
   const t = dictOf(locale).nav;
   const links: { href: string; label: string; homeOnly?: boolean }[] = [
     { href: `/${locale}#modes`, label: t.modes, homeOnly: true },
@@ -29,7 +28,7 @@ export async function Nav({ locale }: { locale: Locale }) {
             aipager<span className="text-accent">.</span>run
           </span>
           <span className="hidden rounded-full border border-white/10 px-2 py-0.5 font-mono text-[11px] font-normal text-fg-3 sm:inline">
-            v{version}
+            v{AIPAGER_VERSION}
           </span>
         </a>
         <div className="ms-auto flex items-center gap-4 text-sm text-fg-3 xl:gap-6 phone:gap-3">

@@ -9,7 +9,9 @@ audit log.
 ## How it is wired
 
 `aipager config` (or `aipager setup`) adds aipager's entries to
-`~/.claude/settings.json`, and the daemon checks them at every start:
+`~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`, the
+file the daemon's sessions read), and the daemon checks them at every
+start:
 
 - one `aipager-hook` command for each of the 16 events below, with the
   matcher `*` on the tool events (`PreToolUse`, `PostToolUse`,
@@ -29,16 +31,27 @@ JSON on stdin, adds two fields (below) and sends it to the daemon as one
 datagram on a Unix socket. The socket is, in this order:
 `$AIPAGER_INSTANCE_DIR/aipager.sock` for an isolated test instance,
 `$AIPAGER_SOCKET_PATH`, `$XDG_RUNTIME_DIR/aipager.sock`, or
-`/tmp/aipager.sock`. The send never waits: if no daemon is listening the
-event is dropped, and the session monitor catches up from the session's
-files.
+`/tmp/aipager.sock`. If no daemon is listening the event is dropped, and
+the session monitor catches up from the session's files. The send waits
+only when the daemon has a long queue of unread events (on Linux).
+
+An event too big for one datagram (over 240 KiB, or over the system's
+own limit: about 208 KiB on Linux and 2 KiB by default on macOS) goes
+through a file instead. The hook writes it, owner-only, into the
+`aipager-spill-<uid>` folder beside the socket and sends a short
+datagram naming the file; the daemon reads and deletes it at once and
+handles the event as if it had come whole, in the same order. Events
+over 4 MiB are still dropped. See [security](security.md) for the
+checks on that folder.
 
 Most events cost Claude Code about 20 to 25 ms of process start. A few
 also load aipager's rule code: before a tool call (the safety check, see
 [PreToolUse](#pretooluse)) about 70 ms, at the end of a turn (to clear
 the turn's open mark) about 55 ms, and `UserPromptSubmit` (which writes
 the turn's rules). A `PermissionRequest` deliberately waits for your
-tap, up to 20 seconds.
+tap, up to 20 seconds, and a tool call waits while aipager types a
+message into its session (at most 5 seconds, see
+[PreToolUse](#pretooluse)).
 
 The hook caps its own memory at 1 GB. A hook that hits the cap exits
 with an error (for `PreToolUse`, the exit code Claude Code reads as a
@@ -59,11 +72,33 @@ The datagram is Claude Code's own hook JSON with aipager's fields added
 | `session_id`, `transcript_path`, `cwd`, ... | Claude Code's own fields, as sent. `session_id` is Claude Code's conversation id. |
 | `session` | Added by aipager: its name for the session, `claude-<name>`, from the `CLAUDE_DTACH_SESSION` variable aipager sets when it starts a session. Events from a Claude Code session aipager did not start carry no name and are ignored by the daemon. |
 | `sl_tokens` | Added by aipager, on every event except `MessageDisplay`, when the session's status-line file exists: `context_pct`, `total_output`, `total_input`, `current_output`, `lines_added` and `lines_removed`. |
+| `claude_pid` | Added by aipager on the session's own events: the pid of its `claude` (Claude Code's `CLAUDE_PID`), which the daemon uses to find that claude in Claude Code's session list. |
+| `bg_job` | Added by aipager on every event of a Claude Code background job that counts for the session (see below): the job's id. |
 
 Tool events also carry `tool_name` and `tool_input`. Every event fired
 inside a subagent carries `agent_id` (and the subagent events
 `agent_type`); the main loop's own events do not, and aipager uses that
 to put an agent's tool calls on the agent's own row.
+
+Claude Code's background jobs run their hooks too. ← on an empty prompt
+moves a session's conversation into a background job (Claude Code's
+agent view), and Claude Code also keeps spare background processes
+ready for the next job. Their hooks run with `CLAUDE_JOB_DIR` set, and
+they inherit the session name of whatever claude started Claude Code's
+background service, so that name says nothing about them. The hook
+therefore counts a background job only for the session whose own claude
+moved its conversation into that job: it finds that session in the
+job's link file (`claude-bgjob-<job>.json`, which the daemon writes when
+it sees the move, see [architecture](architecture.md#file-and-socket-layout)),
+or else in Claude Code's session list together with the daemon's pid
+map. Such a job's events go to the daemon as that session's, with
+`bg_job` set, so its answer, card and prompts reach the session's chat.
+Any other background process is foreign: its hook writes nothing, sends
+nothing and prints nothing, except that `PreToolUse` still checks its
+tool calls against the session's rules it inherited and prints a deny
+(it never allows more than that session would). The daemon drops a
+`bg_job` event it cannot match to a parked session, and creates nothing
+for it.
 
 ## Event reference
 
@@ -74,14 +109,20 @@ hook's own work is in `aipager/dtach/notify_hook.py`.
 
 A session started, resumed or was compacted. A session the daemon does
 not track yet is registered. After a compaction the card reads
-`📦 name · Compacted: 82% → 4%` (see [PreCompact](#precompact--postcompact)). For
+`📦 name · Compacted from 82%` (see [PreCompact](#precompact--postcompact)). For
 a new conversation the hook also clears the previous turn's open mark.
+A background job's first `SessionStart` (source `fork`) only tells the
+daemon the job's conversation id; it does not close the turn that moved
+with it. The first `SessionStart` of a session brought back from
+Claude Code's background sends the messages held meanwhile.
 
 ### `SessionEnd`
 
 The session ended. It is marked GONE: it leaves the pinned status bar
 and moves to the ended sessions, where `/resume` can bring it back.
 `aipager session <name>` or `/new <name>` starts a new one.
+A background job's `SessionEnd` (the job was stopped) never ends the
+session: it ends a turn the job left open, as `StopFailure` does.
 
 ### `UserPromptSubmit`
 
@@ -123,6 +164,15 @@ in the hook, before Claude Code looks at its permission rules:
 - A `SendUserFile` call (Claude sending files to the chat) is checked for every turn, the owner's and a terminal prompt's included: the send floor, the file checks and the turn's own rules ([security](security.md#files-claude-sends)). A refused call gets a `deny` without the "aipager safety policy" mark: Claude reads why and tells you, the turn goes on, and the hook sends the daemon `send_files_refused`, naming each file, for the audit log.
 - A check that fails denies, unless the session's rules could be read
   and grant the owner's bypass.
+- Last, for a call it lets through, the hook leaves a short-lived stamp
+  in a folder beside the daemon's socket and, while aipager is typing a
+  message into that session, waits until the typing is done (at most 5
+  seconds). Claude Code shows a permission prompt the moment this hook
+  returns, and keys typed into it would answer it: a message's Enter
+  picks "Yes". The daemon in turn waits out a call that passed just
+  before it began typing, and a message that meets a prompt anyway is
+  not typed: it waits (👀) and goes to Claude once the prompt is
+  answered.
 
 On the daemon side, the call becomes a row on the busy card (a
 subagent's call goes on that agent's row), and a `Write` or `Edit`
@@ -144,13 +194,15 @@ real rule to remember.
 
 The hook answers the prompt itself when it can. It opens a short-lived
 reply socket, sends its address with the event, and waits up to 20
-seconds for your tap. A tap in time comes back as a `PermissionRequest`
-decision (allow, allow with the rule, or deny), so Claude Code never
-shows its own dialog. If no tap comes in time, the hook tells the
-daemon the wait is over (`permission_reply_timeout`) and prints
-nothing; it also prints nothing when the daemon cannot be reached or
-anything on that path fails. Claude Code then shows its own dialog in
-the terminal, and a later tap answers it by typing the keys. The audit log
+seconds for your tap. Claude Code shows its own dialog in the terminal
+at the same time (for a subagent's call, only once the hook is done). A
+tap in time comes back as a `PermissionRequest` decision (allow, allow
+with the rule, or deny), which closes that dialog. If no tap comes in
+time, the hook tells the daemon the wait is over
+(`permission_reply_timeout`) and prints nothing; it also prints nothing
+when the daemon cannot be reached or anything on that path fails. The
+dialog then waits in the terminal, and a later tap answers it by typing
+the keys. The audit log
 (`~/.claude/aipager-audit.jsonl`) records which way each tap answered,
 `"via": "hook_decision"` or `"via": "keystroke_fallback"`.
 
@@ -225,11 +277,12 @@ rate limit, ...) is shown in plain words.
 
 A subagent started or ended. Each one gets its own row on the busy card,
 `🤖 <type> · <activity> · <elapsed>`, with its own tool calls folded
-under it, and settles to `✅ 🤖 <type> · N tool calls · <elapsed>` when it
-stops. `SubagentStart` does not say which agent started it: aipager
-matches it to the `Agent` call (`PreToolUse`) of its type that is
-waiting. When every such call came from one agent, the new agent is
-linked to that agent at once (its card row reads `🤖 pipeline-runner ›
+under it (the newest one always shown after the fold), and settles to
+`✅ 🤖 <type> · N tool calls · <elapsed>` when it stops. `SubagentStart`
+does not say which agent started it: aipager matches it to the `Agent`
+call (`PreToolUse`) of its type that is waiting. When every such call
+came from one agent, the new agent is linked to that agent at once
+(its card row reads `🤖 pipeline-runner ›
 ship-tester`, and it joins the agents under it in an answer's status);
 when they came from different agents, nothing is linked until the
 starting agent's own `PostToolUse` names it. A call's description is
@@ -254,14 +307,29 @@ agents, waiting ones included, are kept across a daemon restart.
 `SubagentStop` events with no type and an unknown id arrive often and
 are ignored.
 
+Agents stopped with Claude Code's "stop background agents" keys (ctrl+x
+ctrl+k, pressed twice) fire no `SubagentStop`. aipager ends them itself:
+at once when its own Stop pressed those keys, when Claude Code's
+transcript gets its `agents_killed` line (read at the `UserPromptSubmit`
+of the turn Claude Code then starts by itself, whose prompt is a plain
+sentence with no wrapper), or when a `Stop` event's `background_tasks`
+no longer lists agents an earlier `Stop` listed. Their open prompts
+close (no hook says so), and a `SubagentStop` that still comes later
+for one of them is ignored. That turn is not taken for a prompt typed
+in the terminal when aipager's own Stop pressed those keys, or once
+Claude Code's transcript shows the kill.
+
 ### `PreCompact` / `PostCompact`
 
 Claude is compacting its context (`trigger` is `auto` or `manual`). The
 busy card reads `🔄 name · Compacting` (a new message when no card is
 up), so the pause does not look like a crash. `PostCompact` ends that
-state; the `📦 name · Compacted: X% → Y%` line comes from the
+state; the `📦 name · Compacted from X%` line comes from the
 `SessionStart` that follows, or from the status line when that is
-missed. The status line also gives the warning `⚠️ name · Context at
+missed. Claude Code's status line reads 0% until the next message, so
+the new size is not known yet: after a compaction between turns, the
+line becomes `📦 name · Compacted: X% → Y%` once the status line reports
+it. The status line also gives the warning `⚠️ name · Context at
 82% - auto-compact soon` (with a Compact button) when the context
 reaches 80%, once per conversation: compacting does not repeat it, and a
 new conversation (after `/clear`, for example) gets it again.

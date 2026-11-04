@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ eac6764 -->
+<!-- i18n-source: README.md @ bd8a636 -->
 
 <h3>Claude тепер - просто ще один чат.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Змонтуй у `/workspace` папки, які Claude має правити. Монтування `~/.claude` переносить твої облікові дані Claude та історію розмов: один раз запусти `claude` на хості, щоб увійти, або `docker exec -it aipager claude`, щоб увійти всередині контейнера.
 
-Теги: `latest`, `1.3`, `1.3.7` (по одному на точну версію та на мінорну).
+Теги: `latest`, `1.4`, `1.4.0` (по одному на точну версію та на мінорну).
 
 ### <a id="nix"></a>Nix
 
@@ -353,6 +353,15 @@ aipager надсилає в Telegram лише те, що ти бачиш у св
 <br>
 
 Меню **Модель** на клавіатурі й Mini App пропонують родинні аліаси Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) і закріплені моделі на кшталт `claude-opus-5-5` і `claude-sonnet-5-5`. В API Anthropic аліас вказує на найновішу модель родини. На Bedrock і Vertex той самий аліас може вказувати на старішу версію, залежно від того, що пропонує твій провайдер; надішли `/model <full-id>`, щоб вибрати точну модель.
+
+</details>
+
+<details>
+<summary><b>У мене API-ключ, шлюз або інший провайдер. aipager працюватиме?</b></summary>
+
+<br>
+
+Так. aipager запускає Claude Code так, як він у тебе налаштований, і відповідає на запитання, які Claude Code ставить на старті (тека, API-ключ, екрани першого запуску), щоб сесія, запущена з Telegram, на них не зупинялася. Налаштування поклади в блок `env` файлу `~/.claude/settings.json` або в `~/.config/aipager/daemon.env` (один рядок `KEY=value` на налаштування, без лапок). Кнопки Opus, Sonnet і Haiku йдуть за `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` і `ANTHROPIC_DEFAULT_HAIKU_MODEL`, а будь-яку іншу модель можна ввести за назвою. Anthropic підтримує Claude Code лише з моделями Claude. Докладніше в [Розв'язанні проблем](troubleshooting.md#using-an-api-key-a-gateway-or-another-provider).
 
 </details>
 

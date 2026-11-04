@@ -1,6 +1,6 @@
 # Xử lý sự cố
 
-<!-- i18n-source: docs/troubleshooting.md @ 1de34258 -->
+<!-- i18n-source: docs/troubleshooting.md @ f3d5b335 -->
 
 > Trang này được dịch từ tiếng Anh; nếu hai bản khác nhau, bản tiếng Anh là bản đúng. ([English](../../troubleshooting.md))
 
@@ -142,6 +142,44 @@ aipager session <label>            # hoặc một phiên mới, không có lịc
 aipager session <label> --continue # dtach mới, cuộc trò chuyện gần nhất của thư mục
 ```
 
+Thông báo trong chat cho biết vì sao phiên kết thúc, dựa trên mã thoát mà `claude` để lại (aipager ghi nó vào `claude-exit-<session>.json` khi `claude` thoát):
+
+- `🔴 x1 · Phiên bị crash hoặc đã bị tắt`: không có mã thoát nào được ghi (máy tính đã khởi động lại, hoặc tiến trình của phiên bị tắt cùng lúc).
+- `🔴 x1 · Phiên đã đóng`: `claude` kết thúc bình thường (mã thoát 0).
+- `🔴 x1 · Phiên đã thoát với mã lỗi 2`: `claude` thất bại với mã đó.
+- `🔴 x1 · Phiên bị tắt bởi tín hiệu SIGKILL`: có thứ gì đó đã tắt `claude` (mã thoát trên 128 cho biết tín hiệu).
+- `🔴 x1 · Claude Code đã dừng ngay sau khi khởi động (mã thoát 1)`: `claude` bỏ cuộc trong vòng 10 giây sau khi khởi động, thường là do đối số hoặc cài đặt của chính nó. Kết nối bằng `aipager session x1` để xem thông báo của nó, hoặc tự khởi động nó trong một terminal.
+- `🔴 x1 · Claude Code đã dừng ngay sau khi khởi động vì cuộc trò chuyện của nó đang chạy ở chế độ chạy nền của Claude Code`: Claude Code từ chối tiếp tục một cuộc trò chuyện mà một tác vụ chạy nền vẫn đang giữ. Chạm `↩️ Đưa về ngay`: aipager dừng tác vụ đó nếu nó đang không làm gì (nếu đang làm việc thì hỏi trước) và tiếp tục cuộc trò chuyện ở đây. Xem phần tiếp theo.
+
+## <a id="a-session-moved-to-claude-codes-background"></a>Một phiên đã chuyển sang chế độ chạy nền của Claude Code
+
+`🌙 x1 đã chuyển sang chế độ chạy nền của Claude Code, và tin nhắn tiếp theo của bạn sẽ đưa phiên này về lại đây.`
+
+Nhấn ← khi ô nhập của Claude Code trống sẽ chuyển cuộc trò chuyện của phiên sang một tác vụ chạy nền của Claude Code, và terminal hiện chế độ xem agent của Claude Code thay cho cuộc trò chuyện. aipager nhận ra trong vài giây và thôi gõ vào terminal đó: bất cứ thứ gì gõ vào đó bây giờ đều có thể khởi động một tác vụ chạy nền khác. Tác vụ vẫn tiếp tục làm việc, và thẻ, câu trả lời và các yêu cầu cấp quyền của nó vẫn tới chat như của phiên. Trong Mini App, phiên hiện “đang chạy nền”, hoặc “đang chờ bạn” khi tác vụ của nó đang chờ một yêu cầu cấp quyền mà bạn có thể trả lời từ chat.
+
+Để đưa nó về lại:
+
+- Gửi cho nó một tin nhắn. Tin nhắn chờ (👀), aipager dừng tác vụ chạy nền (`claude stop <job>`), khởi động lại phiên trên cuộc trò chuyện của tác vụ với cài đặt riêng của aipager, rồi gửi tin nhắn. Nếu tác vụ vẫn đang làm việc, hoặc việc đã chuyển đi cùng ← vẫn đang chạy, bạn được hỏi trước: `Dừng và đưa về` dừng việc nó đang làm, `Cứ để vậy` để nó làm xong (đưa phiên về lại sau). Trong vài giây đầu sau ←, một tác vụ chạy nền mới có thể trông như đang không làm gì ngay trước khi nó tiếp tục việc đó, nên một tin nhắn gửi vào lúc ấy sẽ chờ một chút trước khi aipager quyết định. Người có vai trò không được khởi động lại phiên sẽ nhận `Tin nhắn bạn gửi x1 sẽ chờ đến khi có người đưa phiên này về lại từ chế độ chạy nền của Claude Code.`
+- Hoặc chạm `↩️ Đưa về ngay` dưới thông báo, gửi `/restart x1`, hoặc chạm “Đưa về” trong Mini App. `/stop` khi tác vụ đang làm việc sẽ dừng việc đó và đưa phiên về lại. Một nút còn lại từ lần chuyển sang chạy nền trước sẽ trả lời `x1 không ở trong chế độ chạy nền của Claude Code.` và không làm gì. Khi một lần đổi chế độ phải khởi động lại phiên (chuyển sang Chế độ Toàn quyền hoặc rời Chế độ Toàn quyền) rơi vào lúc tác vụ đang làm việc, `Dừng và đưa về` sẽ đưa phiên về lại ở chế độ bạn đã chọn.
+
+Khi một quy tắc an toàn dừng việc của phiên trong lúc phiên đang ở chế độ chạy nền, aipager dừng tác vụ chạy nền. Nếu không dừng được, thông báo dừng sẽ nói rằng việc bị chặn có thể vẫn đang chạy ở đó, và dòng đầu của thông báo không kết thúc bằng `(đã dừng)`; hãy dừng tác vụ bằng `claude stop <job>` trong một terminal.
+
+Cho tới lúc đó, các lệnh sẽ gõ vào phiên (`/compact`, `/model`, việc đổi sang Chế độ Hỏi hoặc Chế độ Auto, `/now`, “Thử lại”) trả lời `Đưa x1 về lại từ chế độ chạy nền của Claude Code trước.`, và một câu trả lời cho yêu cầu mà aipager sẽ phải gõ nhận `Để trả lời, đưa x1 về lại từ chế độ chạy nền của Claude Code trước.` Các câu trả lời đi qua hook (phần lớn yêu cầu cấp quyền) vẫn hoạt động.
+
+`/resume`, “Tiếp tục” trong Mini App và `aipager resume` cũng đi theo một cuộc trò chuyện đã chuyển đi theo cùng cách: cuộc trò chuyện mới nhất được tiếp tục, và một tác vụ chạy nền vẫn giữ nó sẽ bị dừng trước nếu đang không làm gì. `aipager session x1 --resume <id>` làm điều tương tự trong terminal; khi tác vụ đang làm việc, nó in `claude stop <job>` và `claude attach <job>` rồi thoát với mã 1 thay vì khởi động bất cứ thứ gì.
+
+## <a id="claude-code-asks-whether-to-resume-a-conversation"></a>Claude Code hỏi có tiếp tục một cuộc trò chuyện không
+
+`❓ x1: Claude Code hỏi có tiếp tục cuộc trò chuyện này không. Cuộc trò chuyện đã lâu không được dùng, và tiếp tục nó sẽ dùng một phần giới hạn sử dụng 5 giờ của bạn.`
+
+Đôi khi Claude Code đặt một câu hỏi trong terminal của chính nó trước khi tiếp tục một cuộc trò chuyện dài, và không báo cho hook nào: `Resume this conversation?` khi một cuộc trò chuyện lớn đã lâu không được dùng (tiếp tục nó sẽ dùng một phần giới hạn sử dụng 5 giờ của bạn), `Resume from summary` khi một cuộc trò chuyện cũ và lớn được mở lại, và vài câu khác. aipager đọc bản ghi phiên do chính Claude Code lưu, nên biết khi có câu hỏi như vậy đang mở. Trong lúc câu hỏi còn mở, aipager không gõ gì vào terminal đó: tin nhắn bạn gửi sẽ chờ (👀) và được gửi đến Claude ngay khi câu hỏi được trả lời.
+
+- **Ngay sau khi khởi động lại, đổi chế độ, đưa về hoặc tiếp tục một phiên**, aipager không thể biết Claude Code đang hiện câu hỏi nào trong số này, nên thẻ ghi `❓ x1: Claude Code đang đặt một câu hỏi trong terminal trước khi tiếp tục cuộc trò chuyện này.` và chỉ có một nút, `Tiếp tục cuộc trò chuyện này`. Nút này trả lời câu hỏi giống như nhấn Escape ở đó: cuộc trò chuyện tiếp tục nguyên như cũ, với toàn bộ lịch sử. Để bắt đầu lại hoặc thu gọn cuộc trò chuyện, hãy chạm nút đó rồi gửi `/clear` hoặc `/compact`.
+- **Với một phiên đã sẵn sàng mà lâu không được dùng**, Claude Code tự hỏi (với gói đăng ký, khoảng một giờ sau câu trả lời cuối). Lúc đó không có gì hiện ra; khi bạn gửi tin nhắn, tin nhắn sẽ chờ và thẻ ở trên xuất hiện với `Tiếp tục` và `Bắt đầu cuộc trò chuyện mới`. Tiếp tục tiếp tục cuộc trò chuyện. Bắt đầu cuộc trò chuyện mới rời khỏi nó và bắt đầu một cuộc trò chuyện trống (aipager gõ `/clear`), và tin nhắn đang chờ của bạn là tin nhắn đầu tiên của cuộc trò chuyện mới. Khác với tùy chọn của chính Claude Code, cuộc trò chuyện mới không trỏ đến cuộc cũ. Bạn cần có quyền gửi `/clear` trong chat đó.
+- **Mọi câu hỏi hoặc bảng khác** mà Claude Code hiện trong terminal của nó (ví dụ một `/config` gửi từ Telegram) sẽ có một ghi chú, không có nút: `❓ x1 đang chờ trả lời một câu hỏi trong terminal của phiên. Hãy trả lời ở đó, rồi các tin nhắn gửi trong lúc chờ sẽ đến Claude ngay sau đó.`
+
+Bạn luôn có thể trả lời trong terminal; khi đó thẻ ghi `x1: câu hỏi đã được trả lời trong terminal.` Một nút được chạm sau khi câu hỏi đã đóng sẽ không làm gì và trả lời `Câu hỏi này không còn mở nữa.` aipager không bao giờ đưa ra `Don't ask me again`: tùy chọn đó thay đổi cài đặt của chính Claude Code cho mọi phiên.
+
 ## <a id="a-permission-prompt-with-no-news-for-5-minutes"></a>Một yêu cầu cấp quyền không có tin gì trong 5 phút
 
 Nếu một phiên đang chờ một yêu cầu cấp quyền hay câu hỏi và Claude Code không báo gì trong 5 phút, aipager đọc cuộc trò chuyện đã lưu của phiên. Chỉ tin từ chính Claude và từ agent đã hỏi được tính: một agent chạy nền vẫn tiếp tục làm việc không cản việc kiểm tra này. Chỉ khi nó cho thấy yêu cầu đã xong (đã trả lời trong terminal, và tin đó bị mất) thì aipager mới thôi chờ và coi phiên là đang làm việc trở lại. Nếu không, yêu cầu vẫn mở dù mất bao lâu: thẻ và thanh được ghim vẫn báo phiên cần bạn trả lời, không có ghi chú “vẫn đang làm việc” nào được gửi, và tin nhắn của bạn được giữ lại cho đến khi bạn trả lời (xem [chữ](commands.md#text)). Claude Code thoát khi yêu cầu còn mở thì phiên kết thúc. Các nút của yêu cầu vẫn trả lời hộp thoại nếu nó vẫn đang mở (xem [câu trả lời khi việc kết thúc](commands.md#idle-responses)).
@@ -161,6 +199,54 @@ Nút `[📦 Cài tính năng thoại]` chạy trình cài đặt và sửa tin n
 - Permission denied: venv chỉ đọc. Chuyển sang `uv tool install`, cách này luôn dùng một venv thuộc về người dùng của bạn.
 
 Nếu bot mất kết nối giữa lúc cài, bản thân việc cài trên máy thường đã xong: hãy khởi động lại aipager và thử lại một tin nhắn thoại.
+
+## <a id="the-mini-app-link-isnt-working"></a>Link Mini App không hoạt động
+
+Khi không tạo được link Mini App, `/app` cho biết lý do. Người có thể sửa máy tính (chủ bot khi cài cho riêng mình, quản trị viên của chat đó trong nhóm) nhận được nguyên nhân và cách xử lý; những người khác nhận được `📱 Mini App hiện không dùng được. Hãy gửi lại /app sau.` `aipager doctor` cũng nói như vậy ở dòng `miniapp` (là cảnh báo, không bao giờ là lỗi), kèm số lần thử thất bại và khi nào thử lần tới.
+
+aipager vẫn tiếp tục tự thử lại: đầu tiên vài lần thử nhanh, sau đó cứ 10 phút một lần (`TUNNEL_RETRY_SLOW_SECONDS`, không bao giờ dưới 60 giây), và một lệnh `/app` trong giai đoạn chậm này bắt đầu ngay một lần thử (tối đa mỗi phút một lần). Khi máy tính được sửa, Mini App quay lại mà không cần khởi động lại.
+
+### <a id="the-dns-server-gave-an-incomplete-answer"></a>Máy chủ DNS trả lời thiếu
+
+`/app` báo `máy chủ DNS của máy tính này trả lời thiếu`. Máy chủ DNS chỉ trả lời một phần danh sách khi cloudflared tìm các máy chủ của Cloudflare (một vùng, trong khi Cloudflare công bố hai), và khi đó cloudflared dừng lại. Lỗi nằm ở máy chủ DNS mà máy tính được cấp (thường là của router hoặc của mạng máy ảo), không phải ở aipager. Hãy kiểm tra:
+
+```
+resolvectl query -t SRV _v2-origintunneld._tcp.argotunnel.com
+```
+
+Kết quả phải có hai bản ghi. Nếu chỉ có một, hãy đặt máy tính dùng máy chủ DNS khác, ví dụ 1.1.1.1. Với netplan (Ubuntu), giữ địa chỉ mà DHCP cấp nhưng bỏ máy chủ DNS của nó, trong tệp của bạn ở `/etc/netplan/` (`eth0` là tên giao diện mạng của bạn):
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-dns: false
+      nameservers:
+        addresses: [1.1.1.1, 1.0.0.1]
+```
+
+Sau đó chạy `sudo netplan apply`. Nếu chỉ dùng systemd-resolved, hãy tạo một tệp như `/etc/systemd/resolved.conf.d/dns.conf`:
+
+```ini
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domains=~.
+```
+
+Sau đó chạy `sudo systemctl restart systemd-resolved`. Kiểm tra lại bằng `resolvectl`: khi đã có hai bản ghi, lần thử tiếp theo của aipager sẽ đưa Mini App trở lại.
+
+### <a id="what-the-other-answers-mean"></a>Ý nghĩa của các thông báo khác
+
+- `máy tính này không tìm được các máy chủ của Cloudflare qua DNS`: việc tìm kiếm thất bại hoàn toàn (không có trả lời, hoặc hết thời gian chờ). Hãy kiểm tra kết nối internet và máy chủ DNS của máy tính như ở trên.
+- `cloudflared không lấy được link từ Cloudflare`: cloudflared không kết nối được tới `api.trycloudflare.com` để xin link. Hãy kiểm tra xem máy tính có mở được https://api.trycloudflare.com không (tường lửa có thể chặn).
+- `máy tính này không kết nối được tới các máy chủ của Cloudflare qua cổng 7844 (UDP)`: cloudflared kết nối tới Cloudflare qua cổng UDP 7844, và có thứ gì đó đang chặn. Hãy cho phép UDP 7844 đi ra trong tường lửa hoặc mạng của máy tính.
+- `aipager không tải hoặc chạy được cloudflared`: lần đầu, aipager tải một bản cloudflared đã được kiểm tra; việc tải, kiểm tra hoặc chạy đã thất bại. Hãy kiểm tra kết nối internet; `aipager logs` cho biết bước nào thất bại.
+- `cloudflared đang chạy nhưng link của nó chưa bao giờ trả lời từ internet`: cloudflared có link, nhưng không có gì tới được aipager qua link đó. aipager dừng tunnel đó và mở một tunnel mới.
+- `Mini App hiện không hoạt động`: một nguyên nhân mà aipager không nhận ra. `aipager logs` hiện thông báo của chính cloudflared, và các tệp của nó là `~/.claude/aipager-cloudflared.log` và `~/.claude/aipager-cloudflared.err`.
+
+Thông báo của chính cloudflared chỉ ghi vào log của aipager, không bao giờ vào chat. Khi đã đặt `MINIAPP_PUBLIC_URL`, aipager không mở tunnel nào và những điều trên không áp dụng. Trong lúc tunnel không hoạt động trên một máy tính cũng có Tailscale, `/app` đưa ra địa chỉ Tailscale.
 
 ## <a id="open-app-shows-open-this-page-from-the-telegram-app-to-sign-in"></a>Mở Mini App thì thấy “Hãy mở trang này từ ứng dụng Telegram để đăng nhập.”
 
@@ -225,14 +311,14 @@ Thứ tự là quan trọng: mỗi bước kiểm tra sau giả định các bư
 | `role_shell_access` | Cảnh báo một lần cho mỗi vai trò của thành viên có thể chạy Bash (quy tắc an toàn của nó chỉ làm hết sức có thể, không phải ranh giới; xem [nhóm](groups.md#roles)) | không cho vai trò đó Bash trong `policy.yaml`, hoặc chấp nhận điều đó |
 | `peer_messages` | Tin nhắn giữa các phiên Claude: biên nhận của chúng được giữ ở đâu và thư mục đó có riêng tư không, hệ thống này có kiểm tra được thời điểm khởi động của người gửi không, và một cảnh báo cho mỗi vai trò mà một quy tắc cho dùng SendMessage (xem [bảo mật](security.md#messages-between-claude-sessions)) | xóa thư mục biên nhận dùng chung (aipager sẽ tạo lại), hoặc không cho vai trò đó SendMessage |
 | `claude` | Tìm chương trình `claude` theo đúng cách mà mọi lần khởi động dùng (`claude_path` trong `aipager.yaml` hoặc `$AIPAGER_CLAUDE_BIN` thắng ngay; nếu không thì bản mới nhất trong `~/.local/bin`, PATH và Homebrew), và liệt kê mọi bản cài KHÁC tìm thấy | cài Claude Code, hoặc đặt `claude_path` / `AIPAGER_CLAUDE_BIN` |
-| `claude_auth` | Thử `claude auth status` trong đúng môi trường mà một phiên thật nhận được. **Không bao giờ FAIL**: “chưa đăng nhập” và “chính lần thử bị lỗi” được báo riêng, và không cái nào ngăn một phiên khởi động | `claude auth login`, hoặc đặt khóa API / `CLAUDE_CODE_OAUTH_TOKEN` |
+| `claude_auth` | Thử `claude auth status` trong đúng môi trường mà một phiên thật nhận được. **Không bao giờ FAIL**: “chưa đăng nhập” và “chính lần thử bị lỗi” được báo riêng, và không cái nào ngăn một phiên khởi động. Nó cũng cảnh báo khi Claude Code đã được bảo không dùng `ANTHROPIC_API_KEY` của các phiên và không có gì khác đăng nhập cho chúng. | `claude auth login`, hoặc đặt khóa API / `CLAUDE_CODE_OAUTH_TOKEN`; khi đặt `ANTHROPIC_BASE_URL`, khóa của địa chỉ đó ([nhà cung cấp](#using-an-api-key-a-gateway-or-another-provider)) |
 | `dtach` | Tìm thấy chương trình `dtach` (`dtach-bin` của chính aipager, hoặc một bản trên PATH) | `uv tool install --reinstall aipager` |
 | `hook_scripts` | `aipager-hook` và `aipager-statusline` có trên PATH | `uv tool install --reinstall aipager` |
-| `settings_json` | `~/.claude/settings.json` đã nối các hook của aipager | `aipager config` |
+| `settings_json` | `~/.claude/settings.json` (hoặc `$CLAUDE_CONFIG_DIR/settings.json`) đã nối các hook của aipager; khi có `CLAUDE_CONFIG_DIR`, nó cho biết tệp và giá trị đến từ đâu | `aipager config` |
 | `daemon` | aipager đang chạy và socket của nó trả lời; còn hiện trạng thái giới hạn tốc độ của Telegram (xem [ở trên](#the-bot-slowed-down-a-rate-limit-429)) | `aipager start` |
 | `service_installed` | Không bắt buộc: file dịch vụ có tồn tại | `aipager service install` |
 | `service_unit_path` | Chỉ Linux: `Environment=PATH=` của dịch vụ *đã cài* thực sự chứa thư mục của chương trình claude tìm được, đọc như văn bản, vì doctor không thấy được PATH riêng của systemd từ shell tương tác của người vận hành | `aipager service install --yes` |
-| `miniapp` | Mini App có khởi động được không khi nó bật. **Không bao giờ FAIL**: Mini App là tùy chọn | cách sửa mà nó nêu |
+| `miniapp` | Mini App có khởi động được không khi nó bật, và, trong lúc aipager đang chạy giữ một tunnel cho nó, tunnel đó có hoạt động không (nếu không: nguyên nhân, các lần thử thất bại và lần thử tới; xem [ở trên](#the-mini-app-link-isnt-working)). **Không bao giờ FAIL**: Mini App là tùy chọn | cách sửa mà nó nêu |
 
 `aipager doctor --json` in ra cùng các bước kiểm tra, theo thứ tự này, với các khóa này (xem [lệnh](commands.md#aipager-doctor---json)).
 
@@ -260,6 +346,30 @@ aipager service stop && aipager service start
 ```
 
 Xem [Mô hình bảo mật: thông tin đăng nhập Claude](security.md#the-claude-credential-what-actually-protects-it) để biết file này bảo vệ được gì và không bảo vệ được gì.
+
+## <a id="using-an-api-key-a-gateway-or-another-provider"></a>Dùng khóa API, gateway hoặc nhà cung cấp khác
+
+aipager chạy Claude Code đúng như bạn đã thiết lập, nên phiên bắt đầu từ Telegram đăng nhập giống như `claude` trong terminal của bạn: bằng đăng nhập claude.ai, khóa API của Anthropic, một gateway (LiteLLM, Vercel, Cloudflare và tương tự) hoặc địa chỉ theo định dạng Anthropic của một công ty khác đặt trong `ANTHROPIC_BASE_URL`. Anthropic chỉ hỗ trợ Claude Code với các mô hình Claude; mô hình khác có thể hoạt động khác đi.
+
+- **Đặt thiết lập ở đâu.** Trong khối `env` của `~/.claude/settings.json` (hoặc `$CLAUDE_CONFIG_DIR/settings.json`), nơi mọi phiên Claude Code đều đọc, hoặc trong `~/.config/aipager/daemon.env`, chỉ các phiên do aipager khởi động mới nhận: mỗi dòng một `KEY=value`, không có dấu ngoặc kép (dấu ngoặc sẽ thành một phần của giá trị). Một dịch vụ (`aipager service install`) không bao giờ đọc profile của shell, nên `export` ở đó không tới được nó. Khởi động lại aipager sau khi đổi `daemon.env`. Các khối `env` trong `.claude/settings.json` và `.claude/settings.local.json` của một thư mục khởi động đáng tin cậy và trong cài đặt được quản lý (`managed-settings.json` và `managed-settings.d/` trong `/etc/claude-code` trên Linux, `/Library/Application Support/ClaudeCode` trên macOS) cũng được tính, giống như với Claude Code.
+- **Dùng thiết lập khóa nào.** Với gateway hoặc nhà cung cấp khác, tài liệu của Claude Code khuyên dùng `ANTHROPIC_AUTH_TOKEN`, thứ mà Claude Code không bao giờ hỏi. Với `ANTHROPIC_API_KEY`, nó hỏi một lần “Do you want to use this API key?”, và phiên bắt đầu từ Telegram không trả lời được, nên aipager trả lời trong `~/.claude.json` (hoặc tệp mà `CLAUDE_CONFIG_DIR` đặt nó vào) ngay trước khi phiên bắt đầu:
+  - Có, khi khóa được đặt trong `settings.json` hoặc `daemon.env`, hoặc khi không có gì khác đăng nhập được cho phiên.
+  - Không, khi khóa chỉ đến từ môi trường mà aipager được khởi động và bạn đã đăng nhập Claude theo cách khác: các phiên của bạn vẫn dùng đăng nhập đó và gói của nó. Muốn dùng khóa thì bật nó trong một phiên terminal có khóa đó, bằng `/config` và “Use custom API key”.
+  - Câu trả lời do chính bạn đưa ra được giữ nguyên, trừ câu Không cho một khóa trong `settings.json` hoặc `daemon.env` khi không có gì khác đăng nhập được cho phiên. `aipager doctor` sẽ báo khi một câu Không khiến các phiên không đăng nhập được; bật lại khóa trong terminal bằng `/config` và “Use custom API key”.
+- **Màn hình chạy lần đầu.** Ở nơi Claude Code chưa từng chạy xong lần đầu (máy hoặc container mới), aipager đánh dấu đã xong khi phiên có thông tin đăng nhập, để phiên không dừng ở bước chọn giao diện. Nếu không có thông tin đăng nhập nào, hãy chạy `claude` một lần trong terminal và đăng nhập.
+- **Mô hình.** Các nút Opus, Sonnet và Haiku gửi `opus`, `sonnet` và `haiku` của Claude Code, và Claude Code ánh xạ chúng sang mô hình của nhà cung cấp khi bạn đặt `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL` và `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Các nút `claude-...` cần nhà cung cấp có các mô hình đó. Mô hình khác thì gõ ở bước chọn mô hình của `/new` hoặc trong Mini App, đúng như nhà cung cấp viết: tối đa 128 ký tự gồm chữ cái, chữ số và `. _ - : / @ ~ ,`, có thể kèm đuôi `[1m]` của Claude Code. `keyboard.json` thay đổi các nút (xem [Bàn phím cố định](commands.md#persistent-keyboard)).
+- **`ANTHROPIC_BASE_URL` mà không có khóa.** Khi đó Claude Code gửi đăng nhập claude.ai của bạn tới địa chỉ đó. Hãy đặt cả khóa của nhà cung cấp, trừ khi địa chỉ đó là gateway được dựng để chuyển đăng nhập của bạn tới Anthropic.
+- **Không hỗ trợ:** các công cụ chạy Claude Code bằng gói chat của công ty khác (ví dụ một gói ChatGPT) qua proxy cục bộ. Công ty đó chưa chấp thuận Claude Code cho các gói của họ, và dùng như vậy có thể khiến tài khoản đó gặp rủi ro.
+
+**Cấu hình của Claude Code ở thư mục khác (`CLAUDE_CONFIG_DIR`).** Claude Code giữ cài đặt, thông tin đăng nhập, bản ghi và cấu hình chung của nó trong `~/.claude` và `~/.claude.json`, hoặc trong thư mục mà `CLAUDE_CONFIG_DIR` chỉ tới. aipager theo cùng biến đó, nên hook và dòng trạng thái của nó vào `settings.json` mà các phiên của bạn đọc, còn câu trả lời của nó vào tệp mà Claude Code đọc (đã kiểm tra với Claude Code 2.1.303):
+
+- **Đặt nó trong `~/.config/aipager/daemon.env`** rồi khởi động lại aipager. Một dịch vụ không bao giờ đọc profile của shell, nên một `export` chỉ tới được `aipager start` của shell đó. Khi khởi động, daemon gắn hook của nó vào `$CLAUDE_CONFIG_DIR/settings.json` và ghi log `sessions read Claude Code's config from ...`; nếu bạn đổi giá trị khi nó đang chạy, phiên tiếp theo nó khởi động sẽ có hook, và một tệp cài đặt đã mất hook từ lúc đó cũng vậy. Khi không gắn được hook, log ghi `sessions will start without aipager's hooks` và `aipager doctor` cảnh báo.
+- **Dùng đường dẫn đầy đủ.** Claude Code nhận giá trị nguyên như vậy: không mở rộng `~`, và một giá trị tương đối (kể cả rỗng) nghĩa là một thư mục bên trong thư mục riêng của mỗi phiên. aipager không ghi gì vào đó: log và `aipager doctor` cảnh báo, `aipager setup` dừng lại kèm cách sửa, và `aipager config` bỏ qua bước Claude Code với một cảnh báo cho thấy cách sửa rồi tiếp tục. Cách sửa cho biết tệp chứa giá trị đó: `daemon.env`, hoặc tệp cài đặt có khối `env` đặt nó.
+- **Đặt trong cài đặt của chính Claude Code.** Một `CLAUDE_CONFIG_DIR` trong khối `env` của `~/.claude/settings.json` (hoặc của cài đặt được quản lý) dời tệp cài đặt, thông tin đăng nhập và bản ghi, nhưng không dời `~/.claude.json`. aipager cũng theo điều đó; `aipager doctor` cho biết ở đâu.
+- **`aipager config` và `aipager setup`** sửa tệp mà các phiên của daemon đọc: môi trường shell của bạn cộng `daemon.env`. Một `claude` bạn chạy trong shell có giá trị khác sẽ đọc tệp khác và không có hook của aipager; `aipager doctor` cho biết tên tệp đó.
+- **Tệp `.config.json` cũ.** Khi `<config folder>/.config.json` đang được dùng (ví dụ, nó tồn tại và không rỗng), Claude Code đọc nó thay cho `.claude.json`, và aipager cũng vậy. Với `CLAUDE_CONFIG_DIR` rỗng, tệp đó sẽ nằm trong thư mục riêng của phiên, và aipager không ghi gì vào đó.
+- **Những gì aipager không đọc được.** Cài đặt được quản lý gửi qua profile MDM (macOS), registry của Windows hoặc máy chủ của Claude, và tùy chọn `--settings`. Một khóa hay công tắc nhà cung cấp chỉ đặt ở đó sẽ không được thấy khi aipager trả lời các câu hỏi lúc khởi động; khi đó Claude Code sẽ hỏi, như khi không có aipager.
+- **Danh sách chặn.** Các quy tắc mặc định giữ các vai trò bị hạn chế và các tệp được gửi tránh xa thông tin đăng nhập của Claude ghi tên `~/.claude/**` và `~/.claude.json*`. Một `CLAUDE_CONFIG_DIR` ở nơi khác không được chúng bao phủ, nên hãy để nó bên trong `~/.claude` (của image Docker là như vậy) khi những người không phải admin dùng các phiên của bạn ([bảo mật](security.md#who-decides-whether-a-tool-call-runs)).
 
 ## <a id="the-daemons-control-socket-moved"></a>Socket điều khiển của aipager đã đổi chỗ
 
@@ -313,6 +423,8 @@ Một bản cài pipx tạo từ một URL git được nâng cấp từ nguồn
 Nếu khởi động tại chỗ thất bại, một bản sao tách riêng sẽ khởi động aipager khi tiến trình cũ đã thoát. Đầu ra của nó khi đó đi vào log tự khởi động lại (`aipager.log` trong thư mục của phiên bản cài, hoặc `/tmp/aipager.log`) thay vì terminal của bạn, và log của aipager nêu lệnh cần chạy nếu bản sao đó không quay lại. Nếu chính trình thông dịch đã mất (môi trường của nó đã bị xóa), hoặc không khởi động được gì, aipager thoát với mã 1, log của aipager kết thúc bằng `restart.failed:` cùng lệnh cần chạy, và lần khởi động tiếp theo sẽ thông báo bản cập nhật.
 
 Khi không có nút **Khởi động lại ngay**, tin nhắn đưa ra các bước cho cách cài của bạn: trong terminal hoặc tmux, nhấn Ctrl+C rồi chạy `aipager start`; trên macOS, `launchctl kickstart -k gui/<uid>/com.aipager.daemon`; trong Docker, `docker restart <container>` trên máy tính (ngoài container). Tạo lại một container Docker (`docker compose up` sau `down`, hoặc `docker run` lần nữa) sẽ khởi động nó từ image, điều này mang lại phiên bản aipager trong image đó: để giữ một aipager mới hơn, hãy dùng một image mới hơn.
+
+Image đặt `CLAUDE_CONFIG_DIR=/home/aipager/.claude`, nên cấu hình chung của Claude Code (`.claude.json`: độ tin cậy của thư mục, trạng thái lần chạy đầu, câu trả lời về khóa API, tài khoản của bạn và các máy chủ MCP của người dùng) được giữ trong volume `.claude` cùng phần còn lại và vẫn còn khi container được tạo lại. Các image trước giữ nó ở `/home/aipager/.claude.json`, bên trong chính container. Ở lần khởi động đầu của image mới, tệp cũ không được đọc: thông tin đăng nhập của bạn trong `.credentials.json` của volume vẫn dùng được, và aipager trả lời lại các câu hỏi về độ tin cậy của thư mục và lần chạy đầu khi một phiên bắt đầu, nhưng các máy chủ MCP của người dùng đã thêm bằng `claude mcp add --scope user` phải thêm lại. Nếu bạn bind-mount `~/.claude` của máy chủ (như các lệnh trong README), tệp sẽ xuất hiện ở đó dưới tên `~/.claude/.claude.json`; Claude Code trên máy chủ không đọc nó (nó dùng `~/.claude.json`). Một named volume giữ hai cái tách riêng.
 
 ## <a id="the-daemon-didnt-come-back-after-an-update"></a>aipager không chạy lại sau khi cập nhật
 
