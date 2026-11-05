@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bd8a636 -->
+<!-- i18n-source: README.md @ bcc4dd7 -->
 
 <h3>Claude теперь просто ещё один чат.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Смонтируй в `/workspace` папки, которые Claude должен править. Монтирование `~/.claude` переносит твои учётные данные Claude и историю переписки: один раз запусти `claude` на самом компьютере, чтобы войти, или `docker exec -it aipager claude`, чтобы войти внутри контейнера.
 
-Теги: `latest`, `1.4`, `1.4.0` (по одному на точную версию и на минорную).
+Теги: `latest`, `1.4`, `1.4.1` (по одному на точную версию и на минорную).
 
 ### <a id="nix"></a>Nix
 

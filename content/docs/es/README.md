@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bd8a636 -->
+<!-- i18n-source: README.md @ bcc4dd7 -->
 
 <h3>Claude es un chat más.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Monta bajo `/workspace` las carpetas que quieres que Claude edite. El montaje de `~/.claude` lleva tus credenciales de Claude y el historial de conversaciones: ejecuta `claude` una vez en el host para autenticarte, o `docker exec -it aipager claude` para autenticarte dentro del contenedor.
 
-Etiquetas: `latest`, `1.4`, `1.4.0` (una por versión exacta y una por versión menor).
+Etiquetas: `latest`, `1.4`, `1.4.1` (una por versión exacta y una por versión menor).
 
 ### <a id="nix"></a>Nix
 

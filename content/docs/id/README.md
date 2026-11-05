@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bd8a636 -->
+<!-- i18n-source: README.md @ bcc4dd7 -->
 
 <h3>Claude jadi satu chat lagi.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Mount folder yang ingin diedit Claude di bawah `/workspace`. Mount `~/.claude` membawa kredensial Claude dan riwayat percakapanmu: jalankan `claude` sekali di host untuk login, atau `docker exec -it aipager claude` untuk login di dalam kontainer.
 
-Tag: `latest`, `1.4`, `1.4.0` (satu per versi persis dan satu per versi minor).
+Tag: `latest`, `1.4`, `1.4.1` (satu per versi persis dan satu per versi minor).
 
 ### <a id="nix"></a>Nix
 
