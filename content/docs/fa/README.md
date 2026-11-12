@@ -6,7 +6,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bcc4dd7 -->
+<!-- i18n-source: README.md @ 4790100 -->
 
 <h3>حالا Claude هم یکی از چت‌های شماست.</h3>
 
@@ -243,7 +243,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 پوشه‌هایی را که می‌خواهید Claude ویرایششان کند زیر &lrm;`/workspace` مونت کنید. مونت &lrm;`~/.claude` اطلاعات ورود Claude و تاریخچهٔ گفتگوهایتان را به کانتینر می‌برد؛ برای لاگین، یک بار `claude` را روی خود سیستم اجرا کنید، یا با `docker exec -it aipager claude` داخل کانتینر لاگین کنید.
 
-تگ‌ها: `latest`،&rlm; `1.4`،&rlm; `1.4.1` (یکی برای هر نسخهٔ دقیق و یکی برای هر نسخهٔ minor).
+تگ‌ها: `latest`،&rlm; `1.4`،&rlm; `1.4.2` (یکی برای هر نسخهٔ دقیق و یکی برای هر نسخهٔ minor).
 
 ### <a id="nix"></a>Nix
 
@@ -386,7 +386,7 @@ aipager doctor                            # نصب را چک کنید
 
 <br>
 
-منوی **مدل** در کیبورد و Mini App اسم‌های کوتاه خانواده‌های مدل در Claude Code (`sonnet`،&rlm; `opus`،&rlm; `haiku`،&rlm; `fable`،&rlm; `opusplan`) و مدل‌های ثابتی مثل `claude-opus-5-5` و `claude-sonnet-5-5` را پیشنهاد می‌کنند. روی API خود Anthropic، اسم کوتاه به جدیدترین مدل آن خانواده می‌رسد. روی Bedrock و Vertex همین اسم ممکن است بسته به آنچه ارائه‌دهنده‌تان دارد به نسخهٔ قدیمی‌تری برسد؛ برای انتخاب یک مدل مشخص، &lrm;`/model <full-id>`&lrm; را بفرستید.
+منوی **مدل** در کیبورد و Mini App اسم‌های کوتاه خانواده‌های مدل در Claude Code (`sonnet`،&rlm; `opus`،&rlm; `haiku`،&rlm; `fable`،&rlm; `opusplan`) و `opus[1m]`، یعنی Opus با پنجرهٔ کانتکست ۱ میلیونی، را پیشنهاد می‌کنند. روی API خود Anthropic، اسم کوتاه به جدیدترین مدل آن خانواده می‌رسد. روی Bedrock و Vertex همین اسم ممکن است بسته به آنچه ارائه‌دهنده‌تان دارد به نسخهٔ قدیمی‌تری برسد؛ برای انتخاب یک مدل مشخص، &lrm;`/model <full-id>`&lrm; را بفرستید.
 
 </details>
 

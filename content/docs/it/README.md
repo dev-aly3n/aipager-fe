@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bcc4dd7 -->
+<!-- i18n-source: README.md @ 4790100 -->
 
 <h3>Claude è una chat in più.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Monta sotto `/workspace` le cartelle che vuoi far modificare a Claude. Il mount di `~/.claude` porta con sé le tue credenziali di Claude e la cronologia delle conversazioni: esegui `claude` una volta sull'host per fare l'accesso, o `docker exec -it aipager claude` per farlo dentro il container.
 
-Tag: `latest`, `1.4`, `1.4.1` (uno per la versione esatta e uno per la versione minore).
+Tag: `latest`, `1.4`, `1.4.2` (uno per la versione esatta e uno per la versione minore).
 
 ### <a id="nix"></a>Nix
 
@@ -352,7 +352,7 @@ Invia `/update`: controlla aipager e Claude Code e installa quello che c'è di n
 
 <br>
 
-Il menu **Modello** della tastiera e la Mini App offrono gli alias di famiglia di Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) e modelli fissi come `claude-opus-5-5` e `claude-sonnet-5-5`. Sull'API di Anthropic un alias punta al modello più recente della sua famiglia. Su Bedrock e Vertex lo stesso alias può puntare a una versione più vecchia, a seconda di cosa offre il tuo provider; invia `/model <full-id>` per scegliere un modello preciso.
+Il menu **Modello** della tastiera e la Mini App offrono gli alias di famiglia di Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`), più `opus[1m]`, cioè Opus con il contesto da 1M. Sull'API di Anthropic un alias punta al modello più recente della sua famiglia. Su Bedrock e Vertex lo stesso alias può puntare a una versione più vecchia, a seconda di cosa offre il tuo provider; invia `/model <full-id>` per scegliere un modello preciso.
 
 </details>
 

@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bcc4dd7 -->
+<!-- i18n-source: README.md @ 4790100 -->
 
 <h3>Claude 只是又多了一个聊天。</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 把希望 Claude 编辑的文件夹挂载到 `/workspace` 下。挂载 `~/.claude` 会带上你的 Claude 凭据和保存的对话：在主机上运行一次 `claude` 登录，或者用 `docker exec -it aipager claude` 在容器里登录。
 
-标签：`latest`、`1.4`、`1.4.1`（一个对应精确版本，一个对应次版本）。
+标签：`latest`、`1.4`、`1.4.2`（一个对应精确版本，一个对应次版本）。
 
 ### <a id="nix"></a>Nix
 
@@ -352,7 +352,7 @@ aipager 只把你在聊天里看到的内容，用你自己的机器人 token �
 
 <br>
 
-键盘上的**模型**菜单和 Mini App 提供 Claude Code 的系列别名（`sonnet`、`opus`、`haiku`、`fable`、`opusplan`）以及 `claude-opus-5-5`、`claude-sonnet-5-5` 这样的固定模型。在 Anthropic API 上，别名指向该系列的最新模型。在 Bedrock 和 Vertex 上，同一个别名可能指向较旧的版本，取决于你的服务商提供什么；要选定确切的模型，请发送 `/model <full-id>`。
+键盘上的**模型**菜单和 Mini App 提供 Claude Code 的系列别名（`sonnet`、`opus`、`haiku`、`fable`、`opusplan`），以及带 1M 上下文的 Opus：`opus[1m]`。在 Anthropic API 上，别名指向该系列的最新模型。在 Bedrock 和 Vertex 上，同一个别名可能指向较旧的版本，取决于你的服务商提供什么；要选定确切的模型，请发送 `/model <full-id>`。
 
 </details>
 

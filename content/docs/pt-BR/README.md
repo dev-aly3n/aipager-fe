@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bcc4dd7 -->
+<!-- i18n-source: README.md @ 4790100 -->
 
 <h3>O Claude vira mais um chat.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Monte em `/workspace` as pastas que você quer que o Claude edite. A montagem de `~/.claude` leva suas credenciais do Claude e o histórico de conversas: rode `claude` uma vez no host para fazer login, ou `docker exec -it aipager claude` para fazer login dentro do contêiner.
 
-Tags: `latest`, `1.4`, `1.4.1` (uma por versão exata e uma por versão menor).
+Tags: `latest`, `1.4`, `1.4.2` (uma por versão exata e uma por versão menor).
 
 ### <a id="nix"></a>Nix
 
@@ -352,7 +352,7 @@ Mande `/update`: ele confere o aipager e o Claude Code e instala o que for novo,
 
 <br>
 
-O menu **Modelo** do teclado e o Mini App oferecem os apelidos de família do Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) e modelos fixos como `claude-opus-5-5` e `claude-sonnet-5-5`. Na API da Anthropic, um apelido aponta para o modelo mais novo da família. No Bedrock e no Vertex o mesmo apelido pode apontar para uma versão mais antiga, conforme o que o seu provedor oferece; mande `/model <full-id>` para escolher um modelo exato.
+O menu **Modelo** do teclado e o Mini App oferecem os apelidos de família do Claude Code (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`), além de `opus[1m]`, o Opus com o contexto de 1M. Na API da Anthropic, um apelido aponta para o modelo mais novo da família. No Bedrock e no Vertex o mesmo apelido pode apontar para uma versão mais antiga, conforme o que o seu provedor oferece; mande `/model <full-id>` para escolher um modelo exato.
 
 </details>
 

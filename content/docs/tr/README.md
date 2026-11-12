@@ -4,7 +4,7 @@
 
 # aipager
 
-<!-- i18n-source: README.md @ bcc4dd7 -->
+<!-- i18n-source: README.md @ 4790100 -->
 
 <h3>Claude artık sohbetlerinden biri.</h3>
 
@@ -221,7 +221,7 @@ docker run -d --restart=unless-stopped --name aipager \
 
 Claude'un düzenlemesini istediğin klasörleri `/workspace` altına bağla. `~/.claude` bağlaması Claude kimlik bilgilerini ve konuşma geçmişini taşır: giriş yapmak için konteynerin dışında, bilgisayarın kendisinde bir kez `claude` çalıştır ya da konteynerin içinde giriş için `docker exec -it aipager claude` kullan.
 
-Etiketler: `latest`, `1.4`, `1.4.1` (biri tam sürüm, biri küçük sürüm için).
+Etiketler: `latest`, `1.4`, `1.4.2` (biri tam sürüm, biri küçük sürüm için).
 
 ### <a id="nix"></a>Nix
 
@@ -352,7 +352,7 @@ Bir terminali ayıran minik bir program. Terminal kapandığında ya da SSH kopt
 
 <br>
 
-Klavyedeki **Model** menüsü ve Mini App, Claude Code'un aile takma adlarını (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) ve `claude-opus-5-5`, `claude-sonnet-5-5` gibi sabit modelleri sunar. Anthropic API'sinde bir takma ad, ailesinin en yeni modelini gösterir. Bedrock ve Vertex'te aynı takma ad, sağlayıcının sunduğuna göre daha eski bir sürümü gösterebilir; belirli bir modeli seçmek için `/model <full-id>` gönder.
+Klavyedeki **Model** menüsü ve Mini App, Claude Code'un aile takma adlarını (`sonnet`, `opus`, `haiku`, `fable`, `opusplan`) ve 1M bağlam pencereli Opus olan `opus[1m]` adını sunar. Anthropic API'sinde bir takma ad, ailesinin en yeni modelini gösterir. Bedrock ve Vertex'te aynı takma ad, sağlayıcının sunduğuna göre daha eski bir sürümü gösterebilir; belirli bir modeli seçmek için `/model <full-id>` gönder.
 
 </details>
 
