@@ -2,7 +2,7 @@
 
 # أوامر البوت وواجهته
 
-<!-- i18n-source: docs/commands.md @ 08e5ce80 -->
+<!-- i18n-source: docs/commands.md @ b664aeaf -->
 
 > هذه الصفحة مترجمة عن الإنجليزية؛ إذا اختلفت النسختان، فالنسخة الإنجليزية هي الصحيحة. ([English](../../commands.md))
 
@@ -35,8 +35,9 @@
 | &lrm;`/language` | - | اللغة التي يستخدمها aipager لرسائله وأزراره في هذه الدردشة (القائمة نفسها التي في الصف الأول من &lrm;`/settings`). كل لغة مذكورة باسمها: English، ثم Español، وРусский (الروسية)، وPortuguês (Brasil)، و简体中文 (الصينية المبسطة)، وFrançais، وDeutsch (الألمانية)، و한국어 (الكورية)، والعربية، وBahasa Indonesia، وУкраїнська (الأوكرانية)، وItaliano، وTürkçe (التركية)، وفارسی (الفارسية)، وTiếng Việt (الفيتنامية). الدردشة الخاصة التي تبدأ بعد هذا الإصدار تتبع لغة تطبيق Telegram لديك؛ والموجودة قبله تبقى بالإنجليزية حتى الاختيار (يُنظر [اللغات](#languages)). في الإسبانية والبرتغالية والفرنسية والإيطالية والإندونيسية تبقى كلمات لوحة مفاتيح الرد `status` و`stop` و`new` و`kill`، مثل أوامرها. وتستخدم الألمانية والتركية `Status` و`Stop` و`Neu…`&lrm; و`Beenden…`&lrm;، و`Özet` و`Stop` و`Oluştur` و`Sonlandır`؛ والكلمات الإنجليزية تظل تعمل عند كتابتها. في الفارسية والعربية يُقرأ نص aipager من اليمين إلى اليسار بأرقام فارسية أو عربية؛ وأسماء الجلسات والأوامر وأسماء النماذج والشيفرة تبقى كما هي. تذكر القائمة ما تغيّره: نص aipager نفسه فقط، هنا وفي Mini App؛ جلسات Claude لديك لا تتغير، ويجيب Claude بلغة رسالتك. في المجموعة يستطيع الجميع الاطلاع، وتغييرها يحتاج إلى مشرف. `language` اسم جلسة محجوز. |
 | &lrm;`/whoami` | - | عرض من أنت هنا: في وضع الفريق تسميتك، ودورك في هذه الدردشة والقواعد التي يعطيك إياها. |
 | &lrm;`/update` | - | للمشرفين فقط (الدوران `owner` و`admin`، أو دور فيه `can_manage`). يتحقق من وجود إصدارات أحدث لـ aipager وClaude Code، ثم يحدّث ما له إصدار أحدث بزر واحد. يُنظر [التحديث](#update). |
+| &lrm;`/usage` | - | للمشرفين فقط (الدوران `owner` و`admin`، أو دور فيه `can_manage`؛ وفي الوضع الشخصي مالك البوت وحده). حدود اشتراكك كما أبلغ عنها Claude Code آخر مرة، والـ tokens التي استهلكتها جلسات aipager. **حدود الاشتراك**: نافذة الـ ٥ ساعات والأسبوع (كل النماذج) وحد إنفاق البوابة، أيّها يبلغ عنه Claude Code، ولكل منها ما استُخدم ومتى يُعاد ضبطه (`هذا الأسبوع (كل النماذج): استُخدم ٤٢٪`، `يُعاد الضبط بعد ٢ يوم و٥ ساعة`؛ وخلال اليوم نفسه يُذكر أيضًا الوقت على الكمبيوتر الذي يعمل عليه aipager، `يُعاد الضبط بعد ٣ ساعة و١٠ دقيقة، الساعة ٢١:٠٠`)، ثم من أين جاءت الأرقام (`حتى الساعة ٢٠:١٥ (قبل ٤ دقائق)، من الجلسة x1.`). والمشرف (`admin`) الذي لا يدير دردشة الجلسة التي جاءت منها الأرقام لا يرى اسم تلك الجلسة ولا عنوان البوابة (`من جلسة في دردشة أخرى.`). النافذة التي مرّ وقت إعادة ضبطها منذ ذلك الحين تقول `هذا الأسبوع (كل النماذج): أُعيد ضبطه منذ آخر قراءة` بدل نسبة قديمة. لا يسأل aipager شركة Anthropic عن هذه الأرقام أبدًا: يحتفظ بما يعطيه Claude Code لسطر الحالة بعد كل إجابة، لذا تظهر بعد أن يجيب Claude في جلسة مسجّلة باشتراك Claude؛ مفاتيح API والبوابات التي ليس لها حد إنفاق لا تُبلغ عنها. الجلسات التي تعمل بتسجيلات دخول مختلفة (token تسجيل دخول لمجلد، مجلد إعدادات آخر، بوابة) تظهر منفصلة، لكل منها سطرها. **الـ tokens**: اليوم وآخر ٧ أيام، إدخال وإخراج وقراءة من الكاش وكتابة في الكاش (`اليوم: ١٫٢k إدخال، ٤٥ إخراج، ٣٠٫٠k قراءة من الكاش، ٢٫١k كتابة في الكاش`). يُحسب ما سجّله Claude Code في المحادثات المحفوظة لجلسات aipager، بما فيها الوكلاء الفرعيون؛ الطلبات التي ليست في أي محادثة محفوظة (عناوين الجلسات، اقتراحات الرسائل، فحص الوضع التلقائي) لا تُحسب. يرى الـ owner الـ tokens في كل الدردشات، ويرى المشرف الآخر الدردشات التي يديرها. في المجموعة، يعرض &lrm;`/usage` الـ tokens لتلك الدردشة فقط ولا يعرض حدود الاشتراك (كل من في المجموعة يقرأ الرد). لا مبالغ بالدولار. يعرض Mini App الشيء نفسه في صفحة الاستخدام. `usage` اسم جلسة محجوز، وما زال أمر &lrm;`/usage` الخاص بـ Claude Code متاحًا عبر &lrm;`/<label> /usage`. |
 
-تعرض قائمة `/` جلساتك أولًا (`/x1 · التحدث مع x1`)، ثم الأوامر الشائعة: `new` و`status` و`stop` و`now` و`resume` و`mode` و`settings` و`language` و`help` (و`app` حين يكون Mini App مفعّلًا، في الدردشة الخاصة فقط). أما `kill` و`restart` و`rename` و`delete` و`diff` و`clearqueue` و`perms` و`whoami` و`update` فليست في القائمة لكنها تعمل عند كتابتها؛ وإجراءات الجلسة موجودة أيضًا في &lrm;`/status` ← `⋮`. مسح المحادثة ليس في القائمة بأي اسم عن قصد، حتى لا تمسح نقرة واحدة هناك محادثة أبدًا: استخدم &lrm;`/status` ← `⋮` ← `🧹 مسح المحادثة` (مع تأكيد) أو `الأوامر` ← `مسح المحادثة` في لوحة المفاتيح. كتابة &lrm;`/clear` لا تمسح شيئًا: يقرؤها aipager كاسم جلسة (`⚠️ لا توجد جلسة بهذا الاسم: clear`). `clear` و`reset` اسما جلسة محجوزان.
+تعرض قائمة `/` جلساتك أولًا (`/x1 · التحدث مع x1`)، ثم الأوامر الشائعة: `new` و`status` و`stop` و`now` و`resume` و`mode` و`settings` و`language` و`usage` و`help` (و`app` حين يكون Mini App مفعّلًا، في الدردشة الخاصة فقط). أما `kill` و`restart` و`rename` و`delete` و`diff` و`clearqueue` و`perms` و`whoami` و`update` فليست في القائمة لكنها تعمل عند كتابتها؛ وإجراءات الجلسة موجودة أيضًا في &lrm;`/status` ← `⋮`. مسح المحادثة ليس في القائمة بأي اسم عن قصد، حتى لا تمسح نقرة واحدة هناك محادثة أبدًا: استخدم &lrm;`/status` ← `⋮` ← `🧹 مسح المحادثة` (مع تأكيد) أو `الأوامر` ← `مسح المحادثة` في لوحة المفاتيح. كتابة &lrm;`/clear` لا تمسح شيئًا: يقرؤها aipager كاسم جلسة (`⚠️ لا توجد جلسة بهذا الاسم: clear`). `clear` و`reset` اسما جلسة محجوزان.
 
 **الأوامر التي تعمل على جلسة** (&lrm;`/stop` و&lrm;`/mode` و&lrm;`/kill` و&lrm;`/restart` و&lrm;`/rename` و&lrm;`/delete` و&lrm;`/diff`) تتبع قاعدة واحدة:
 
@@ -105,6 +106,7 @@
 - **بانتظارك.** الجلسة التي تنتظر طلب إذن أو سؤالًا موجودة في شريط كهرماني في الأعلى، تعرض ما تسأل عنه. والجلسة التي في خلفية Claude Code وتنتظر مهمتها طلب إذن تظهر هناك أيضًا، لأنه يمكنك الرد عليه من الدردشة؛ وتعرض صفحتها أيضًا «إعادتها». يعيد **الرد في الدردشة** إرسال ذلك الطلب، مع أزراره، إلى أسفل الدردشة، مثل زر **الرد** في الشريط المثبّت، ويكون الرد هناك. إذا كانت الجلسة الوحيدة التي تنتظر، يُغلق التطبيق ليكون الطلب أمامك مباشرة؛ وإلا يبقى مفتوحًا ويقول «أُرسل إلى الدردشة». ويحتاج ذلك إلى صلاحية إرسال الرسائل إلى الجلسة، والنسخة المضغوطة بعد الرد على الطلب أو استبداله تقول «تمت الإجابة بالفعل».
 - **صفحة الجلسة.** يعرض الرأس حلقة السياق، والحالة («تعمل (٣:١٢)»، «بانتظار وكيلين»، «بانتظارك (إذن)»، «جاهزة، آخر نشاط منذ ٥ د»، «في خلفية Claude Code»، «انتهت»)، و**إعادتها** بضغطة واحدة (لجلسة في خلفية Claude Code)، أو **إيقاف** (أثناء العمل، أو انتظار وكلائها، أو انتظارك) أو **استئناف** (بعد الانتهاء). وتحته: الطلب المنتظر مع **الرد في الدردشة**، وآخر استدعاءات الأدوات شريطًا (الضغط عليه يعرض الخط الزمني كاملًا)، وآخر رد، والحقائق، وعنصر النموذج، وإعدادات الجلسة نفسها، والملفات المتغيرة والخط الزمني. وقائمة ⋮ فيها كل إجراء، مع التأكيدات نفسها كما من قبل. والجلسة التي انتقلت محادثتها إلى خلفية Claude Code (يُنظر [حل المشكلات](troubleshooting.md#a-session-moved-to-claude-codes-background)) تعرض «إعادتها» و«إيقاف» و«إعادة التسمية» و«إنهاء» و«إعادة التشغيل»؛ وحين تظل مهمة الخلفية تعمل، تسأل «إعادتها» و«إعادة التشغيل» و«استئناف» في الصفحة نفسها: **إيقاف وإعادة** أو **تركها تعمل**، وتعرض الدردشة `↩️ عادت x1 من خلفية Claude Code.` بعد عودتها. وتعرض قائمة ⋮ لجلسة جاهزة أيضًا **مسح المحادثة**: تسأل في الصفحة أولًا، ثم تكتب &lrm;`/clear` الخاص بـ Claude Code في الجلسة، كما يفعل `⋮` ← `🧹 مسح المحادثة` في الدردشة (راجع [تأكيد مسح المحادثة](#clear-confirmation))، وتظهر في الدردشة `🧹 تم إرسال /clear إلى [x1] عبر Mini App`.
 - **جلسة جديدة.** بطاقة موجّهة: الاسم، ثم المكان (مع اقتراحات **الأخيرة** للمجلدات التي تستخدمها جلساتك، الأحدث أولًا)، ثم النموذج (مع اقتراحات **مقترحة**)، ثم **خيارات أخرى** لوضع الأذونات وأسلوب الرد. زر Telegram نفسه في الأسفل مكتوب عليه **بدء الجلسة**. للعضو الذي ليس في دوره `can_manage`، لا تعرض خطوة «أين» إلا [المجلد الجذر](groups.md#root-folders) للدردشة والمجلدات التي داخله مباشرة (المجلد الجذر هو الافتراضي، و«مجلد جديد» ينشئ داخل المجلد المختار)؛ والمجلد الذي خارجه يُرفض مع السبب، والاستئناف وإعادة التشغيل وتبديل الوضع لجلسة تعمل خارجه تجيب «تعمل هذه الجلسة خارج مجلدك ~/...، لذا لا يمكن لدورك استئنافها أو إعادة تشغيلها أو تغيير وضعها. يمكنك طلب ذلك من مشرف.»
+- **الاستخدام.** للـ owner والمشرفين، يعرض تبويب **الاستخدام** بين الجلسات والإعدادات حدود الاشتراك التي أبلغ عنها Claude Code آخر مرة، لكل منها شريط ووقت إعادة الضبط، ومن أين جاءت الأرقام، والـ tokens لليوم ولآخر ٧ أيام ولكل يوم ولكل نموذج، مثل &lrm;[`/usage`](#slash-commands). فوق الجداول، يعرض مخطط أعمدة tokens الإدخال والإخراج لكل يوم من آخر ٧ أيام، وعمود اليوم بلون التمييز. كل فتح للتبويب يقرأ الأرقام من جديد. في محادثة لست مشرفًا فيها لا يظهر التبويب.
 - **الإعدادات.** **لغة التطبيق** أولًا: لغتك أنت لنص aipager في التطبيق وفي دردشتك الخاصة (الإنجليزية، أو الإسبانية، أو الروسية، أو البرتغالية (البرازيل)، أو الصينية (المبسطة)، أو الفرنسية، أو الألمانية، أو الكورية، أو العربية، أو الإندونيسية، أو الأوكرانية، أو الإيطالية، أو التركية، أو الفارسية، أو الفيتنامية؛ و«تلقائي» يتبع لغة تطبيق Telegram لديك، يُنظر [اللغات](#languages)). يستطيع كل شخص تغيير لغته، ولا تُنشر أبدًا في دردشة، ولا تغيّر جلسات Claude لديك. ثم إعدادات الدردشة (في المجموعة لا يغيّرها إلا مشرف؛ وفي دردشتك الخاصة يمكنك ذلك، أيًّا كان دورك، كما في &lrm;`/settings` هناك)، وللمشرف **التحديثات**، الذي يعكس &lrm;[`/update`](#update). وللمالك في دردشته الخاصة، يفتح **الإبلاغ عن مشكلة** صفحته الخاصة: كتابة ملاحظة، ومراجعة التقرير، وإرساله، ورؤية رقم مرجعه دون مغادرة التطبيق (يُنظر [تقارير المشكلات](problem-reports.md#how-to-send-one)).
 
 يتبع التطبيق مظهر Telegram الفاتح أو الداكن عند تبديله، ويوقف حركاته الخفيفة حين يطلب هاتفك تقليل الحركة. كل ما في Mini App يمكن الوصول إليه أيضًا من الدردشة: قائمة ⋮ في لوحة الجلسة فيها الإجراءات نفسها.
@@ -200,7 +202,7 @@ ls -la /tmp
 - **السماح**: الموافقة على هذا الاستدعاء الواحد.
 - **رفض**: رفضه؛ فلا يشغّل Claude الأداة.
 - **السماح دائمًا**: الموافقة وإضافة القاعدة الدائمة التي يعرضها Claude («لا تسأل مجددًا عن …»). يظهر الزر **فقط حين يعرض Claude قاعدة كهذه**؛ ولأمر لا يستطيع اشتقاق قاعدة له (معظم الأوامر المركبة) تحمل البطاقة السماح / الرفض / الإيقاف بدلًا من ذلك، كما تفعل لوصول للقراءة فقط إلى ملف (`Read`،&rlm; `Grep`،&rlm; `Glob`) خارج مجلد عمل الجلسة. يضع Claude Code 2.1.259 وما بعده في ذلك الموضع سطر «التبديل إلى الوضع التلقائي» في مربع حوار Bash الخاص به، وسطر «منع القراءة خارج مجلدات العمل من الآن» في مربع حوار القراءة الخارجية، ولـ Write/Edit لا يستطيع اشتقاق قاعدة لكل ملف له، تبديلًا لوضع الأذونات مثل القبول التلقائي لكل تعديلات الملفات (`acceptEdits`)؛ ولا يختار aipager أيًا منها أبدًا؛ وتغيير الأوضاع يكون عن قصد بـ &lrm;`/mode`.
-- **إيقاف**: إيقاف المهمة بدل الإجابة. وعلى طلب وكيل يعمل في الخلفية بعد انتهاء مهمة Claude نفسها، يوقف الإيقاف الوكلاء العاملين في الخلفية بدلًا من ذلك (مثل &lrm;`/stop`)، ويُغلق الطلب.
+- **إيقاف**: إيقاف المهمة بدل الإجابة. وطلب الوكيل العامل في الخلفية الذي يظهر بعد انتهاء مهمة Claude نفسها يصل في رسالة مستقلة، مع السماح والرفض؛ وعندها يوقف الإيقاف على البطاقة التي تنتظر الوكلاء الوكلاءَ العاملين في الخلفية بدلًا من ذلك (مثل &lrm;`/stop`)، ويُغلق الطلب.
 
 تذهب الإجابة إلى Claude Code عبر هوك الإذن في aipager، الذي ينتظرها حتى ٢٠ ثانية. والطلب الذي يأتي قبل بطاقة العمل (يُرسل عندها رسالة مستقلة، مع السماح والرفض فقط) يُجاب عنه بالطريقة نفسها. وبعد انتهاء ذلك الانتظار، تكتب الأزرار الإجابة في مربع حوار Claude Code نفسه بدلًا من ذلك؛ ويضغط الرفض عندها Escape («No, and tell Claude what to do differently»)، فينهي مهمة Claude مثل الإيقاف، وتقول البطاقة `🚫 jim · مرفوض`. وفي السؤال الذي يطرحه Claude Code في الوضع التلقائي قبل أول قراءة خارج المشروع، لا يُكتب السماح المتأخر: فمفتاح Enter الخاص به سيختار «Yes, and keep allowing any reads outside the working directories»، لذا تطلب منك الضغطة الرد عليه في الطرفية (ويبقى الرفض متاحًا).
 
@@ -508,7 +510,7 @@ ls -la /tmp
 | الأمر | ماذا يفعل |
 |---|---|
 | `aipager config` | معالج الإعداد التفاعلي: توكن البوت، والدردشات، والأعضاء والأدوار، وهوكات Claude Code. يُشغَّل مرة أخرى لتغيير أي شيء (يُنظر [المجموعات](groups.md#setup)). |
-| `aipager setup` | الإعداد الأول نفسه دون أي سؤال، للسكربتات ووكلاء البرمجة (يُنظر [أدناه](#command-line-aipager-setup-for-coding-agents)). |
+| `aipager setup` | الإعداد الأول نفسه دون أي سؤال، للسكربتات ووكلاء البرمجة؛ ويضيف `aipager setup group` بالطريقة نفسها مجموعة Telegram وأعضاءها وأدوارهم (يُنظر [أدناه](#command-line-aipager-setup-for-coding-agents)). |
 | `aipager start` | تشغيل aipager في الواجهة. يرفض البدء ما دام aipager آخر يعمل. |
 | `aipager service install [--yes]` | تثبيت aipager كخدمة خلفية (خدمة مستخدم systemd على Linux، ووكيل launchd على macOS) وتشغيله. يتخطى &lrm;`--yes` السؤال حين يختلف ملف الخدمة المثبّت. |
 | `aipager service start\|stop\|status\|logs\|uninstall` | تشغيل الخدمة، أو إيقافها، أو عرضها، أو متابعة سجلها، أو إزالتها. |
@@ -530,7 +532,7 @@ ls -la /tmp
 
 ## <a id="command-line-aipager-setup-for-coding-agents"></a>سطر الأوامر: `aipager setup` (لوكلاء البرمجة)
 
-الأقسام أعلاه تصف بوت Telegram. وهذا القسم يصف أمرًا يُشغَّل في طرفية، أو يشغّله سكربت أو وكيل البرمجة لديك: يُعدّ `aipager setup` برنامج aipager دون أي سؤال ويعطي النتيجة نفسها التي يعطيها التشغيل الأول لـ `aipager config`.
+الأقسام أعلاه تصف بوت Telegram. وهذا القسم يصف أمرًا يُشغَّل في طرفية، أو يشغّله سكربت أو وكيل البرمجة لديك: يُعدّ `aipager setup` برنامج aipager دون أي سؤال ويعطي النتيجة نفسها التي يعطيها التشغيل الأول لـ `aipager config`. وعلى تثبيت مُعدّ من قبل، يضيف `aipager setup group` مجموعة Telegram مع أعضائها وأدوارهم، دون أي سؤال أيضًا (يُنظر [`aipager setup group`](#aipager-setup-group)).
 
 <div dir="ltr">
 
@@ -541,6 +543,9 @@ aipager setup detect-chat --token-file ~/bot-token.txt --json
 aipager setup --token-file ~/bot-token.txt --chat-id 123456789 --service --json
 # 3. فحص التثبيت
 aipager doctor --json
+# لاحقًا: العثور على مجموعة (بإرسال /start فيها)، ثم إعدادها
+aipager setup detect-group --json
+aipager setup group --chat-id -1001234567890 --member 123456789:alice:owner --json
 ```
 
 </div>
@@ -561,12 +566,17 @@ aipager doctor --json
 |---|---|
 | &lrm;`--token-file PATH` | قراءة توكن البوت من هذا الملف (٤٠٩٦ بايت على الأكثر؛ ولا بأس بنص حول توكن واحد). الملف الذي يستطيع مستخدمون آخرون قراءته يعمل لكنه يعطي التحذير `token_file_shared`:&rlm; `chmod 600` له، أو حذفه بعد نجاح الإعداد. |
 | &lrm;`--token-stdin` | قراءة توكن البوت من stdin (أنبوب أو ملف معاد توجيهه، لا طرفية أبدًا). يجب أن يُغلق الأنبوب: ينتظر setup نهاية stdin ٣٠ ثانية على الأكثر، ثم يخرج بالرمز 2 مع `token_stdin_timeout`. كلٌّ من `printf '%s\n' "$TOKEN" \| aipager setup --token-stdin ...`&lrm; و&lrm;`< token.txt` يغلقه. |
-| &lrm;`--chat-id N` | مطلوب. معرّف مستخدم Telegram الرقمي للشخص، وهو أيضًا معرّف دردشته الخاصة. والمجموعات تُضاف بـ `aipager config`. |
+| &lrm;`--chat-id N` | مطلوب. معرّف مستخدم Telegram الرقمي للشخص، وهو أيضًا معرّف دردشته الخاصة. ومع `setup group`: معرّف المجموعة، وهو عدد سالب. |
 | &lrm;`--role owner\|admin` | دور الشخص (الافتراضي `owner`). |
 | &lrm;`--service` | تثبيت خدمة الخلفية وتشغيلها أيضًا (يُتخطى ما دام aipager يعمل). |
-| &lrm;`--force` | السماح باستبدال توكن البوت، أو الدردشة الخاصة للمالك، أو دور تثبيت موجود. ونطاقات المجموعات والدردشات الخاصة الأخرى تبقى. |
+| &lrm;`--force` | السماح باستبدال توكن البوت، أو الدردشة الخاصة للمالك، أو دور تثبيت موجود. ونطاقات المجموعات والدردشات الخاصة الأخرى تبقى. ومع `setup group`: السماح بالتغييرات المذكورة في `force_reasons`. |
 | &lrm;`--dry-run` | تشغيل كل فحص، دون إرسال شيء ودون كتابة شيء، والإبلاغ عما سيتغير. |
 | &lrm;`--json` | طباعة كائن JSON واحد بالضبط على stdout؛ وكل ما عداه إلى stderr. |
+| &lrm;`--member ID:LABEL:ROLE` | لـ `setup group` وحده، ويمكن تكراره: معرّف مستخدم Telegram الرقمي لعضو، واسمه، ودوره. |
+| &lrm;`--remove-member ID` | لـ `setup group` وحده، ويمكن تكراره: إزالة هذا العضو. |
+| &lrm;`--label NAME` | لـ `setup group` وحده: اسم المجموعة. |
+| &lrm;`--root PATH` | لـ `setup group` وحده: المجلد الجذري للأعضاء. |
+| &lrm;`--block-edits` | لـ `setup group` وحده: منع Write وEdit عن أعضاء المجموعة من `user`. |
 
 يُعطى واحد بالضبط من &lrm;`--token-file` و&lrm;`--token-stdin`. لا يُقبل التوكن أبدًا قيمةً لخيار: &lrm;`--token` و&lrm;`--bot-token` مرفوضان (`token_on_command_line`) ولا تُعرض القيمة. والخيارات المختصرة (&lrm;`--token-f`،&rlm; &lrm;`--dry`) غير مقبولة. لا يسأل setup أي سؤال أبدًا، ولا يحتاج أبدًا إلى طرفية، ولا يقرأ التوكن أبدًا من متغير بيئة.
 
@@ -588,24 +598,60 @@ aipager setup detect-chat (--token-file PATH | --token-stdin) [--timeout SECONDS
 
 حد: لأن detect-chat لا يؤكد أي رسالة أبدًا، لا يعرض له Telegram إلا أقدم ١٠٠ تحديث غير مقروء خلال آخر ٢٤ ساعة. حين يكون لدى البوت هذا العدد منتظرًا، لا يمكن رؤية &lrm;`/start` جديد: عندها تنتهي مهلة detect-chat (الخروج 8) مع التحذير `updates_backlog`، ولا يفيد الضغط على Start مرة أخرى. البديل طلب معرّف Telegram الرقمي من الشخص (أو تشغيل aipager مرة واحدة، فيقرأ المتراكم ويمسحه).
 
+### <a id="aipager-setup-group"></a>`aipager setup group`
+
+<div dir="ltr">
+
+```sh
+aipager setup group --chat-id N [--member ID:LABEL:ROLE ...] [--remove-member ID ...]
+                    [--label NAME] [--root PATH] [--block-edits]
+                    [--force] [--dry-run] [--json]
+```
+
+</div>
+
+يُعدّ مجموعة Telegram واحدة على تثبيت مُعدّ من قبل، بالفحوص نفسها والكتابة نفسها للملف وإعادة التحميل نفسها دون إعادة تشغيل كما في `aipager config`. يقرأ توكن البوت من `aipager.yaml` (لا &lrm;`--token-file` ولا &lrm;`--token-stdin`)، ولا يحتاج إلى طرفية، ولا يعيد تشغيل aipager أبدًا، ولا يرسل أي شيء إلى المجموعة.
+
+- &rlm;&lrm;`--chat-id N`: معرّف المجموعة، وهو عدد سالب (يعثر عليه [`detect-group`](#aipager-setup-detect-group)).
+- &rlm;&lrm;`--member ID:LABEL:ROLE`: معرّف مستخدم Telegram موجب، واسم (قد يحوي `:`)، ودور: `owner` أو `admin` أو `user` أو `read_only` أو دور معرّف في `policy.yaml`. وتُرفض معرّفات المرسل المشتركة في Telegram (1087968824،&rlm; 136817688،&rlm; 777000).
+- المجموعة الجديدة تحتاج إلى &lrm;`--member` واحد على الأقل. اسمها &lrm;`--label`، وإلا `group-<أرقام المعرّف>`؛ ومجلدها الجذري &lrm;`--root`، وإلا &lrm;`~/aipager-users/group-<label>`&lrm;، ويُكتب في الملف.
+- المجموعة المُعدّة من قبل (ومنها ما يُعثر عليه بمعرّفها الآخر بعد أن رقّاها Telegram، مع التحذير `group_moved`) تُوسَّع: يبقى الأعضاء الذين لا تذكرهم، ويُضاف المعرّف الجديد، ويُعاد تسمية معرّف معروف باسم جديد، و&lrm;`--remove-member` لمن ليس عضوًا يعطي التحذير `not_a_member`. ويضيف &lrm;`--block-edits` الأداتين `Write` و`Edit` إلى `deny_tools` المجموعة ولا يزيل شيئًا أبدًا. ولا يمكن إزالة العضو الأخير (`last_member`، حتى مع &lrm;`--force`): تُزال المجموعة كلها في `aipager config`.
+- هذه التغييرات تحتاج إلى &lrm;`--force`، وإلا فرمز الخروج ٦ `needs_force` (ويذكرها `force_reasons`): `owner_granted` (عضو جديد ينال دورًا فيه `bypass_safety` وليس له مثل هذا الدور في أي دردشة بعد؛ وإضافة مالك دردشتك الخاصة لا تحتاج إليه)، `role_changed`،&rlm; `owner_demoted`،&rlm; `owner_removed`،&rlm; `root_code_loading` (المجلد الجذري داخل &lrm;`~/bin` أو &lrm;`~/.local/bin` أو &lrm;`~/.config/systemd` أو &lrm;`~/.config/autostart`) و`root_overlap` (هو المجلد الجذري لدردشة أخرى، أو يحويه، أو يقع داخله).
+- إعادة التشغيل بالخيارات نفسها لا تغيّر شيئًا (`unchanged`): لا كتابة ولا إعادة تحميل.
+- كل منح لدور `owner` يُسجَّل بسجل `grant-owner` في سجل التدقيق.
+- يسأل Telegram، للقراءة فقط ودون أن ترى المجموعة شيئًا (getMe،&rlm; getChat، وgetChatMember للبوت)، هل البوت في المجموعة، وهل هو مشرف، وهل يستطيع تثبيت الرسائل. ما يجده تحذير، لا رمز خروج أبدًا؛ وبعد خطأ في الشبكة يُتجاوز الباقي (`telegram_checks_skipped`).
+
+### <a id="aipager-setup-detect-group"></a>`aipager setup detect-group`
+
+<div dir="ltr">
+
+```sh
+aipager setup detect-group [--timeout SECONDS] [--json]
+```
+
+</div>
+
+ينتظر أحدث رسالة في مجموعة أو مجموعة خارقة لم تُعدّ بعد (يرسل فيها أحدهم &lrm;`/start`) ويطبع المجموعة: المعرّف والعنوان والنوع. لا يحفظ شيئًا، لذا تُعرض المجموعة على المستخدم ولا يُشغَّل `aipager setup group --chat-id` إلا بعد تأكيده. لا تُحسب إلا الرسائل المرسلة قبل بدء الأمر بـ ١٠ دقائق على الأكثر؛ ويعمل &lrm;`--timeout` كما في detect-chat. يقرأ التوكن من `aipager.yaml` ولا يقبل أي خيار آخر. وما دام aipager يعمل لهذا البوت، يقرأ ما دوّنه aipager (`source: "daemon"`&lrm;، وهو يرى المجموعات)؛ وإلا يقرأ Telegram دون تأكيد أي رسالة (`source: "telegram"`&lrm;).
+
 ### <a id="exit-codes"></a>رموز الخروج
 
 | الرمز | `error` | المعنى |
 |---|---|---|
-| 0 | | نجاح (`installed` أو `updated` أو `unchanged` أو `dry_run`، أو detect-chat `found`). |
-| 1 | `config_malformed`،&rlm; `ambiguous_install`،&rlm; `settings_invalid`،&rlm; `test_send_failed`،&rlm; `write_failed`،&rlm; `service_failed`،&rlm; `internal_error` | فشل. `ambiguous_install`: أكثر من دردشة خاصة قد تكون للمالك؛ ويُصلح ذلك في `aipager config`. |
-| 2 | `usage`،&rlm; `missing_token_source`،&rlm; `token_source_conflict`،&rlm; `token_file_unreadable`،&rlm; `token_stdin_is_tty`،&rlm; `token_stdin_timeout`،&rlm; `token_malformed`،&rlm; `token_on_command_line`،&rlm; `bad_chat_id`،&rlm; `bad_role`،&rlm; `bad_timeout` | مدخلات خاطئة أو ناقصة؛ و`fix` يسمّي الخيار. الخيار غير المعروف أو الكلمة الخاطئة بعد `setup` يبلّغ عنها محلل الوسائط (نص عادي، دون JSON)، والخروج أيضًا 2. |
+| 0 | | نجاح (`installed` أو `created` أو `updated` أو `unchanged` أو `dry_run`، أو `found` لـ detect-chat وdetect-group). |
+| 1 | `config_malformed`،&rlm; `ambiguous_install`،&rlm; `settings_invalid`،&rlm; `test_send_failed`،&rlm; `write_failed`،&rlm; `service_failed`،&rlm; `policy_malformed`،&rlm; `not_a_group_scope`،&rlm; `last_member`،&rlm; `config_changed`،&rlm; `internal_error` | فشل. `ambiguous_install`: أكثر من دردشة خاصة قد تكون للمالك؛ ويُصلح ذلك في `aipager config`.&rlm; `config_changed`: تغيّرت المجموعة في `aipager.yaml` أثناء عمل `setup group`، فلم يُكتب شيء؛ ويُعاد التشغيل. |
+| 2 | `usage`،&rlm; `missing_token_source`،&rlm; `token_source_conflict`،&rlm; `token_file_unreadable`،&rlm; `token_stdin_is_tty`،&rlm; `token_stdin_timeout`،&rlm; `token_malformed`،&rlm; `token_on_command_line`،&rlm; `bad_chat_id`،&rlm; `bad_role`،&rlm; `bad_timeout`،&rlm; `bad_member`،&rlm; `bad_member_id`،&rlm; `shared_sender_id`،&rlm; `duplicate_member`،&rlm; `bad_label`،&rlm; `duplicate_label`،&rlm; `unknown_role`،&rlm; `bad_root` | مدخلات خاطئة أو ناقصة؛ و`fix` يسمّي الخيار. الخيار غير المعروف أو الكلمة الخاطئة بعد `setup` يبلّغ عنها محلل الوسائط (نص عادي، دون JSON)، والخروج أيضًا 2. |
 | 3 | `deps_missing` | dtach أو claude أو aipager-hook أو aipager-statusline ناقص؛ و`fix` فيه الأوامر. لم يُكتب شيء. |
 | 4 | `token_rejected` | رفض Telegram التوكن. |
 | 5 | `chat_not_started`،&rlm; `bot_blocked` | لم يضغط الشخص على Start في البوت («Open t.me/&lt;bot&gt; and press Start, then run this again.»)، أو حظره. لم يُكتب شيء. |
-| 6 | `existing_install` | توكن أو دردشة أو دور مختلف مُعدّ من قبل؛ تُضاف &lrm;`--force`. |
+| 6 | `existing_install`،&rlm; `needs_force` | توكن أو دردشة أو دور مختلف مُعدّ من قبل، أو أن `setup group` سيجري تغييرًا مذكورًا في `force_reasons`؛ يُضاف &lrm;`--force` (بعد سؤال الشخص). |
 | 7 | `telegram_unreachable` | خطأ في الشبكة، أو أجاب Telegram بـ 429 أو &lrm;5xx. |
-| 8 | `detect_timeout` | لم يرَ detect-chat أي رسالة خاصة قبل &lrm;`--timeout` (مع التحذير `updates_backlog` حين تخفي ١٠٠ تحديث قديم غير مقروء ما هو أحدث). |
+| 8 | `detect_timeout` | لم يرَ detect-chat أي رسالة خاصة قبل &lrm;`--timeout` (وdetect-group: أي رسالة في مجموعة جديدة) (مع التحذير `updates_backlog` حين تخفي ١٠٠ تحديث قديم غير مقروء ما هو أحدث). |
 | 9 | `daemon_running` | detect-chat:&rlm; aipager يعمل ويحتجز رسائل البوت. |
-| 10 | `updates_conflict` | detect-chat: برنامج آخر يقرأ رسائل هذا البوت. |
+| 10 | `updates_conflict` | detect-chat أو detect-group: برنامج آخر يقرأ رسائل هذا البوت. |
+| 11 | `not_set_up` | `setup group` أو `detect-group`: لا يوجد بعد `aipager.yaml` فيه توكن البوت (وكذلك التثبيت القديم بـ `config.env`: يُشغَّل `aipager config` مرة واحدة لنقله). يُعدّ aipager أولًا. |
 | 130 | `interrupted` | Ctrl-C. |
 
-حين تفشل عدة فحوص معًا، يتبع الرمز هذا الترتيب: `config_malformed`،&rlm; `ambiguous_install`،&rlm; `existing_install`،&rlm; `settings_invalid`،&rlm; `deps_missing`. ويخرج &lrm;`--dry-run` بالرمز الذي كان التشغيل الحقيقي سيحصل عليه من هذه الفحوص.
+حين تفشل عدة فحوص معًا، يتبع الرمز هذا الترتيب: `config_malformed`،&rlm; `ambiguous_install`،&rlm; `existing_install`،&rlm; `settings_invalid`،&rlm; `deps_missing`. ولـ `setup group`:&rlm; `config_malformed` أو `not_set_up`،&rlm; `policy_malformed`،&rlm; `unknown_role`،&rlm; `usage`،&rlm; `duplicate_label`،&rlm; `not_a_group_scope`،&rlm; `last_member`،&rlm; `needs_force`. ويخرج &lrm;`--dry-run` بالرمز الذي كان التشغيل الحقيقي سيحصل عليه من هذه الفحوص.
 
 ### <a id="json-aipager-setup---json"></a>JSON: `aipager setup --json`
 
@@ -675,6 +721,82 @@ aipager setup detect-chat (--token-file PATH | --token-stdin) [--timeout SECONDS
 </div>
 
 &rlm;`candidate` قيمته `null` ما لم تكن `status` هي `found`. و`warnings` فيها كائنات بـ `code` (`token_file_shared`،&rlm; `updates_backlog`) و`message`. و`other_candidates` يعدّ الأشخاص الآخرين الذين راسلوا البوت في الدقائق العشر نفسها: حين لا يكون صفرًا، يلزم التأكد من الشخص الصحيح. ويكرر `next_step` خيار التوكن المستخدم، لا التوكن نفسه أبدًا.
+
+### <a id="json-aipager-setup-group---json"></a>JSON: `aipager setup group --json`
+
+كل مفتاح موجود دائمًا؛ والقيمة غير المعروفة بعد هي `null`.
+
+<div dir="ltr">
+
+```json
+{
+  "command": "group",
+  "status": "created",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Group team (chat -1001234567890) is set up with 2 members.",
+  "fix": null,
+  "dry_run": false,
+  "force": false,
+  "bot_username": "example_bot",
+  "chat_id": -1001234567890,
+  "scope_chat_id": -1001234567890,
+  "label": "team",
+  "root": "/home/alice/aipager-users/group-team",
+  "block_edits": false,
+  "members": [{"id": 111111111, "label": "alice", "role": "owner"},
+              {"id": 222222222, "label": "bob", "role": "user"}],
+  "changed": ["group"],
+  "member_changes": [{"id": 222222222, "change": "added", "label": "bob", "role": "user", "previous_role": null}],
+  "force_reasons": [],
+  "pinned_roots": [],
+  "telegram": {"checked": true, "chat_type": "supergroup", "chat_title": "Team",
+               "bot_status": "administrator", "bot_can_pin": true, "privacy_mode": true},
+  "daemon": {"running": true, "reload": "reloaded", "restart_needed": false, "outcome": "reloaded_live"},
+  "warnings": [],
+  "next_step": "Check the group with `aipager doctor --json`."
+}
+```
+
+</div>
+
+- &rlm;`status`:&rlm; `created` أو `updated` أو `unchanged` أو `dry_run` أو `error`.
+- &rlm;`scope_chat_id`: المعرّف الذي حُفظت به المجموعة (غير &lrm;`--chat-id` بعد ترقيتها إلى مجموعة خارقة).
+- &rlm;`changed`: ما تغيّر (أو ما سيتغير في التشغيل التجريبي)، بهذا الترتيب: `group` (مجموعة جديدة)، `label`،&rlm; `root`،&rlm; `deny_tools`،&rlm; `member_added`،&rlm; `member_relabeled`،&rlm; `role`،&rlm; `member_removed`.
+- &rlm;`member_changes[].change`:&rlm; `added` أو `relabeled` أو `role` أو `removed`.
+- &rlm;`members`: أعضاء المجموعة بعد التغيير (المخطط لهم في التشغيل التجريبي)؛ و`null` إذا توقف التشغيل قبل ذلك.
+- &rlm;`pinned_roots`: دردشات أخرى يُكتب مجلدها الجذري في الملف كي لا ينتقل.
+- تكون `telegram.checked` بقيمة false حين تُتجاوز الفحوص؛ وتكون مفاتيح `telegram` الأخرى حينها `null`. ويُذكر `privacy_mode` فقط: لا يغيّر شيئًا مما يستجيب له aipager.
+- &rlm;`daemon.reload` كما في `setup`؛ و`daemon.outcome`:&rlm; `reloaded_live` أو `not_applied` أو `restart_needed` أو `no_daemon` أو `not_needed` (لم يُكتب شيء). ويكتب الخرج العادي `daemon: reloaded live` أو `daemon: not applied: <reason>`&lrm; أو `daemon: restart needed` أو `daemon: no daemon running`.
+- &rlm;`warnings` (`code` و`message`؛ ولا يغيّر أي منها رمز الخروج): `owner_granted`،&rlm; `no_manager` (لا دور لأي عضو يستطيع إدارة المجموعة)، `not_a_member`،&rlm; `group_moved`،&rlm; `group_not_found`،&rlm; `bot_not_in_group`،&rlm; `bot_not_admin`،&rlm; `bot_cannot_pin`،&rlm; `group_upgraded`،&rlm; `chat_not_a_group`،&rlm; `token_rejected`،&rlm; `telegram_checks_skipped`،&rlm; `daemon_unknown`،&rlm; `reload_refused`،&rlm; `audit_write_failed`.
+- مع `bot_not_in_group` أو `bot_not_admin` أو `bot_cannot_pin` أو `group_not_found`، يذكر `next_step` ما لا يستطيعه إلا الشخص في Telegram: إضافة البوت إلى المجموعة وجعله مشرفًا مع صلاحية تثبيت الرسائل.
+
+### <a id="json-aipager-setup-detect-group---json"></a>JSON: `aipager setup detect-group --json`
+
+<div dir="ltr">
+
+```json
+{
+  "command": "detect-group",
+  "status": "found",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Found the group Team, chat id -1001234567890.",
+  "fix": null,
+  "bot_username": "example_bot",
+  "source": "telegram",
+  "candidate": {"id": -1001234567890, "title": "Team", "type": "supergroup", "date": 1700000000},
+  "other_candidates": 0,
+  "warnings": [],
+  "next_step": "Show this group to the user; once they confirm, run: aipager setup group --chat-id -1001234567890 --member ID:LABEL:ROLE"
+}
+```
+
+</div>
+
+تكون `candidate` بقيمة `null` ما لم تكن `status` بقيمة `found`؛ ومن مصدر aipager يكون `date` فيها `null`. ويعدّ `other_candidates` المجموعات الجديدة الأخرى التي كتبت في الدقائق العشر نفسها. وقد تحوي `warnings` التحذير `updates_backlog`.
 
 ### <a id="aipager-doctor---json"></a>`aipager doctor --json`
 

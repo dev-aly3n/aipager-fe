@@ -1,6 +1,6 @@
 # Komutlar ve bot arayüzü
 
-<!-- i18n-source: docs/commands.md @ 08e5ce80 -->
+<!-- i18n-source: docs/commands.md @ b664aeaf -->
 
 > Bu sayfa İngilizceden çevrildi; ikisi birbirini tutmazsa İngilizce sürüm geçerlidir. ([English](../../commands.md))
 
@@ -33,8 +33,9 @@ Bot yalnızca yapılandırılmış sohbetlerden girdi kabul eder; güven sınır
 | `/language` | - | aipager'ın bu sohbette kendi mesajları ve düğmeleri için kullandığı dil (`/settings` içindeki ilk satırla aynı liste). Her dil kendi adıyla gösterilir: English, sonra Español, Русский (Rusça), Português (Brasil), 简体中文 (Basitleştirilmiş Çince), Français, Deutsch, 한국어 (Korece), العربية (Arapça), Bahasa Indonesia, Українська (Ukraynaca), Italiano, Türkçe, فارسی (Farsça) ve Tiếng Việt (Vietnamca). Bu sürümden sonra başlayan bir özel sohbet Telegram uygulamanın dilini izler; daha önce var olan bir sohbet, sen seçene kadar İngilizce kalır (bkz. [Diller](#languages)). İspanyolca, Portekizce, Fransızca, İtalyanca ve Endonezcede alt klavyenin sözcükleri, komutları gibi `status`, `stop`, `new` ve `kill` olarak kalır. Almanca ve Türkçe `Status`, `Stop`, `Neu…` ve `Beenden…` ile `Özet`, `Stop`, `Oluştur` ve `Sonlandır` kullanır; İngilizce sözcükler yazıldığında çalışmaya devam eder. Farsça ve Arapçada aipager'ın metinleri sağdan sola, Farsça ya da Arapça rakamlarla okunur; oturum adları, komutlar, model adları ve kod olduğu gibi kalır. Liste neyi değiştirdiğini söyler: yalnızca aipager'ın metinlerini, burada ve Mini App'te; Claude oturumların değişmez ve Claude ona hangi dilde yazarsan o dilde yanıt verir. Grupta herkes bakabilir, ama yalnızca bir yönetici değiştirebilir. `language` ayrılmış bir oturum adıdır. |
 | `/whoami` | - | Burada kim olduğunu gösterir: ekip modunda adını, bu sohbetteki rolünü ve onun sana verdiği kuralları. |
 | `/update` | - | Yalnızca yöneticiler için (`owner` ve `admin` rolleri ya da `can_manage` olan bir rol). aipager'ın ve Claude Code'un yeni sürümleri olup olmadığını kontrol eder, sonra tek bir düğmeyle yeni sürümü olanları günceller. Bkz. [Güncelleme](#update). |
+| `/usage` | - | Yalnızca yöneticiler için (`owner` ve `admin` rolleri ya da `can_manage` olan bir rol; kişisel modda aipager'ı kuran kişi). Claude Code'un en son bildirdiği plan sınırların ve aipager oturumlarının harcadığı token. **Plan sınırları**: 5 saatlik pencere, hafta (tüm modeller) ve bir gateway'in harcama sınırı, Claude Code hangisini bildirirse, her biri ne kadar kullanıldığı ve ne zaman sıfırlanacağıyla (`Bu hafta (tüm modeller): 42% kullanıldı`, `2 g 5 sa sonra sıfırlanır`; bir gün içindeyse aipager'ın çalıştığı bilgisayarın saatiyle, `3 sa 10 dk sonra sıfırlanır (saat 21:00)`), ardından rakamların nereden geldiği (`Saat 20:15 itibarıyla (4 dakika önce), x1 oturumundan.`). Sayıların geldiği oturumun sohbetini yönetmeyen bir `admin` o oturumun adını da gateway adresini de görmez (`başka bir sohbetteki bir oturumdan.`). Sıfırlanma zamanı o zamandan beri geçmiş bir pencere, eski bir yüzde yerine `Bu hafta (tüm modeller): son okumadan beri sıfırlandı` yazar. aipager bu rakamları asla Anthropic'e sormaz: Claude Code'un bir yanıttan sonra durum satırına verdiğini saklar, bu yüzden rakamlar Claude, Claude aboneliğiyle giriş yapılmış bir oturumda yanıt verince görünür; API anahtarları ve harcama sınırı olmayan gateway'ler bunları bildirmez. Farklı girişlerle çalışan oturumlar (bir klasör için giriş token'ı, başka bir yapılandırma klasörü, bir gateway) ayrı, her biri kendi satırıyla gösterilir. **Token**: bugün ve son 7 gün; giriş, çıkış, önbellekten okuma ve önbelleğe yazma (`Bugün: 1.2k giriş, 45 çıkış, 30.0k önbellekten okuma, 2.1k önbelleğe yazma`). Sayılan, Claude Code'un aipager oturumlarının dökümlerine kaydettiğidir, alt ajanlar dahil; hiçbir dökümde olmayan istekler (oturum başlıkları, mesaj önerileri, Auto modunun kontrolü) sayılmaz. Owner tüm sohbetlerin token'larını görür; başka bir yönetici yönettiği sohbetleri görür. Bir grupta `/usage` yalnızca o sohbetin token'larını gösterir, plan sınırlarını göstermez (yanıtı gruptaki herkes okur). Dolar tutarı yok. Mini App aynısını Kullanım sayfasında gösterir. `usage` ayrılmış bir oturum adıdır ve Claude Code'un kendi `/usage` komutuna hâlâ `/<label> /usage` ile ulaşılır. |
 
-`/` menüsü önce oturumlarını (`/x1 · x1 ile konuş`), sonra sık kullanılan komutları gösterir: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `help` (ve Mini App açıksa, yalnızca özel sohbette `app`). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` ve `update` menüde yoktur ama yazılınca çalışır; oturum işlemleri `/status` → `⋮` içinde de vardır. Konuşmayı temizlemek, orada tek bir dokunuş hiçbir zaman bir konuşmayı silmesin diye bilerek hiçbir adla menüde yok: `/status` → `⋮` → `🧹 Konuşmayı temizle` (onaylı) ya da klavyede `Komutlar ›` → `Konuşmayı temizle` kullan. Yazılan bir `/clear` hiçbir şeyi temizlemez: aipager onu oturum adı olarak okur (`⚠️ Bu adda bir oturum yok: clear`). `clear` ve `reset` ayrılmış oturum adlarıdır.
+`/` menüsü önce oturumlarını (`/x1 · x1 ile konuş`), sonra sık kullanılan komutları gösterir: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `usage`, `help` (ve Mini App açıksa, yalnızca özel sohbette `app`). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` ve `update` menüde yoktur ama yazılınca çalışır; oturum işlemleri `/status` → `⋮` içinde de vardır. Konuşmayı temizlemek, orada tek bir dokunuş hiçbir zaman bir konuşmayı silmesin diye bilerek hiçbir adla menüde yok: `/status` → `⋮` → `🧹 Konuşmayı temizle` (onaylı) ya da klavyede `Komutlar ›` → `Konuşmayı temizle` kullan. Yazılan bir `/clear` hiçbir şeyi temizlemez: aipager onu oturum adı olarak okur (`⚠️ Bu adda bir oturum yok: clear`). `clear` ve `reset` ayrılmış oturum adlarıdır.
 
 **Bir oturuma etki eden komutlar** (`/stop`, `/mode`, `/kill`, `/restart`, `/rename`, `/delete`, `/diff`) tek bir kurala uyar:
 
@@ -103,6 +104,7 @@ aipager English, Español, Русский, Português (Brasil), 简体中文, Fr
 - **Seni bekleyenler.** Bir izin isteği ya da soru bekleyen bir oturum en üstteki kehribar renkli şeritte durur ve ne sorduğunu gösterir. İşi bir izin isteği bekleyen, Claude Code arka planındaki bir oturum da orada durur, çünkü onu sohbetten yanıtlayabilirsin; sayfası ayrıca Geri getir seçeneğini de sunar. **Sohbette yanıtla**, o isteği düğmeleriyle birlikte sohbetin sonuna yeniden gönderir, tıpkı sabitlenmiş satırdaki **Yanıtla** düğmesi gibi, ve sen orada yanıtlarsın. Bekleyen tek oturum buysa uygulama, istek tam önünde olsun diye kapanır; aksi halde açık kalır ve “Sohbete gönderildi” yazar. Bunun için oturuma mesaj gönderme hakkı gerekir; istek yanıtlandıktan ya da değiştirildikten sonra dokunulan bir kopya ise “zaten yanıtlandı” yazar.
 - **Oturum sayfası.** Başlık bağlam halkasını, durumu (“Çalışıyor (3:12)”, “2 ajanı bekliyor”, “Seni bekliyor (izin)”, “Hazır, son etkinlik 5 dk önce”, “Claude Code arka planında”, “Bitti”) ve tek dokunuşluk **Geri getir** (Claude Code arka planındaki bir oturum için), **Durdur** (çalışırken, ajanlarını beklerken ya da seni beklerken) veya **Devam ettir** (bittiğinde) düğmesini gösterir. Altında: **Sohbette yanıtla** ile bekleyen istek, şerit halinde son araç çağrıları (tam zaman çizelgesini görmek için dokun), son yanıt, ayrıntılar, model seçici, oturumun kendi ayarları, değişen dosyalar ve zaman çizelgesi. ⋮ menüsü, eskisiyle aynı onaylarla tüm işlemleri içerir. Konuşması Claude Code arka planına taşınan bir oturum (bkz. [sorun giderme](troubleshooting.md#a-session-moved-to-claude-codes-background)) Geri getir, Durdur, Yeniden adlandır, Sonlandır ve Yeniden başlat seçeneklerini sunar; arka plan işi hâlâ çalışıyorsa Geri getir, Yeniden başlat ve Devam ettir sayfanın kendisinde **Durdur ve geri getir** ya da **Bırak çalışsın** diye sorar ve oturum geri geldiğinde sohbette `↩️ x1 Claude Code arka planından geri döndü.` yazar. Hazır bir oturumun ⋮ menüsünde **Konuşmayı temizle** de var: önce sayfada sorar, sonra Claude Code'un `/clear` komutunu oturuma yazar, sohbetteki `⋮` → `🧹 Konuşmayı temizle` gibi ([Konuşma temizleme onayı](#clear-confirmation) bölümüne bak), ve sohbette `🧹 /clear, Mini App'ten [x1] oturumuna gönderildi` görünür.
 - **Yeni oturum.** Adım adım bir kart: ad, sonra nerede (oturumlarının kullandığı klasörler için **Son kullanılanlar** önerileri, en yeniler önce), sonra model (**Önerilen** önerileriyle), sonra izin modu ve yanıt tarzı için **Daha fazla seçenek**. Telegram'ın alttaki kendi düğmesinin adı **Oturumu başlat**. Rolünde `can_manage` olmayan bir üye için “nerede” yalnızca sohbetin [kök klasörünü](groups.md#root-folders) ve hemen içindeki klasörleri sunar (varsayılan kök klasördür ve “Yeni klasör” seçilenin içinde oluşturur); onun dışındaki bir klasör nedeniyle reddedilir, onun dışında çalışan bir oturum için “Devam ettir”, “Yeniden başlat” ve mod değişikliği ise “Bu oturum klasörünün (~/...) dışında çalışıyor, bu yüzden rolün ona devam edemez, onu yeniden başlatamaz ya da modunu değiştiremez. Bir yöneticiye sor.” yanıtını verir.
+- **Kullanım.** Owner ve yöneticiler için Oturumlar ile Ayarlar arasındaki **Kullanım** sekmesi, Claude Code'un en son bildirdiği plan sınırlarını, her biri bir çubuk ve sıfırlanma zamanıyla, rakamların nereden geldiğini, ve bugünün, son 7 günün, her günün ve her modelin token'larını gösterir, [`/usage`](#slash-commands) ile aynı. Tabloların üstünde bir çubuk grafik, son 7 günün her biri için giriş ve çıkış token'larını gösterir; bugünün çubuğu vurgu rengindedir. Sekme her açıldığında rakamlar yeniden okunur. Yönetici olmadığın bir sohbette sekme görünmez.
 - **Ayarlar.** Önce **Uygulama dili**: aipager'ın uygulamadaki ve özel sohbetindeki metinleri için kendi dilin (İngilizce, İspanyolca, Rusça, Portekizce (Brezilya), Çince (Basitleştirilmiş), Fransızca, Almanca, Korece, Arapça, Endonezce, Ukraynaca, İtalyanca, Türkçe, Farsça ya da Vietnamca; “Otomatik” Telegram uygulamanın dilini izler, bkz. [Diller](#languages)). Herkes kendisininkini değiştirebilir; sohbette asla yayımlanmaz ve Claude oturumlarını değiştirmez. Sonra sohbetin ayarları (grupta onları yalnızca bir yönetici değiştirebilir; kendi özel sohbetinde, rolün ne olursa olsun, oradaki `/settings` gibi sen değiştirebilirsin) ve bir yönetici için [`/update`](#update) komutunu yineleyen **Güncellemeler**. Sahip için kendi özel sohbetinde **Sorun bildir** kendi sayfasını açar: bir not yaz, raporu kontrol et, gönder ve referansını uygulamadan çıkmadan gör (bkz. [sorun raporları](problem-reports.md#how-to-send-one)).
 
 Uygulama, değiştirdiğinde Telegram'ın açık ya da koyu temasını izler ve telefon daha az hareket istediğinde yumuşak animasyonlarını durdurur. Mini App'teki her şeye sohbetten de ulaşılabilir: oturum panelindeki ⋮ menüsü aynı işlemleri içerir.
@@ -190,7 +192,7 @@ Kart, Claude'un çalıştırmak istediği gerçek komutu (ya da dosya yolunu) on
 - **İzin ver**: bu tek çağrıyı onaylar.
 - **Reddet**: onu reddeder; Claude aracı çalıştırmaz.
 - **Hep izin ver**: onaylar ve Claude'un önerdiği kalıcı bir kuralı ekler (“don't ask again for …”). Düğme **yalnızca Claude böyle bir kural önerdiğinde** görünür; kural çıkaramadığı bir komut için (çoğu bileşik komut) kartta bunun yerine İzin ver / Reddet / Durdur bulunur, oturumun çalışma klasörünün dışında yalnızca okuma amaçlı bir dosya erişimi (`Read`, `Grep`, `Glob`) için de. Claude Code 2.1.259 ve sonrası, bu yere kendi Bash iletişim kutusunda “switch to auto mode” satırını, klasör dışı okuma iletişim kutusunda “block reads outside the working directories from now on” satırını ve dosya için kural çıkaramadığı bir Write/Edit için, tüm dosya düzenlemelerini otomatik kabul etme (`acceptEdits`) gibi bir izin modu değişikliğini koyar; aipager bunların hiçbirini asla seçmez; modları bilinçli olarak `/mode` ile değiştir.
-- **Durdur**: yanıt vermek yerine görevi yarıda keser. Claude'un kendi görevi bittikten sonra bir arka plan ajanının isteğinde Durdur, bunun yerine arka plan ajanlarını durdurur (`/stop` gibi) ve istek kapanır.
+- **Durdur**: yanıt vermek yerine görevi yarıda keser. Claude'un kendi görevi bittikten sonra açılan bir arka plan ajanı isteği, İzin ver ve Reddet ile kendi mesajı olarak gelir; ajanları bekleyen karttaki Durdur o zaman bunun yerine arka plan ajanlarını durdurur (`/stop` gibi) ve istek kapanır.
 
 Yanıt, Claude Code'a aipager'ın izin hook'u üzerinden gider; hook onu 20 saniyeye kadar bekler. Çalışma kartından önce gelen bir istek (o zaman yalnızca İzin ver ve Reddet ile kendi mesajı olarak gönderilir) de aynı şekilde yanıtlanır. Bu bekleme bittiğinde düğmeler yanıtı bunun yerine Claude Code'un kendi iletişim kutusuna yazar; Reddet o zaman Escape'e basar (“No, and tell Claude what to do differently”); bu, Durdur gibi Claude'un görevini bitirir ve kart `🚫 jim · İzin reddedildi` yazar. Claude Code'un Otomatik modda proje dışındaki ilk okumadan önce sorduğu soruda geç gelen bir İzin ver yazılmaz: Enter'ı “Yes, and keep allowing any reads outside the working directories” seçeneğini seçerdi, bu yüzden dokunuş onu terminalde yanıtlamanı söyler (Reddet yine çalışır).
 
@@ -474,7 +476,7 @@ Aynı listeyi kendi bilgisayarında görmek için `aipager <command> --help` ça
 | Komut | Ne yapar |
 |---|---|
 | `aipager config` | Etkileşimli kurulum sihirbazı: bot token'ı, sohbetler, üyeler ve roller, Claude Code hook'ları. Herhangi bir şeyi değiştirmek için yeniden çalıştır (bkz. [ekip modu](groups.md#setup)). |
-| `aipager setup` | Aynı ilk kurulum, soru sormadan, betikler ve kodlama ajanları için (bkz. [aşağısı](#command-line-aipager-setup-for-coding-agents)). |
+| `aipager setup` | Aynı ilk kurulum, soru sormadan, betikler ve kodlama ajanları için; `aipager setup group` aynı şekilde bir Telegram grubunu, üyelerini ve onların rollerini ekler (bkz. [aşağısı](#command-line-aipager-setup-for-coding-agents)). |
 | `aipager start` | aipager'ı ön planda çalıştırır. Başka bir aipager çalışırken başlamayı reddeder. |
 | `aipager service install [--yes]` | aipager'ı bir arka plan hizmeti olarak kurar (Linux'ta systemd kullanıcı hizmeti, macOS'ta launchd ajanı) ve başlatır. `--yes`, kurulu hizmet farklıyken soruyu atlar. |
 | `aipager service start\|stop\|status\|logs\|uninstall` | Hizmeti başlatır, durdurur ya da gösterir, günlüğünü izler ya da kaldırır. |
@@ -496,7 +498,7 @@ Aynı listeyi kendi bilgisayarında görmek için `aipager <command> --help` ça
 
 ## <a id="command-line-aipager-setup-for-coding-agents"></a>Komut satırı: `aipager setup` (kodlama ajanları için)
 
-Yukarıdaki bölümler Telegram botunu anlatır. Bu bölüm bir terminalde çalıştırdığın ya da bir betiğin veya kodlama ajanının senin için çalıştırdığı bir komutu anlatır: `aipager setup`, aipager'ı soru sormadan kurar ve `aipager config` komutunun ilk çalıştırmasıyla aynı sonucu verir.
+Yukarıdaki bölümler Telegram botunu anlatır. Bu bölüm bir terminalde çalıştırdığın ya da bir betiğin veya kodlama ajanının senin için çalıştırdığı bir komutu anlatır: `aipager setup`, aipager'ı soru sormadan kurar ve `aipager config` komutunun ilk çalıştırmasıyla aynı sonucu verir. Zaten yapılandırılmış bir kurulumda `aipager setup group`, bir Telegram grubunu üyeleri ve onların rolleriyle birlikte, yine soru sormadan ekler (bkz. [`aipager setup group`](#aipager-setup-group)).
 
 ```sh
 # 1. kişinin Telegram kimliğini öğren (botu açıp Start'a dokunur)
@@ -505,6 +507,9 @@ aipager setup detect-chat --token-file ~/bot-token.txt --json
 aipager setup --token-file ~/bot-token.txt --chat-id 123456789 --service --json
 # 3. kurulumu kontrol et
 aipager doctor --json
+# sonra: bir grubu bul (orada /start gönder), ardından yapılandır
+aipager setup detect-group --json
+aipager setup group --chat-id -1001234567890 --member 123456789:alice:owner --json
 ```
 
 Ne yaptığı, sırasıyla: bot token'ını okur, onu Telegram'da doğrular (getMe), hiçbir şey yazmadan bu bilgisayardaki her şeyi kontrol eder (mevcut yapılandırma, bağımlılıklar, `~/.claude/settings.json` (ya da `$CLAUDE_CONFIG_DIR/settings.json`), bir aipager'ın çalışıp çalışmadığı), kişiye bir test mesajı gönderir ("aipager is set up for you. ...") ve ancak ondan sonra yazar. Yazılan dosyalar, tam olarak sihirbazın yazdığı gibi:
@@ -523,12 +528,17 @@ Bir kontrol başarısız olursa hiçbir şey gönderilmez ve hiçbir şey yazıl
 |---|---|
 | `--token-file PATH` | Bot token'ını bu dosyadan okur (en fazla 4096 bayt; token'ın etrafındaki metin sorun değil). Diğer kullanıcıların okuyabildiği bir dosya çalışır ama `token_file_shared` uyarısı verir: ona `chmod 600` uygula ya da setup başarılı olunca sil. |
 | `--token-stdin` | Bot token'ını stdin'den okur (bir pipe ya da yönlendirilmiş bir dosya, asla bir terminal). Pipe kapanmalıdır: setup stdin'in sonunu en fazla 30 saniye bekler, sonra 2 ve `token_stdin_timeout` ile çıkar. `printf '%s\n' "$TOKEN" \| aipager setup --token-stdin ...` ve `< token.txt` ikisi de onu kapatır. |
-| `--chat-id N` | Zorunlu. Kişinin sayısal Telegram kullanıcı kimliği; bu aynı zamanda özel sohbetinin kimliğidir. Gruplar `aipager config` ile eklenir. |
+| `--chat-id N` | Zorunlu. Kişinin sayısal Telegram kullanıcı kimliği; bu aynı zamanda özel sohbetinin kimliğidir. `setup group` ile: grubun kimliği, negatif bir sayı. |
 | `--role owner\|admin` | Kişinin rolü (varsayılan `owner`). |
 | `--service` | Arka plan hizmetini de kurar ve başlatır (bir aipager çalışırken atlanır). |
-| `--force` | Mevcut bir kurulumun bot token'ının, sahibin özel sohbetinin ya da rolünün değiştirilmesine izin verir. Grup sohbetleri ve diğer özel sohbetler korunur. |
+| `--force` | Mevcut bir kurulumun bot token'ının, sahibin özel sohbetinin ya da rolünün değiştirilmesine izin verir. Grup sohbetleri ve diğer özel sohbetler korunur. `setup group` ile: `force_reasons` içinde listelenen değişikliklere izin verir. |
 | `--dry-run` | Her kontrolü çalıştırır, hiçbir şey göndermez, hiçbir şey yazmaz ve neyin değişeceğini bildirir. |
 | `--json` | stdout'a tam olarak bir JSON nesnesi yazdırır; geri kalan her şey stderr'e gider. |
+| `--member ID:LABEL:ROLE` | Yalnızca `setup group`, tekrarlanabilir: bir üyenin sayısal Telegram kullanıcı kimliği, adı ve rolü. |
+| `--remove-member ID` | Yalnızca `setup group`, tekrarlanabilir: bu üyeyi çıkarır. |
+| `--label NAME` | Yalnızca `setup group`: grubun adı. |
+| `--root PATH` | Yalnızca `setup group`: üyelerin kök klasörü. |
+| `--block-edits` | Yalnızca `setup group`: grubun `user` üyeleri için Write ve Edit'i engeller. |
 
 `--token-file` ve `--token-stdin` seçeneklerinden tam olarak birini ver. Token asla bir seçeneğin değeri olarak kabul edilmez: `--token` ve `--bot-token` reddedilir (`token_on_command_line`) ve değer gösterilmez. Kısaltılmış seçenekler (`--token-f`, `--dry`) kabul edilmez. setup asla soru sormaz, asla terminal gerektirmez ve token'ı asla bir ortam değişkeninden okumaz.
 
@@ -546,24 +556,52 @@ Aynı bot için bir aipager çalışıyorsa botun mesajlarını aipager alır ve
 
 Sınır: detect-chat hiçbir mesajı onaylamadığı için Telegram ona yalnızca son 24 saatin en eski 100 okunmamış güncellemesini gösterir. Botun bu kadar bekleyeni varsa yeni bir `/start` görünmez: detect-chat o zaman zaman aşımıyla (çıkış 8) `updates_backlog` uyarısıyla biter ve Başlat'a yeniden dokunmak işe yaramaz. Bunun yerine kişiye sayısal Telegram kimliğini sor (ya da bu güncellemeleri okuyup temizleyen aipager'ı bir kez başlat).
 
+### <a id="aipager-setup-group"></a>`aipager setup group`
+
+```sh
+aipager setup group --chat-id N [--member ID:LABEL:ROLE ...] [--remove-member ID ...]
+                    [--label NAME] [--root PATH] [--block-edits]
+                    [--force] [--dry-run] [--json]
+```
+
+Zaten yapılandırılmış bir kurulumda bir Telegram grubunu, `aipager config` ile aynı kontroller, aynı dosya yazımı ve aynı yeniden başlatmadan yeniden yükleme ile yapılandırır. Bot token'ını `aipager.yaml` dosyasından okur (`--token-file` ya da `--token-stdin` yok), terminale ihtiyaç duymaz, aipager'ı asla yeniden başlatmaz ve gruba asla bir şey göndermez.
+
+- `--chat-id N`: grubun kimliği, negatif bir sayı (onu [`detect-group`](#aipager-setup-detect-group) bulur).
+- `--member ID:LABEL:ROLE`: pozitif bir Telegram kullanıcı kimliği, bir ad (`:` içerebilir) ve bir rol: `owner`, `admin`, `user`, `read_only` ya da `policy.yaml` içinde tanımlı bir rol. Telegram'ın paylaşılan gönderen kimlikleri (1087968824, 136817688, 777000) reddedilir.
+- Yeni bir grubun en az bir `--member` değerine ihtiyacı vardır. Adı `--label`, yoksa `group-<kimliğin rakamları>`; kök klasörü `--root`, yoksa `~/aipager-users/group-<label>` olur ve dosyaya yazılır.
+- Zaten yapılandırılmış bir grup (Telegram onu dönüştürdükten sonra diğer kimliği altında da, `group_moved` uyarısıyla) genişletilir: adını vermediğin üyeler korunur, yeni bir kimlik eklenir, bilinen bir kimlik yeni bir adla yeniden adlandırılır ve üye olmayan biri için `--remove-member` `not_a_member` uyarısını verir. `--block-edits` grubun `deny_tools` listesine `Write` ve `Edit` ekler ve asla bir şey kaldırmaz. Son üye çıkarılamaz (`last_member`, `--force` ile bile): grubu `aipager config` içinde kaldır.
+- Şu değişiklikler `--force` gerektirir, yoksa çıkış 6 `needs_force` olur (`force_reasons` bunları listeler): `owner_granted` (yeni bir üye `bypass_safety` içeren bir rol alır ve henüz hiçbir sohbette böyle bir rolü yoktur; kendi özel sohbetinin sahibini eklemek bunu gerektirmez), `role_changed`, `owner_demoted`, `owner_removed`, `root_code_loading` (kök klasör `~/bin`, `~/.local/bin`, `~/.config/systemd` ya da `~/.config/autostart` içindedir) ve `root_overlap` (başka bir sohbetin kök klasörüyle aynıdır, onu içerir ya da onun içindedir).
+- Aynı seçeneklerle yeniden çalıştırmak hiçbir şeyi değiştirmez (`unchanged`): yazma da yok, yeniden yükleme de.
+- `owner` rolünün her verilişi denetim kaydına bir `grant-owner` kaydı ekler.
+- Telegram'a, yalnızca okuyarak ve grubun göremeyeceği şekilde (getMe, getChat, bot için getChatMember), botun grupta olup olmadığını, yönetici olup olmadığını ve mesaj sabitleyip sabitleyemeyeceğini sorar. Bulduğu şey bir uyarıdır, asla bir çıkış kodu değil; bir ağ hatasından sonra gerisi atlanır (`telegram_checks_skipped`).
+
+### <a id="aipager-setup-detect-group"></a>`aipager setup detect-group`
+
+```sh
+aipager setup detect-group [--timeout SECONDS] [--json]
+```
+
+Henüz yapılandırılmamış bir grup ya da süper gruptaki en yeni mesajı bekler (biri orada `/start` gönderir) ve grubu yazdırır: kimlik, başlık ve tür. Hiçbir şey kaydetmez, bu yüzden önce bulunan grubu göster ve `aipager setup group --chat-id` komutunu ancak grup onaylandıktan sonra çalıştır. Yalnızca komut başlamadan en fazla 10 dakika önce gönderilmiş mesajlar sayılır; `--timeout` detect-chat'teki gibi çalışır. Token'ı `aipager.yaml` dosyasından okur ve başka bir seçenek kabul etmez. Bot için bir aipager çalışırken aipager'ın not ettiklerini okur (`source: "daemon"`, grupları görür); aksi halde hiçbir mesajı onaylamadan Telegram'ı okur (`source: "telegram"`).
+
 ### <a id="exit-codes"></a>Çıkış kodları
 
 | Kod | `error` | Anlamı |
 |---|---|---|
-| 0 | | Başarı (`installed`, `updated`, `unchanged`, `dry_run` ya da detect-chat `found`). |
-| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `internal_error` | Başarısızlık. `ambiguous_install`: birden fazla özel sohbet sahibin sohbeti olabilir; bunu `aipager config` ile düzelt. |
-| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout` | Hatalı ya da eksik girdi; `fix` seçeneği söyler. Bilinmeyen bir seçeneği ya da `setup` sonrasındaki yanlış bir sözcüğü argüman ayrıştırıcısı bildirir (düz metin, JSON değil), yine 2 ile. |
+| 0 | | Başarı (`installed`, `created`, `updated`, `unchanged`, `dry_run` ya da detect-chat ve detect-group için `found`). |
+| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `policy_malformed`, `not_a_group_scope`, `last_member`, `config_changed`, `internal_error` | Başarısızlık. `ambiguous_install`: birden fazla özel sohbet sahibin sohbeti olabilir; bunu `aipager config` ile düzelt. `config_changed`: `setup group` çalışırken grup `aipager.yaml` içinde değişti, bu yüzden hiçbir şey yazılmadı; yeniden çalıştır. |
+| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout`, `bad_member`, `bad_member_id`, `shared_sender_id`, `duplicate_member`, `bad_label`, `duplicate_label`, `unknown_role`, `bad_root` | Hatalı ya da eksik girdi; `fix` seçeneği söyler. Bilinmeyen bir seçeneği ya da `setup` sonrasındaki yanlış bir sözcüğü argüman ayrıştırıcısı bildirir (düz metin, JSON değil), yine 2 ile. |
 | 3 | `deps_missing` | dtach, claude, aipager-hook ya da aipager-statusline eksik; `fix` komutları içerir. Hiçbir şey yazılmadı. |
 | 4 | `token_rejected` | Telegram token'ı reddetti. |
 | 5 | `chat_not_started`, `bot_blocked` | Kişi botta Başlat'a dokunmadı ("Open t.me/&lt;bot&gt; and press Start, then run this again.") ya da onu engelledi. Hiçbir şey yazılmadı. |
-| 6 | `existing_install` | Farklı bir token, sohbet ya da rol zaten yapılandırılmış; `--force` ekle. |
+| 6 | `existing_install`, `needs_force` | Farklı bir token, sohbet ya da rol zaten yapılandırılmış ya da `setup group` `force_reasons` içinde listelenen bir değişiklik yapacak; `--force` ekle (kişiye sorduktan sonra). |
 | 7 | `telegram_unreachable` | Ağ hatası ya da Telegram 429 veya 5xx ile yanıt verdi. |
-| 8 | `detect_timeout` | detect-chat `--timeout` dolmadan özel bir mesaj görmedi (100 eski okunmamış güncelleme daha yenilerini gizlediğinde `updates_backlog` uyarısıyla). |
+| 8 | `detect_timeout` | detect-chat `--timeout` dolmadan özel bir mesaj görmedi (detect-group: yeni bir grupta mesaj görmedi) (100 eski okunmamış güncelleme daha yenilerini gizlediğinde `updates_backlog` uyarısıyla). |
 | 9 | `daemon_running` | detect-chat: botun mesajlarını çalışan bir aipager alıyor. |
-| 10 | `updates_conflict` | detect-chat: bu botun mesajlarını başka bir program okuyor. |
+| 10 | `updates_conflict` | detect-chat ya da detect-group: bu botun mesajlarını başka bir program okuyor. |
+| 11 | `not_set_up` | `setup group` ya da `detect-group`: henüz bot token'ı olan bir `aipager.yaml` yok (eski bir `config.env` kurulumunda da: onu taşımak için bir kez `aipager config` çalıştır). Önce aipager'ı yapılandır. |
 | 130 | `interrupted` | Ctrl-C. |
 
-Birkaç kontrol aynı anda başarısız olursa kod şu sırayı izler: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. `--dry-run`, gerçek çalıştırmanın bu kontrollere göre alacağı kodla çıkar.
+Birkaç kontrol aynı anda başarısız olursa kod şu sırayı izler: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. `setup group` için: `config_malformed` ya da `not_set_up`, `policy_malformed`, `unknown_role`, `usage`, `duplicate_label`, `not_a_group_scope`, `last_member`, `needs_force`. `--dry-run`, gerçek çalıştırmanın bu kontrollere göre alacağı kodla çıkar.
 
 ### <a id="json-aipager-setup---json"></a>JSON: `aipager setup --json`
 
@@ -625,6 +663,74 @@ Her anahtar her zaman vardır; henüz bilinmeyen bir değer `null` olur.
 ```
 
 `status` değeri `found` değilse `candidate` değeri `null` olur. `warnings`, `code` (`token_file_shared`, `updates_backlog`) ve `message` içeren nesneler barındırır. `other_candidates`, aynı 10 dakika içinde bota yazan diğer kişileri sayar: 0 değilse doğru kişiyi seçtiğinden emin ol. `next_step` kullandığın token seçeneğini tekrarlar, token'ın kendisini asla.
+
+### <a id="json-aipager-setup-group---json"></a>JSON: `aipager setup group --json`
+
+Her anahtar her zaman vardır; henüz bilinmeyen bir değer `null` olur.
+
+```json
+{
+  "command": "group",
+  "status": "created",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Group team (chat -1001234567890) is set up with 2 members.",
+  "fix": null,
+  "dry_run": false,
+  "force": false,
+  "bot_username": "example_bot",
+  "chat_id": -1001234567890,
+  "scope_chat_id": -1001234567890,
+  "label": "team",
+  "root": "/home/alice/aipager-users/group-team",
+  "block_edits": false,
+  "members": [{"id": 111111111, "label": "alice", "role": "owner"},
+              {"id": 222222222, "label": "bob", "role": "user"}],
+  "changed": ["group"],
+  "member_changes": [{"id": 222222222, "change": "added", "label": "bob", "role": "user", "previous_role": null}],
+  "force_reasons": [],
+  "pinned_roots": [],
+  "telegram": {"checked": true, "chat_type": "supergroup", "chat_title": "Team",
+               "bot_status": "administrator", "bot_can_pin": true, "privacy_mode": true},
+  "daemon": {"running": true, "reload": "reloaded", "restart_needed": false, "outcome": "reloaded_live"},
+  "warnings": [],
+  "next_step": "Check the group with `aipager doctor --json`."
+}
+```
+
+- `status`: `created`, `updated`, `unchanged`, `dry_run` ya da `error`.
+- `scope_chat_id`: grubun kayıtlı olduğu kimlik (süper gruba dönüşümden sonra `--chat-id` değerinden farklı).
+- `changed`: neyin değiştiği (ya da deneme çalıştırmasında neyin değişeceği), şu sırayla: `group` (yeni bir grup), `label`, `root`, `deny_tools`, `member_added`, `member_relabeled`, `role`, `member_removed`.
+- `member_changes[].change`: `added`, `relabeled`, `role` ya da `removed`.
+- `members`: değişiklikten sonra grubun üyeleri (deneme çalıştırmasında planlananlar); çalıştırma daha önce durduysa `null`.
+- `pinned_roots`: kök klasörü, yer değiştirmesin diye dosyaya yazılan diğer sohbetler.
+- Kontroller atlandığında `telegram.checked` false olur; o zaman `telegram` içindeki diğer anahtarlar `null` olur. `privacy_mode` yalnızca bildirilir: aipager'ın neye tepki verdiğini değiştirmez.
+- `daemon.reload` `setup` ile aynı; `daemon.outcome`: `reloaded_live`, `not_applied`, `restart_needed`, `no_daemon` ya da `not_needed` (hiçbir şey yazılmadı). Düz çıktı `daemon: reloaded live`, `daemon: not applied: <reason>`, `daemon: restart needed` ya da `daemon: no daemon running` der.
+- `warnings` (`code` ve `message`; hiçbiri çıkış kodunu değiştirmez): `owner_granted`, `no_manager` (hiçbir üyenin rolü grubu yönetemez), `not_a_member`, `group_moved`, `group_not_found`, `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin`, `group_upgraded`, `chat_not_a_group`, `token_rejected`, `telegram_checks_skipped`, `daemon_unknown`, `reload_refused`, `audit_write_failed`.
+- `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin` ya da `group_not_found` olduğunda `next_step`, Telegram'da yalnızca kişinin yapabileceğini söyler: botu gruba eklemek ve onu mesaj sabitleme hakkıyla yönetici yapmak.
+
+### <a id="json-aipager-setup-detect-group---json"></a>JSON: `aipager setup detect-group --json`
+
+```json
+{
+  "command": "detect-group",
+  "status": "found",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Found the group Team, chat id -1001234567890.",
+  "fix": null,
+  "bot_username": "example_bot",
+  "source": "telegram",
+  "candidate": {"id": -1001234567890, "title": "Team", "type": "supergroup", "date": 1700000000},
+  "other_candidates": 0,
+  "warnings": [],
+  "next_step": "Show this group to the user; once they confirm, run: aipager setup group --chat-id -1001234567890 --member ID:LABEL:ROLE"
+}
+```
+
+`status` `found` değilse `candidate` `null` olur; aipager kaynağından gelen `date` değeri `null` olur. `other_candidates`, aynı 10 dakika içinde yazan diğer yeni grupları sayar. `warnings` içinde `updates_backlog` olabilir.
 
 ### <a id="aipager-doctor---json"></a>`aipager doctor --json`
 

@@ -1,6 +1,6 @@
 # Lệnh và giao diện của bot
 
-<!-- i18n-source: docs/commands.md @ 08e5ce80 -->
+<!-- i18n-source: docs/commands.md @ b664aeaf -->
 
 > Trang này được dịch từ tiếng Anh; nếu hai bản khác nhau, bản tiếng Anh là bản đúng. ([English](../../commands.md))
 
@@ -33,8 +33,9 @@ Các lệnh này được đăng ký trong `aipager/bot/lifecycle.py`. Menu lệ
 | `/language` | - | Ngôn ngữ mà aipager dùng cho tin nhắn và nút của chính nó trong chat này (cùng danh sách với hàng đầu tiên của `/settings`). Mỗi ngôn ngữ được liệt kê bằng tên của chính nó: English, rồi Español, Русский (tiếng Nga), Português (Brasil), 简体中文 (tiếng Trung giản thể), Français, Deutsch (tiếng Đức), 한국어 (tiếng Hàn), العربية (tiếng Ả Rập), Bahasa Indonesia, Українська (tiếng Ukraina), Italiano, Türkçe (tiếng Thổ Nhĩ Kỳ), فارسی (tiếng Ba Tư) và Tiếng Việt. Một chat riêng bắt đầu sau bản phát hành này đi theo ngôn ngữ của ứng dụng Telegram của bạn; một chat đã có từ trước vẫn dùng tiếng Anh cho tới khi bạn chọn (xem [Ngôn ngữ](#languages)). Trong tiếng Tây Ban Nha, tiếng Bồ Đào Nha, tiếng Pháp, tiếng Ý và tiếng Indonesia, các chữ trên bàn phím trả lời vẫn là `status`, `stop`, `new` và `kill`, giống như các lệnh của chúng. Tiếng Đức và tiếng Thổ Nhĩ Kỳ dùng `Status`, `Stop`, `Neu…` và `Beenden…`, và `Özet`, `Stop`, `Oluştur` và `Sonlandır`; các chữ tiếng Anh vẫn dùng được khi gõ. Trong tiếng Ba Tư và tiếng Ả Rập, chữ của aipager đọc từ phải sang trái với chữ số Ba Tư hoặc Ả Rập; tên phiên, lệnh, tên mô hình và mã vẫn giữ nguyên. Danh sách nói rõ nó thay đổi gì: chỉ chữ của chính aipager, ở đây và trong Mini App; các phiên Claude của bạn không đổi, và Claude trả lời bằng ngôn ngữ bạn viết cho nó. Trong một nhóm ai cũng xem được, còn đổi nó thì cần quản trị viên. `language` là tên phiên được giữ riêng. |
 | `/whoami` | - | Cho biết bạn là ai ở đây: trong chế độ làm việc nhóm là nhãn của bạn, vai trò của bạn trong chat này và các quy tắc mà vai trò đó áp cho bạn. |
 | `/update` | - | Chỉ dành cho quản trị viên (vai trò `owner` và `admin`, hoặc một vai trò có `can_manage`). Kiểm tra aipager và Claude Code có phiên bản mới hơn không, rồi cập nhật cái nào có bằng một nút duy nhất. Xem [Cập nhật](#update). |
+| `/usage` | - | Chỉ dành cho quản trị viên (vai trò `owner` và `admin`, hoặc vai trò có `can_manage`; ở chế độ cá nhân là người vận hành). Giới hạn gói của bạn theo lần báo gần nhất của Claude Code, và số token các phiên của aipager đã dùng. **Giới hạn gói**: khung 5 giờ, tuần (mọi mô hình) và hạn mức chi tiêu của gateway, cái nào Claude Code báo, mỗi cái kèm mức đã dùng và lúc đặt lại (`Tuần này (mọi mô hình): đã dùng 42%`, `Đặt lại sau 2 ngày 5 giờ`; trong vòng một ngày thì kèm cả giờ trên máy tính chạy aipager, `Đặt lại sau 3 giờ 10 phút, lúc 21:00`), rồi đến nguồn của các con số (`Tính đến 20:15 (4 phút trước), từ phiên x1.`). Một `admin` không quản lý chat của phiên mà số liệu đến từ đó sẽ không thấy tên phiên ấy lẫn địa chỉ gateway (`từ một phiên trong chat khác.`). Khung nào đã qua giờ đặt lại kể từ đó thì hiện `Tuần này (mọi mô hình): đã đặt lại kể từ lần đọc gần nhất` thay cho phần trăm cũ. aipager không bao giờ hỏi Anthropic các con số này: nó giữ những gì Claude Code đưa cho dòng trạng thái sau mỗi câu trả lời, nên chúng hiện ra sau khi Claude trả lời trong một phiên đăng nhập bằng gói đăng ký Claude; khóa API và gateway không có hạn mức chi tiêu không báo các giới hạn này. Các phiên dùng đăng nhập khác nhau (token đăng nhập cho một thư mục, thư mục cấu hình khác, một gateway) được hiện riêng, mỗi phiên một dòng. **Token**: hôm nay và 7 ngày qua, vào, ra, đọc từ cache và ghi vào cache (`Hôm nay: 1.2k vào, 45 ra, 30.0k đọc từ cache, 2.1k ghi vào cache`). Con số là những gì Claude Code ghi trong bản ghi hội thoại của các phiên aipager, gồm cả subagent; các yêu cầu không nằm trong bản ghi nào (tiêu đề phiên, gợi ý tin nhắn, bước kiểm tra của chế độ Auto) không được tính. Owner thấy token của mọi chat; quản trị viên khác thấy các chat họ quản lý. Trong nhóm, `/usage` chỉ hiện token của chat đó và không hiện giới hạn gói (cả nhóm đều đọc câu trả lời). Không có số tiền đô la. Mini App hiện y như vậy ở trang Mức dùng. `usage` là tên phiên được giữ chỗ, và lệnh `/usage` của chính Claude Code vẫn dùng được qua `/<label> /usage`. |
 
-Menu `/` hiện các phiên của bạn trước (`/x1 · Trò chuyện với x1`), rồi đến các lệnh hay dùng: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `help` (và `app` khi Mini App bật, chỉ trong chat riêng). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` và `update` không có trong menu nhưng gõ vào vẫn dùng được; các thao tác trên phiên cũng có trong `/status` → `⋮`. Việc xóa cuộc trò chuyện được cố ý để ngoài menu dưới mọi tên, để một lần chạm ở đó không bao giờ xóa mất cuộc trò chuyện: hãy dùng `/status` → `⋮` → `🧹 Xóa cuộc trò chuyện` (có xác nhận) hoặc `Lệnh` → `Xóa cuộc trò chuyện` trên bàn phím. Gõ `/clear` không xóa gì cả: aipager đọc nó như tên phiên (`⚠️ Không có phiên nào tên: clear`). `clear` và `reset` là tên phiên được giữ riêng.
+Menu `/` hiện các phiên của bạn trước (`/x1 · Trò chuyện với x1`), rồi đến các lệnh hay dùng: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `usage`, `help` (và `app` khi Mini App bật, chỉ trong chat riêng). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` và `update` không có trong menu nhưng gõ vào vẫn dùng được; các thao tác trên phiên cũng có trong `/status` → `⋮`. Việc xóa cuộc trò chuyện được cố ý để ngoài menu dưới mọi tên, để một lần chạm ở đó không bao giờ xóa mất cuộc trò chuyện: hãy dùng `/status` → `⋮` → `🧹 Xóa cuộc trò chuyện` (có xác nhận) hoặc `Lệnh` → `Xóa cuộc trò chuyện` trên bàn phím. Gõ `/clear` không xóa gì cả: aipager đọc nó như tên phiên (`⚠️ Không có phiên nào tên: clear`). `clear` và `reset` là tên phiên được giữ riêng.
 
 **Các lệnh tác động lên một phiên** (`/stop`, `/mode`, `/kill`, `/restart`, `/rename`, `/delete`, `/diff`) theo một quy tắc:
 
@@ -103,6 +104,7 @@ aipager nói được English, Español, Русский, Português (Brasil), �
 - **Đang chờ bạn.** Một phiên đang chờ một yêu cầu cấp quyền hay một câu hỏi nằm trong một khay màu hổ phách ở trên cùng, cho thấy nó đang hỏi gì. Một phiên ở chế độ chạy nền của Claude Code có tác vụ đang chờ một yêu cầu cấp quyền cũng nằm ở đó, vì bạn có thể trả lời nó từ chat; trang của phiên đó cũng có “Đưa về”. **Trả lời trong chat** gửi lại yêu cầu đó, kèm các nút của nó, xuống cuối chat, giống như nút **Trả lời** trên thanh được ghim, và bạn trả lời ở đó. Nếu đó là phiên duy nhất đang chờ, ứng dụng đóng lại để yêu cầu ở ngay trước mặt bạn; nếu không, nó vẫn mở và báo “Đã gửi vào chat”. Việc này cần quyền gửi tin nhắn cho phiên, và một bản sao được chạm sau khi yêu cầu đã được trả lời hoặc bị thay sẽ báo “đã được trả lời rồi”.
 - **Trang của một phiên.** Phần đầu hiện vòng ngữ cảnh, trạng thái (“Đang làm việc (3:12)”, “Đang chờ 2 agent”, “Đang chờ bạn (quyền)”, “Sẵn sàng, hoạt động lần cuối 5 phút trước”, “Trong chế độ chạy nền của Claude Code”, “Đã kết thúc”) và nút **Đưa về** một chạm (cho phiên đang ở chế độ chạy nền của Claude Code), **Dừng** (khi đang làm việc, đang chờ agent của nó hoặc đang chờ bạn) hoặc **Tiếp tục** (khi đã kết thúc). Bên dưới: yêu cầu đang chờ cùng **Trả lời trong chat**, vài lần gọi công cụ gần nhất thành một dải (chạm vào để xem dòng thời gian đầy đủ), câu trả lời mới nhất, các thông tin, ô chọn mô hình, cài đặt riêng của phiên, các file đã đổi và dòng thời gian. Menu ⋮ có mọi thao tác, với cùng các bước xác nhận như trước. Một phiên có cuộc trò chuyện đã chuyển sang chế độ chạy nền của Claude Code (xem [xử lý sự cố](troubleshooting.md#a-session-moved-to-claude-codes-background)) có “Đưa về”, “Dừng”, “Đổi tên”, “Kết thúc” và “Khởi động lại”; khi tác vụ chạy nền vẫn đang làm việc, “Đưa về”, “Khởi động lại” và “Tiếp tục” hỏi ngay trên trang, **Dừng và đưa về** hoặc **Cứ để vậy**, và chat hiện `↩️ x1 đã về lại từ chế độ chạy nền của Claude Code.` khi phiên đã về. Menu ⋮ của một phiên đang nghỉ cũng có **Xóa cuộc trò chuyện**: nó hỏi trên trang trước, rồi gõ `/clear` của Claude Code vào phiên, giống như `⋮` → `🧹 Xóa cuộc trò chuyện` trong chat (xem [Xác nhận xóa cuộc trò chuyện](#clear-confirmation)), và trong chat hiện `🧹 Đã gửi /clear đến [x1] từ Mini App`.
 - **Phiên mới.** Một thẻ có hướng dẫn từng bước: tên, rồi nơi chạy (với các gợi ý **Gần đây** cho những thư mục mà các phiên của bạn dùng, mới nhất trước), rồi mô hình (với các gợi ý **Gợi ý**), rồi **Thêm tùy chọn** cho chế độ quyền và kiểu trả lời. Nút của chính Telegram ở dưới cùng ghi **Bắt đầu phiên**. Với một thành viên có vai trò thiếu `can_manage`, “nơi chạy” chỉ đưa ra [thư mục gốc](groups.md#root-folders) của chat và các thư mục nằm ngay bên trong nó (thư mục gốc là mặc định, và “Thư mục mới” tạo thư mục bên trong thư mục đã chọn); một thư mục nằm ngoài sẽ bị từ chối kèm lý do, và Tiếp tục, Khởi động lại cùng việc đổi chế độ của một phiên đang làm việc bên ngoài nó đều trả lời “Phiên này làm việc bên ngoài thư mục của bạn ~/..., nên vai trò của bạn không được tiếp tục, khởi động lại hay đổi chế độ của nó. Hãy nhờ quản trị viên.”
+- **Mức dùng.** Với owner và quản trị viên, thẻ **Mức dùng** nằm giữa Phiên và Cài đặt hiện giới hạn gói mà Claude Code báo gần nhất, mỗi cái có một thanh và lúc đặt lại, nguồn của các con số, và token của hôm nay, 7 ngày qua, từng ngày và từng mô hình, giống [`/usage`](#slash-commands). Phía trên các bảng, một biểu đồ cột cho thấy token vào và ra của từng ngày trong 7 ngày qua, cột hôm nay có màu nhấn. Mỗi lần mở thẻ, các con số được đọc lại. Trong chat mà bạn không phải quản trị viên, thẻ này không hiện.
 - **Cài đặt.** **Ngôn ngữ ứng dụng** đứng đầu: ngôn ngữ của riêng bạn cho chữ của aipager trong ứng dụng và trong chat riêng của bạn (tiếng Anh, tiếng Tây Ban Nha, tiếng Nga, tiếng Bồ Đào Nha (Brasil), tiếng Trung (giản thể), tiếng Pháp, tiếng Đức, tiếng Hàn, tiếng Ả Rập, tiếng Indonesia, tiếng Ukraina, tiếng Ý, tiếng Thổ Nhĩ Kỳ, tiếng Ba Tư hoặc tiếng Việt; Tự động đi theo ngôn ngữ của ứng dụng Telegram của bạn, xem [Ngôn ngữ](#languages)). Ai cũng đổi được của riêng mình, nó không bao giờ được đăng trong chat, và không thay đổi các phiên Claude của bạn. Sau đó là các tùy chọn của chat (trong một nhóm chỉ quản trị viên đổi được; trong chat riêng của chính bạn thì bạn đổi được, bất kể vai trò, giống như `/settings` ở đó) và, với một quản trị viên, **Cập nhật**, phần phản ánh [`/update`](#update). Với chủ sở hữu trong chat riêng của họ, **Báo cáo sự cố** mở một trang riêng: viết ghi chú, xem lại báo cáo, gửi đi và xem mã tham chiếu mà không cần rời ứng dụng (xem [báo cáo sự cố](problem-reports.md#how-to-send-one)).
 
 Ứng dụng đi theo giao diện sáng hoặc tối của Telegram khi bạn đổi, và dừng các hiệu ứng chuyển động nhẹ khi điện thoại của bạn yêu cầu giảm chuyển động. Mọi thứ trong Mini App cũng làm được từ chat: menu ⋮ trên bảng của một phiên có cùng các thao tác.
@@ -190,7 +192,7 @@ Thẻ hiện lệnh (hoặc đường dẫn file) thật mà Claude xin chạy, 
 - **Cho phép**: duyệt lần gọi này.
 - **Từ chối**: từ chối nó; Claude không chạy công cụ đó.
 - **Luôn cho phép**: duyệt và thêm quy tắc lâu dài mà Claude đề xuất (“đừng hỏi lại về …”). Nút này **chỉ xuất hiện khi Claude đề xuất một quy tắc như vậy**; với một lệnh mà nó không tạo được quy tắc (đa số lệnh ghép), thẻ có Cho phép / Từ chối / Dừng thay vào đó, cũng như với một lần truy cập file chỉ đọc (`Read`, `Grep`, `Glob`) bên ngoài thư mục làm việc của phiên. Claude Code 2.1.259 trở lên đặt vào chỗ đó một dòng “chuyển sang chế độ auto” trong hộp thoại Bash của nó, một dòng “từ giờ chặn việc đọc bên ngoài các thư mục làm việc” trong hộp thoại đọc bên ngoài, và, với một Write/Edit mà nó không tạo được quy tắc cho từng file, một lần đổi chế độ quyền như tự động chấp nhận mọi lần sửa file (`acceptEdits`); aipager không bao giờ chọn những dòng này; hãy chủ động đổi chế độ bằng `/mode`.
-- **Dừng**: ngắt việc thay vì trả lời. Trên yêu cầu của một agent chạy nền sau khi lượt của chính Claude đã xong, Dừng sẽ dừng các agent chạy nền thay vào đó (như `/stop`), và yêu cầu đóng lại.
+- **Dừng**: ngắt việc thay vì trả lời. Yêu cầu của một agent chạy nền xuất hiện sau khi lượt của chính Claude đã xong sẽ đến thành tin nhắn riêng, có Cho phép và Từ chối; khi đó Dừng trên thẻ đang chờ các agent sẽ dừng các agent chạy nền thay vào đó (như `/stop`), và yêu cầu đóng lại.
 
 Câu trả lời đi tới Claude Code qua hook xin quyền của aipager, hook này chờ nó tối đa 20 giây. Một yêu cầu đến trước thẻ làm việc (khi đó nó được gửi thành tin nhắn riêng, chỉ có Cho phép và Từ chối) cũng được trả lời theo cách đó. Khi thời gian chờ đó đã hết, các nút sẽ gõ câu trả lời vào hộp thoại riêng của Claude Code; khi đó Từ chối bấm Escape (“No, and tell Claude what to do differently”), việc này kết thúc việc của Claude giống như Dừng, và thẻ ghi `🚫 jim · Đã từ chối`. Với câu hỏi mà Claude Code hỏi ở Chế độ Auto trước lần đọc đầu tiên bên ngoài dự án, một lần Cho phép đến muộn sẽ không được gõ: phím Enter của nó sẽ chọn “Yes, and keep allowing any reads outside the working directories”, nên lần chạm sẽ bảo bạn trả lời trong terminal (Từ chối vẫn dùng được).
 
@@ -474,7 +476,7 @@ Chạy `aipager <command> --help` để xem cùng danh sách này trên máy tí
 | Lệnh | Làm gì |
 |---|---|
 | `aipager config` | Trình thiết lập tương tác: token bot, các chat, thành viên và vai trò, hook của Claude Code. Chạy lại để thay đổi bất cứ điều gì (xem [nhóm](groups.md#setup)). |
-| `aipager setup` | Cùng lần thiết lập đầu tiên đó mà không hỏi gì, cho script và agent lập trình (xem [bên dưới](#command-line-aipager-setup-for-coding-agents)). |
+| `aipager setup` | Cùng lần thiết lập đầu tiên đó mà không hỏi gì, cho script và agent lập trình; `aipager setup group` thêm một nhóm Telegram, các thành viên và vai trò của họ theo cùng cách (xem [bên dưới](#command-line-aipager-setup-for-coding-agents)). |
 | `aipager start` | Chạy aipager ở tiền cảnh. Nó từ chối khởi động khi một aipager khác đang chạy. |
 | `aipager service install [--yes]` | Cài aipager thành một dịch vụ nền (dịch vụ người dùng systemd trên Linux, agent launchd trên macOS) và khởi động nó. `--yes` bỏ qua câu hỏi khi file dịch vụ đã cài khác đi. |
 | `aipager service start\|stop\|status\|logs\|uninstall` | Khởi động, dừng hoặc xem dịch vụ, theo dõi log của nó, hoặc gỡ nó. |
@@ -496,7 +498,7 @@ Chạy `aipager <command> --help` để xem cùng danh sách này trên máy tí
 
 ## <a id="command-line-aipager-setup-for-coding-agents"></a>Dòng lệnh: `aipager setup` (cho agent lập trình)
 
-Các phần ở trên mô tả bot Telegram. Phần này mô tả một lệnh bạn chạy trong terminal, hoặc một script hay agent lập trình của bạn chạy thay bạn: `aipager setup` thiết lập aipager mà không hỏi gì và cho cùng kết quả như lần chạy đầu tiên của `aipager config`.
+Các phần ở trên mô tả bot Telegram. Phần này mô tả một lệnh bạn chạy trong terminal, hoặc một script hay agent lập trình của bạn chạy thay bạn: `aipager setup` thiết lập aipager mà không hỏi gì và cho cùng kết quả như lần chạy đầu tiên của `aipager config`. Trên một bản cài đã thiết lập, `aipager setup group` thêm một nhóm Telegram cùng các thành viên và vai trò của họ, cũng không hỏi gì (xem [`aipager setup group`](#aipager-setup-group)).
 
 ```sh
 # 1. tìm ID Telegram của người dùng (họ mở bot và chạm Start)
@@ -505,6 +507,9 @@ aipager setup detect-chat --token-file ~/bot-token.txt --json
 aipager setup --token-file ~/bot-token.txt --chat-id 123456789 --service --json
 # 3. kiểm tra bản cài
 aipager doctor --json
+# sau này: tìm một nhóm (gửi /start trong đó), rồi thiết lập nó
+aipager setup detect-group --json
+aipager setup group --chat-id -1001234567890 --member 123456789:alice:owner --json
 ```
 
 Nó làm gì, theo thứ tự này: đọc token của bot, kiểm tra token với Telegram (getMe), kiểm tra mọi thứ trên máy tính này mà không ghi gì (cấu hình hiện có, các phụ thuộc, `~/.claude/settings.json` (hoặc `$CLAUDE_CONFIG_DIR/settings.json`), có aipager nào đang chạy không), gửi một tin nhắn thử cho người dùng (“aipager is set up for you. ...”), và chỉ sau đó mới ghi. Các file được ghi, giống như trình thiết lập ghi:
@@ -523,12 +528,17 @@ Nếu có bước kiểm tra nào thất bại, không có gì được gửi v�
 |---|---|
 | `--token-file PATH` | Đọc token bot từ file này (tối đa 4096 byte; có chữ khác quanh một token cũng không sao). Một file mà người dùng khác đọc được vẫn dùng được nhưng có cảnh báo `token_file_shared`: hãy `chmod 600` nó, hoặc xóa nó khi setup đã thành công. |
 | `--token-stdin` | Đọc token bot từ stdin (một pipe hoặc một file được chuyển hướng, không bao giờ là terminal). Pipe phải được đóng: setup chờ stdin kết thúc tối đa 30 giây, rồi thoát với mã 2 và `token_stdin_timeout`. `printf '%s\n' "$TOKEN" \| aipager setup --token-stdin ...` và `< token.txt` đều đóng nó. |
-| `--chat-id N` | Bắt buộc. ID người dùng Telegram dạng số của người đó, cũng là ID chat riêng của họ. Nhóm được thêm bằng `aipager config`. |
+| `--chat-id N` | Bắt buộc. ID người dùng Telegram dạng số của người đó, cũng là ID chat riêng của họ. Với `setup group`: ID của nhóm, một số âm. |
 | `--role owner\|admin` | Vai trò của người đó (mặc định `owner`). |
 | `--service` | Cài và khởi động luôn dịch vụ nền (bị bỏ qua khi một aipager đang chạy). |
-| `--force` | Cho phép thay token bot, chat riêng của chủ sở hữu, hoặc vai trò của một bản cài hiện có. Các scope nhóm và chat riêng khác được giữ nguyên. |
+| `--force` | Cho phép thay token bot, chat riêng của chủ sở hữu, hoặc vai trò của một bản cài hiện có. Các scope nhóm và chat riêng khác được giữ nguyên. Với `setup group`: cho phép các thay đổi được liệt kê trong `force_reasons`. |
 | `--dry-run` | Chạy mọi bước kiểm tra, không gửi gì, không ghi gì, và báo những gì sẽ thay đổi. |
 | `--json` | In đúng một đối tượng JSON ra stdout; mọi thứ khác ra stderr. |
+| `--member ID:LABEL:ROLE` | Chỉ `setup group`, lặp lại được: ID người dùng Telegram dạng số, tên và vai trò của một thành viên. |
+| `--remove-member ID` | Chỉ `setup group`, lặp lại được: gỡ thành viên này. |
+| `--label NAME` | Chỉ `setup group`: tên của nhóm. |
+| `--root PATH` | Chỉ `setup group`: thư mục gốc của các thành viên. |
+| `--block-edits` | Chỉ `setup group`: chặn Write và Edit cho các thành viên `user` của nhóm. |
 
 Hãy đưa đúng một trong hai `--token-file` và `--token-stdin`. Token không bao giờ được nhận như giá trị của một cờ: `--token` và `--bot-token` bị từ chối (`token_on_command_line`) và giá trị không được hiện ra. Cờ viết tắt (`--token-f`, `--dry`) không được chấp nhận. Setup không bao giờ hỏi gì, không bao giờ cần terminal, và không bao giờ đọc token từ biến môi trường.
 
@@ -546,24 +556,52 @@ Trong lúc một aipager cho cùng bot đang chạy, aipager đó giữ các tin
 
 Giới hạn: vì detect-chat không bao giờ xác nhận tin nhắn, Telegram chỉ cho nó thấy 100 bản cập nhật chưa đọc cũ nhất trong 24 giờ qua. Khi bot có nhiều như vậy đang chờ, một `/start` mới không thể được nhìn thấy: khi đó detect-chat hết thời gian chờ (mã thoát 8) với cảnh báo `updates_backlog`, và chạm Start lần nữa cũng không giúp được. Thay vào đó hãy hỏi người dùng ID Telegram dạng số của họ (hoặc khởi động aipager một lần, nó sẽ đọc và dọn sạch phần tồn đọng).
 
+### <a id="aipager-setup-group"></a>`aipager setup group`
+
+```sh
+aipager setup group --chat-id N [--member ID:LABEL:ROLE ...] [--remove-member ID ...]
+                    [--label NAME] [--root PATH] [--block-edits]
+                    [--force] [--dry-run] [--json]
+```
+
+Thiết lập một nhóm Telegram trên một bản cài đã được thiết lập, với cùng các bước kiểm tra, cùng cách ghi file và cùng cách tải lại không cần khởi động lại như `aipager config`. Nó đọc token bot từ `aipager.yaml` (không có `--token-file` hay `--token-stdin`), không cần terminal, không bao giờ khởi động lại aipager và không bao giờ gửi gì vào nhóm.
+
+- `--chat-id N`: ID của nhóm, một số âm ([`detect-group`](#aipager-setup-detect-group) tìm ra nó).
+- `--member ID:LABEL:ROLE`: một ID người dùng Telegram dương, một tên (có thể chứa `:`) và một vai trò: `owner`, `admin`, `user`, `read_only` hoặc một vai trò được định nghĩa trong `policy.yaml`. Các ID người gửi dùng chung của Telegram (1087968824, 136817688, 777000) bị từ chối.
+- Một nhóm mới cần ít nhất một `--member`. Tên của nó là `--label`, nếu không thì `group-<các chữ số của ID>`; thư mục gốc là `--root`, nếu không thì `~/aipager-users/group-<label>`, và được ghi vào file.
+- Một nhóm đã được thiết lập (kể cả dưới ID khác của nó sau khi Telegram nâng cấp nó, cảnh báo `group_moved`) sẽ được mở rộng: các thành viên bạn không nêu tên được giữ nguyên, ID mới được thêm vào, ID đã biết với tên mới được đổi tên, và `--remove-member` cho người không phải thành viên sẽ có cảnh báo `not_a_member`. `--block-edits` thêm `Write` và `Edit` vào `deny_tools` của nhóm và không bao giờ gỡ gì. Không thể gỡ thành viên cuối cùng (`last_member`, kể cả với `--force`): hãy gỡ cả nhóm trong `aipager config`.
+- Những thay đổi này cần `--force`, nếu không sẽ thoát với mã 6 `needs_force` (`force_reasons` liệt kê chúng): `owner_granted` (một thành viên mới nhận vai trò có `bypass_safety` và chưa có vai trò như vậy ở chat nào; thêm chủ sở hữu chat riêng của chính bạn thì không cần), `role_changed`, `owner_demoted`, `owner_removed`, `root_code_loading` (thư mục gốc nằm trong `~/bin`, `~/.local/bin`, `~/.config/systemd` hoặc `~/.config/autostart`) và `root_overlap` (nó trùng, chứa hoặc nằm trong thư mục gốc của một chat khác).
+- Chạy lại với cùng các tùy chọn không thay đổi gì (`unchanged`): không ghi, không tải lại.
+- Mỗi lần trao vai trò `owner` có một bản ghi `grant-owner` trong nhật ký kiểm tra.
+- Nó hỏi Telegram, chỉ đọc và nhóm không thấy gì (getMe, getChat, getChatMember cho bot), xem bot có trong nhóm không, có là quản trị viên không và có được ghim tin nhắn không. Điều nó tìm thấy là cảnh báo, không bao giờ là mã thoát; sau một lỗi mạng, phần còn lại được bỏ qua (`telegram_checks_skipped`).
+
+### <a id="aipager-setup-detect-group"></a>`aipager setup detect-group`
+
+```sh
+aipager setup detect-group [--timeout SECONDS] [--json]
+```
+
+Chờ tin nhắn mới nhất trong một nhóm hoặc siêu nhóm chưa được thiết lập (ai đó gửi `/start` ở đó) và in ra nhóm: ID, tên và loại. Nó không lưu gì, nên hãy cho người dùng xem nhóm và chỉ chạy `aipager setup group --chat-id` khi họ xác nhận. Chỉ những tin nhắn được gửi không quá 10 phút trước khi lệnh bắt đầu mới được tính; `--timeout` hoạt động như với detect-chat. Nó đọc token từ `aipager.yaml` và không nhận tùy chọn nào khác. Khi có aipager đang chạy cho bot, nó đọc những gì aipager đã ghi lại (`source: "daemon"`, nguồn này thấy được nhóm); nếu không, nó đọc Telegram mà không xác nhận tin nhắn nào (`source: "telegram"`).
+
 ### <a id="exit-codes"></a>Mã thoát
 
 | Mã | `error` | Ý nghĩa |
 |---|---|---|
-| 0 | | Thành công (`installed`, `updated`, `unchanged`, `dry_run`, hoặc detect-chat `found`). |
-| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `internal_error` | Thất bại. `ambiguous_install`: có hơn một chat riêng có thể là của chủ sở hữu; hãy sửa trong `aipager config`. |
-| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout` | Đầu vào sai hoặc thiếu; `fix` nêu tên cờ. Một cờ lạ hay một từ sai sau `setup` được bộ phân tích đối số báo (văn bản thuần, không có JSON), cũng là mã 2. |
+| 0 | | Thành công (`installed`, `created`, `updated`, `unchanged`, `dry_run`, hoặc `found` của detect-chat và detect-group). |
+| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `policy_malformed`, `not_a_group_scope`, `last_member`, `config_changed`, `internal_error` | Thất bại. `ambiguous_install`: có hơn một chat riêng có thể là của chủ sở hữu; hãy sửa trong `aipager config`. `config_changed`: nhóm đã thay đổi trong `aipager.yaml` trong lúc `setup group` đang chạy, nên không có gì được ghi; hãy chạy lại. |
+| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout`, `bad_member`, `bad_member_id`, `shared_sender_id`, `duplicate_member`, `bad_label`, `duplicate_label`, `unknown_role`, `bad_root` | Đầu vào sai hoặc thiếu; `fix` nêu tên cờ. Một cờ lạ hay một từ sai sau `setup` được bộ phân tích đối số báo (văn bản thuần, không có JSON), cũng là mã 2. |
 | 3 | `deps_missing` | Thiếu dtach, claude, aipager-hook hoặc aipager-statusline; `fix` có các lệnh cần chạy. Không có gì được ghi. |
 | 4 | `token_rejected` | Telegram từ chối token. |
 | 5 | `chat_not_started`, `bot_blocked` | Người dùng chưa chạm Start trong bot (“Open t.me/&lt;bot&gt; and press Start, then run this again.”), hoặc đã chặn bot. Không có gì được ghi. |
-| 6 | `existing_install` | Một token, chat hay vai trò khác đã được thiết lập; hãy thêm `--force`. |
+| 6 | `existing_install`, `needs_force` | Một token, chat hay vai trò khác đã được thiết lập, hoặc `setup group` sẽ làm một thay đổi có trong `force_reasons`; hãy thêm `--force` (sau khi hỏi người dùng). |
 | 7 | `telegram_unreachable` | Lỗi mạng, hoặc Telegram trả lời 429 hay 5xx. |
-| 8 | `detect_timeout` | detect-chat không thấy tin nhắn riêng nào trước khi hết `--timeout` (kèm cảnh báo `updates_backlog` khi 100 bản cập nhật cũ chưa đọc che khuất những bản mới hơn). |
+| 8 | `detect_timeout` | detect-chat không thấy tin nhắn riêng nào (detect-group: không thấy tin nhắn nào trong nhóm mới) trước khi hết `--timeout` (kèm cảnh báo `updates_backlog` khi 100 bản cập nhật cũ chưa đọc che khuất những bản mới hơn). |
 | 9 | `daemon_running` | detect-chat: một aipager đang chạy đang giữ các tin nhắn của bot. |
-| 10 | `updates_conflict` | detect-chat: một chương trình khác đang đọc tin nhắn của bot này. |
+| 10 | `updates_conflict` | detect-chat hoặc detect-group: một chương trình khác đang đọc tin nhắn của bot này. |
+| 11 | `not_set_up` | `setup group` hoặc `detect-group`: chưa có `aipager.yaml` với token bot (kể cả bản cài cũ dùng `config.env`: chạy `aipager config` một lần để chuyển nó). Hãy thiết lập aipager trước. |
 | 130 | `interrupted` | Ctrl-C. |
 
-Khi nhiều bước kiểm tra cùng thất bại, mã thoát theo thứ tự này: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. `--dry-run` thoát với mã mà lần chạy thật sẽ có từ các bước kiểm tra này.
+Khi nhiều bước kiểm tra cùng thất bại, mã thoát theo thứ tự này: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. Với `setup group`: `config_malformed` hoặc `not_set_up`, `policy_malformed`, `unknown_role`, `usage`, `duplicate_label`, `not_a_group_scope`, `last_member`, `needs_force`. `--dry-run` thoát với mã mà lần chạy thật sẽ có từ các bước kiểm tra này.
 
 ### <a id="json-aipager-setup---json"></a>JSON: `aipager setup --json`
 
@@ -625,6 +663,74 @@ Mọi khóa luôn có mặt; một giá trị chưa biết là `null`.
 ```
 
 `candidate` là `null` trừ khi `status` là `found`. `warnings` chứa các đối tượng có `code` (`token_file_shared`, `updates_backlog`) và `message`. `other_candidates` đếm những người khác đã nhắn cho bot trong cùng 10 phút: khi nó khác 0, hãy chắc chắn rằng bạn đã chọn đúng người. `next_step` lặp lại cờ token bạn đã dùng, không bao giờ lặp lại chính token.
+
+### <a id="json-aipager-setup-group---json"></a>JSON: `aipager setup group --json`
+
+Mọi khóa luôn có mặt; giá trị chưa biết là `null`.
+
+```json
+{
+  "command": "group",
+  "status": "created",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Group team (chat -1001234567890) is set up with 2 members.",
+  "fix": null,
+  "dry_run": false,
+  "force": false,
+  "bot_username": "example_bot",
+  "chat_id": -1001234567890,
+  "scope_chat_id": -1001234567890,
+  "label": "team",
+  "root": "/home/alice/aipager-users/group-team",
+  "block_edits": false,
+  "members": [{"id": 111111111, "label": "alice", "role": "owner"},
+              {"id": 222222222, "label": "bob", "role": "user"}],
+  "changed": ["group"],
+  "member_changes": [{"id": 222222222, "change": "added", "label": "bob", "role": "user", "previous_role": null}],
+  "force_reasons": [],
+  "pinned_roots": [],
+  "telegram": {"checked": true, "chat_type": "supergroup", "chat_title": "Team",
+               "bot_status": "administrator", "bot_can_pin": true, "privacy_mode": true},
+  "daemon": {"running": true, "reload": "reloaded", "restart_needed": false, "outcome": "reloaded_live"},
+  "warnings": [],
+  "next_step": "Check the group with `aipager doctor --json`."
+}
+```
+
+- `status`: `created`, `updated`, `unchanged`, `dry_run` hoặc `error`.
+- `scope_chat_id`: ID mà nhóm được lưu dưới đó (khác với `--chat-id` sau khi nâng cấp lên siêu nhóm).
+- `changed`: những gì đã thay đổi (hoặc sẽ thay đổi, khi chạy thử), theo thứ tự này: `group` (một nhóm mới), `label`, `root`, `deny_tools`, `member_added`, `member_relabeled`, `role`, `member_removed`.
+- `member_changes[].change`: `added`, `relabeled`, `role` hoặc `removed`.
+- `members`: các thành viên của nhóm sau thay đổi (dự kiến, khi chạy thử); `null` khi lần chạy dừng trước đó.
+- `pinned_roots`: các chat khác có thư mục gốc được ghi vào file để không bị dời đi.
+- `telegram.checked` là false khi các bước kiểm tra bị bỏ qua; các khóa `telegram` khác khi đó là `null`. `privacy_mode` chỉ được báo: nó không thay đổi những gì aipager phản hồi.
+- `daemon.reload` như với `setup`; `daemon.outcome`: `reloaded_live`, `not_applied`, `restart_needed`, `no_daemon` hoặc `not_needed` (không có gì được ghi). Đầu ra thường ghi `daemon: reloaded live`, `daemon: not applied: <reason>`, `daemon: restart needed` hoặc `daemon: no daemon running`.
+- `warnings` (`code` và `message`; không cái nào đổi mã thoát): `owner_granted`, `no_manager` (không thành viên nào có vai trò quản lý được nhóm), `not_a_member`, `group_moved`, `group_not_found`, `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin`, `group_upgraded`, `chat_not_a_group`, `token_rejected`, `telegram_checks_skipped`, `daemon_unknown`, `reload_refused`, `audit_write_failed`.
+- Với `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin` hoặc `group_not_found`, `next_step` nêu việc chỉ người dùng làm được trong Telegram: thêm bot vào nhóm và cho nó làm quản trị viên có quyền ghim tin nhắn.
+
+### <a id="json-aipager-setup-detect-group---json"></a>JSON: `aipager setup detect-group --json`
+
+```json
+{
+  "command": "detect-group",
+  "status": "found",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Found the group Team, chat id -1001234567890.",
+  "fix": null,
+  "bot_username": "example_bot",
+  "source": "telegram",
+  "candidate": {"id": -1001234567890, "title": "Team", "type": "supergroup", "date": 1700000000},
+  "other_candidates": 0,
+  "warnings": [],
+  "next_step": "Show this group to the user; once they confirm, run: aipager setup group --chat-id -1001234567890 --member ID:LABEL:ROLE"
+}
+```
+
+`candidate` là `null` trừ khi `status` là `found`; từ nguồn aipager, `date` của nó là `null`. `other_candidates` đếm các nhóm mới khác đã viết trong cùng 10 phút. `warnings` có thể chứa `updates_backlog`.
 
 ### <a id="aipager-doctor---json"></a>`aipager doctor --json`
 

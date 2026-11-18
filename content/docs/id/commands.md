@@ -1,6 +1,6 @@
 # Perintah dan antarmuka bot
 
-<!-- i18n-source: docs/commands.md @ 08e5ce80 -->
+<!-- i18n-source: docs/commands.md @ b664aeaf -->
 
 > Halaman ini diterjemahkan dari bahasa Inggris; kalau keduanya berbeda, versi bahasa Inggris yang berlaku. ([English](../../commands.md))
 
@@ -33,8 +33,9 @@ Perintah-perintah ini didaftarkan di `aipager/bot/lifecycle.py`. Menu perintah T
 | `/language` | - | Bahasa yang dipakai aipager untuk pesan dan tombolnya sendiri di chat ini (daftar yang sama dengan baris pertama `/settings`). Setiap bahasa ditampilkan dengan namanya sendiri: English, lalu Español, Русский (Rusia), Português (Brasil), 简体中文 (Tionghoa Sederhana), Français, Deutsch (Jerman), 한국어 (Korea), العربية (Arab), Bahasa Indonesia, Українська (Ukraina), Italiano, Türkçe (Turki), فارسی (Persia), dan Tiếng Việt (Vietnam). Chat pribadi yang dimulai setelah versi ini mengikuti bahasa aplikasi Telegram-mu; chat yang sudah ada sebelumnya tetap berbahasa Inggris sampai kamu memilih (lihat [Bahasa](#languages)). Dalam bahasa Spanyol, Portugis, Prancis, Italia, dan Indonesia, kata-kata keyboard bawah tetap `status`, `stop`, `new`, dan `kill`, sama seperti perintahnya. Bahasa Jerman dan Turki memakai `Status`, `Stop`, `Neu…`, dan `Beenden…`, serta `Özet`, `Stop`, `Oluştur`, dan `Sonlandır`; kata bahasa Inggris tetap berfungsi kalau diketik. Dalam bahasa Persia dan Arab, teks aipager dibaca dari kanan ke kiri, dengan angka Persia atau Arab; nama sesi, perintah, nama model, dan kode tetap apa adanya. Daftar itu menyebutkan apa yang diubahnya: hanya teks aipager, di sini dan di Mini App; sesi Claude-mu tidak berubah, dan Claude menjawab dalam bahasa yang kamu pakai untuk menulis kepadanya. Di grup, siapa pun bisa melihat, tapi hanya admin yang bisa mengubahnya. `language` adalah nama sesi yang dicadangkan. |
 | `/whoami` | - | Menunjukkan siapa kamu di sini: dalam mode tim, namamu, peranmu di chat ini, dan aturan yang diberikan peran itu kepadamu. |
 | `/update` | - | Khusus admin (peran `owner` dan `admin`, atau peran dengan `can_manage`). Mengecek apakah ada versi baru aipager dan Claude Code, lalu dengan satu tombol memperbarui yang punya versi baru. Lihat [Pembaruan](#update). |
+| `/usage` | - | Hanya untuk admin (peran `owner` dan `admin`, atau peran dengan `can_manage`; dalam mode pribadi, orang yang memasang aipager). Batas paketmu seperti terakhir dilaporkan Claude Code, dan token yang dipakai sesi-sesi aipager. **Batas paket**: jendela 5 jam, minggu ini (semua model), dan batas biaya gateway, mana saja yang dilaporkan Claude Code, masing-masing dengan berapa yang terpakai dan kapan direset (`Minggu ini (semua model): 42% terpakai`, `Direset dalam 2 hari 5 jam`; dalam sehari juga dengan jam di komputer tempat aipager berjalan, `Direset dalam 3 jam 10 menit, pukul 21:00`), lalu dari mana angkanya (`Per pukul 20:15 (4 menit lalu), dari sesi x1.`). `admin` yang tidak mengelola chat dari sesi asal angka itu tidak melihat nama sesi tersebut maupun alamat gateway-nya (`dari sesi di chat lain.`). Jendela yang waktu resetnya sudah lewat sejak itu menampilkan `Minggu ini (semua model): sudah direset sejak pembacaan terakhir`, bukan persentase lama. aipager tidak pernah meminta angka ini ke Anthropic: ia menyimpan apa yang diberikan Claude Code ke baris statusnya setelah sebuah jawaban, jadi angkanya muncul setelah Claude menjawab di sesi yang masuk dengan langganan Claude; kunci API dan gateway tanpa batas biaya tidak melaporkannya. Sesi dengan login berbeda (token login untuk satu folder, folder konfigurasi lain, gateway) ditampilkan terpisah, masing-masing dengan barisnya sendiri. **Token**: hari ini dan 7 hari terakhir, masuk, keluar, dibaca dari cache, dan ditulis ke cache (`Hari ini: 1.2k masuk, 45 keluar, 30.0k dibaca dari cache, 2.1k ditulis ke cache`). Yang dihitung adalah apa yang dicatat Claude Code di transkrip sesi-sesi aipager, termasuk subagen; permintaan yang tidak ada di transkrip mana pun (judul sesi, saran pesan, pemeriksaan mode Auto) tidak dihitung. Owner melihat token semua chat; admin lain melihat chat yang ia kelola. Di grup, `/usage` hanya menampilkan token chat itu dan tanpa batas paket (semua anggota grup membaca balasannya). Tanpa nilai dolar. Mini App menampilkan hal yang sama di halaman Pemakaian. `usage` adalah nama sesi yang dicadangkan, dan `/usage` milik Claude Code sendiri tetap bisa dipakai lewat `/<label> /usage`. |
 
-Menu `/` menampilkan sesimu lebih dulu (`/x1 · Bicara dengan x1`), lalu perintah yang sering dipakai: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `help` (dan `app` saat Mini App menyala, hanya di chat pribadi). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami`, dan `update` tidak ada di menu tapi berfungsi kalau diketik; tindakan sesi juga ada di `/status` → `⋮`. Menghapus percakapan sengaja tidak ada di menu dengan nama apa pun, supaya satu ketukan di sana tidak pernah menghapus percakapan: pakai `/status` → `⋮` → `🧹 Hapus percakapan` (dengan konfirmasi) atau `Perintah ›` → `Hapus percakapan` di keyboard. `/clear` yang diketik tidak menghapus apa pun: aipager membacanya sebagai nama sesi (`⚠️ Tidak ada sesi bernama: clear`). `clear` dan `reset` adalah nama sesi yang dicadangkan.
+Menu `/` menampilkan sesimu lebih dulu (`/x1 · Bicara dengan x1`), lalu perintah yang sering dipakai: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `usage`, `help` (dan `app` saat Mini App menyala, hanya di chat pribadi). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami`, dan `update` tidak ada di menu tapi berfungsi kalau diketik; tindakan sesi juga ada di `/status` → `⋮`. Menghapus percakapan sengaja tidak ada di menu dengan nama apa pun, supaya satu ketukan di sana tidak pernah menghapus percakapan: pakai `/status` → `⋮` → `🧹 Hapus percakapan` (dengan konfirmasi) atau `Perintah ›` → `Hapus percakapan` di keyboard. `/clear` yang diketik tidak menghapus apa pun: aipager membacanya sebagai nama sesi (`⚠️ Tidak ada sesi bernama: clear`). `clear` dan `reset` adalah nama sesi yang dicadangkan.
 
 **Perintah yang bekerja pada satu sesi** (`/stop`, `/mode`, `/kill`, `/restart`, `/rename`, `/delete`, `/diff`) mengikuti satu aturan:
 
@@ -103,6 +104,7 @@ aipager berbicara English, Español, Русский, Português (Brasil), 简体
 - **Menunggumu.** Sesi yang menunggu permintaan izin atau pertanyaan ada di pita kuning di bagian atas dan menunjukkan apa yang ditanyakannya. Sesi di latar belakang Claude Code yang tugasnya menunggu permintaan izin juga ada di sana, karena kamu bisa menjawabnya dari chat; halamannya juga menawarkan Kembalikan. **Jawab di chat** mengirim ulang permintaan itu dengan tombolnya ke bagian bawah chat, sama seperti tombol **Jawab** di bilah yang disematkan, dan kamu menjawab di sana. Kalau itu satu-satunya sesi yang menunggu, aplikasi menutup supaya permintaannya tepat di depanmu; kalau tidak, aplikasi tetap terbuka dan menulis “Dikirim ke chat”. Ini butuh hak mengirim pesan ke sesi itu, dan salinan yang diketuk setelah permintaannya dijawab atau diganti menulis “sudah dijawab”.
 - **Halaman sesi.** Kepalanya menampilkan cincin konteks, keadaan (“Bekerja (3:12)”, “Menunggu 2 agen”, “Menunggu jawabanmu (izin)”, “Siap, terakhir aktif 5 menit lalu”, “Di latar belakang Claude Code”, “Sudah berakhir”), dan **Kembalikan** sekali ketuk (untuk sesi yang ada di latar belakang Claude Code), **Hentikan** (selama bekerja, menunggu agennya, atau menunggu jawabanmu) atau **Lanjutkan** (saat sudah selesai). Di bawahnya: permintaan yang menunggu dengan **Jawab di chat**, pemanggilan alat terakhir sebagai strip (ketuk untuk melihat linimasa lengkapnya), jawaban terakhir, detail, pemilih model, preferensi milik sesi itu, file yang berubah, dan linimasa. Menu ⋮ berisi semua tindakan, dengan konfirmasi yang sama seperti sebelumnya. Sesi yang percakapannya pindah ke latar belakang Claude Code (lihat [pemecahan masalah](troubleshooting.md#a-session-moved-to-claude-codes-background)) menawarkan Kembalikan, Hentikan, Ganti nama, Akhiri, dan Mulai ulang; kalau tugas latar belakangnya masih bekerja, Kembalikan, Mulai ulang, dan Lanjutkan bertanya langsung di halaman itu, **Hentikan dan kembalikan** atau **Biarkan saja**, dan chat menampilkan `↩️ x1 sudah kembali dari latar belakang Claude Code.` setelah sesinya kembali. Menu ⋮ sesi yang sedang siap juga punya **Hapus percakapan**: ia bertanya dulu di halaman, lalu mengetik `/clear` milik Claude Code ke sesi itu, sama seperti `⋮` → `🧹 Hapus percakapan` di chat (lihat [Konfirmasi hapus percakapan](#clear-confirmation)), dan di chat muncul `🧹 /clear dikirim ke [x1] dari Mini App`.
 - **Sesi baru.** Kartu langkah demi langkah: nama, lalu lokasi (dengan saran **Baru-baru ini** untuk folder yang dipakai sesi-sesimu, yang terbaru dulu), lalu model (dengan saran **Saran**), lalu **Opsi lainnya** untuk mode izin dan gaya jawaban. Tombol bawah milik Telegram sendiri bernama **Mulai sesi**. Untuk anggota yang perannya tanpa `can_manage`, “lokasi” hanya menawarkan [folder utama](groups.md#root-folders) chat itu dan folder tepat di dalamnya (folder utama sebagai bawaan, dan “Folder baru” membuat di dalam yang dipilih); folder di luarnya ditolak dengan alasannya, dan “Lanjutkan”, “Mulai ulang”, serta pergantian mode untuk sesi yang berjalan di luarnya menjawab “Sesi ini bekerja di luar foldermu ~/..., jadi peranmu tidak boleh melanjutkan, memulai ulang, atau mengganti mode-nya. Minta bantuan admin.”
+- **Pemakaian.** Untuk owner dan admin, tab **Pemakaian** di antara Sesi dan Pengaturan menampilkan batas paket yang terakhir dilaporkan Claude Code, masing-masing dengan bilah dan waktu resetnya, dari mana angkanya, serta token hari ini, 7 hari terakhir, tiap hari, dan tiap model, sama seperti [`/usage`](#slash-commands). Di atas tabel, diagram batang menampilkan token masuk dan keluar untuk tiap hari dalam 7 hari terakhir, dengan batang hari ini berwarna aksen. Setiap kali tab dibuka, angkanya dibaca ulang. Di chat tempat kamu bukan admin, tab ini tidak muncul.
 - **Pengaturan.** Pertama **Bahasa aplikasi**: bahasamu sendiri untuk teks aipager di aplikasi dan di chat pribadimu (Inggris, Spanyol, Rusia, Portugis (Brasil), Tionghoa (Sederhana), Prancis, Jerman, Korea, Arab, Indonesia, Ukraina, Italia, Turki, Persia, atau Vietnam; “Otomatis” mengikuti bahasa aplikasi Telegram-mu, lihat [Bahasa](#languages)). Setiap orang bisa mengubah miliknya sendiri; pilihan itu tidak pernah diterbitkan di chat dan tidak mengubah sesi Claude-mu. Lalu pengaturan chat (di grup hanya admin yang bisa mengubahnya; di chat pribadimu sendiri kamu bisa, apa pun peranmu, sama seperti `/settings` di sana) dan, untuk admin, **Pembaruan**, yang mencerminkan [`/update`](#update). Untuk pemilik di chat pribadinya, **Laporkan masalah** membuka halamannya sendiri: tulis catatan, periksa laporannya, kirim, dan lihat kode referensinya tanpa keluar dari aplikasi (lihat [laporan masalah](problem-reports.md#how-to-send-one)).
 
 Aplikasi mengikuti tema terang atau gelap Telegram saat kamu menggantinya, dan menghentikan animasi halusnya saat ponsel meminta gerakan yang lebih sedikit. Semua yang ada di Mini App juga bisa dijangkau dari chat: menu ⋮ di panel sesi berisi tindakan yang sama.
@@ -190,7 +192,7 @@ Kartu itu menampilkan perintah (atau path file) yang sebenarnya ingin dijalankan
 - **Izinkan**: menyetujui satu pemanggilan ini.
 - **Tolak**: menolaknya; Claude tidak menjalankan alat itu.
 - **Selalu izinkan**: menyetujui dan menambahkan aturan permanen yang disarankan Claude (“don't ask again for …”). Tombol ini muncul **hanya saat Claude menawarkan aturan seperti itu**; untuk perintah yang tidak bisa dibuatkan aturan (kebanyakan perintah gabungan), kartu justru menampilkan Izinkan / Tolak / Hentikan, begitu juga untuk akses file yang hanya membaca (`Read`, `Grep`, `Glob`) di luar folder kerja sesi. Claude Code 2.1.259 dan yang lebih baru menaruh, di tempat itu, baris “switch to auto mode” di dialog Bash-nya sendiri, baris “block reads outside the working directories from now on” di dialog baca-di-luar-folder, dan, untuk Write/Edit yang tidak bisa dibuatkan aturan file, pergantian mode izin seperti menerima semua edit file otomatis (`acceptEdits`); aipager tidak pernah memilih satu pun; ganti mode dengan sadar lewat `/mode`.
-- **Hentikan**: memutus tugas, bukan menjawab. Pada permintaan agen latar belakang setelah tugas Claude sendiri selesai, Hentikan justru menghentikan agen-agen latar belakang (seperti `/stop`), dan permintaannya ditutup.
+- **Hentikan**: memutus tugas, bukan menjawab. Permintaan agen latar belakang yang muncul setelah tugas Claude sendiri selesai datang sebagai pesannya sendiri, dengan Izinkan dan Tolak; Hentikan di kartu yang menunggu agen lalu justru menghentikan agen-agen latar belakang (seperti `/stop`), dan permintaannya ditutup.
 
 Jawabannya sampai ke Claude Code lewat hook izin milik aipager, yang menunggunya sampai 20 detik. Permintaan yang datang sebelum kartu kerja (lalu dikirim sebagai pesannya sendiri, hanya dengan Izinkan dan Tolak) dijawab dengan cara yang sama. Saat penantian itu berakhir, tombol-tombolnya justru mengetikkan jawaban ke dialog Claude Code sendiri; Tolak lalu menekan Escape (“No, and tell Claude what to do differently”), yang mengakhiri tugas Claude seperti Hentikan, dan kartunya menulis `🚫 jim · Izin ditolak`. Pada pertanyaan yang diajukan Claude Code dalam Mode Auto sebelum pembacaan pertama di luar proyek, Izinkan yang terlambat tidak diketikkan: Enter-nya akan memilih “Yes, and keep allowing any reads outside the working directories”, jadi ketukannya memintamu menjawab di terminal (Tolak tetap berfungsi).
 
@@ -474,7 +476,7 @@ Jalankan `aipager <command> --help` untuk melihat daftar yang sama di komputermu
 | Perintah | Fungsinya |
 |---|---|
 | `aipager config` | Wizard pengaturan interaktif: token bot, chat, anggota dan peran, hook Claude Code. Jalankan lagi untuk mengubah apa pun (lihat [mode tim](groups.md#setup)). |
-| `aipager setup` | Pengaturan pertama yang sama tanpa bertanya, untuk skrip dan agen coding (lihat [di bawah](#command-line-aipager-setup-for-coding-agents)). |
+| `aipager setup` | Pengaturan pertama yang sama tanpa bertanya, untuk skrip dan agen coding; `aipager setup group` menambahkan grup Telegram, anggotanya, dan peran mereka dengan cara yang sama (lihat [di bawah](#command-line-aipager-setup-for-coding-agents)). |
 | `aipager start` | Menjalankan aipager di latar depan. Menolak mulai selama ada aipager lain yang berjalan. |
 | `aipager service install [--yes]` | Memasang aipager sebagai layanan latar belakang (layanan pengguna systemd di Linux, agen launchd di macOS) lalu menjalankannya. `--yes` melewati pertanyaan saat layanan yang terpasang berbeda. |
 | `aipager service start\|stop\|status\|logs\|uninstall` | Menjalankan, menghentikan, atau menampilkan layanan, mengikuti log-nya, atau menghapusnya. |
@@ -496,7 +498,7 @@ Jalankan `aipager <command> --help` untuk melihat daftar yang sama di komputermu
 
 ## <a id="command-line-aipager-setup-for-coding-agents"></a>Baris perintah: `aipager setup` (untuk agen coding)
 
-Bagian-bagian di atas menjelaskan bot Telegram. Bagian ini menjelaskan perintah yang kamu jalankan di terminal, atau yang dijalankan skrip atau agen coding-mu untukmu: `aipager setup` mengatur aipager tanpa bertanya, dan hasilnya sama dengan menjalankan `aipager config` pertama kali.
+Bagian-bagian di atas menjelaskan bot Telegram. Bagian ini menjelaskan perintah yang kamu jalankan di terminal, atau yang dijalankan skrip atau agen coding-mu untukmu: `aipager setup` mengatur aipager tanpa bertanya, dan hasilnya sama dengan menjalankan `aipager config` pertama kali. Pada pemasangan yang sudah diatur, `aipager setup group` menambahkan grup Telegram beserta anggota dan peran mereka, juga tanpa bertanya (lihat [`aipager setup group`](#aipager-setup-group)).
 
 ```sh
 # 1. cari tahu ID Telegram orangnya (ia membuka bot dan mengetuk Start)
@@ -505,6 +507,9 @@ aipager setup detect-chat --token-file ~/bot-token.txt --json
 aipager setup --token-file ~/bot-token.txt --chat-id 123456789 --service --json
 # 3. periksa pemasangannya
 aipager doctor --json
+# nanti: temukan grup (kirim /start di sana), lalu atur
+aipager setup detect-group --json
+aipager setup group --chat-id -1001234567890 --member 123456789:alice:owner --json
 ```
 
 Yang dilakukannya, berurutan: membaca token bot, memeriksanya di Telegram (getMe), memeriksa semua yang ada di komputer ini tanpa menulis apa pun (konfigurasi yang ada, dependensi, `~/.claude/settings.json` (atau `$CLAUDE_CONFIG_DIR/settings.json`), apakah aipager sedang berjalan), mengirim pesan tes ke orangnya (“aipager is set up for you. ...”), lalu baru menulis. File yang ditulis, persis seperti yang ditulis wizard:
@@ -523,12 +528,17 @@ Kalau ada pemeriksaan yang gagal, tidak ada yang dikirim dan tidak ada yang ditu
 |---|---|
 | `--token-file PATH` | Membaca token bot dari file ini (paling banyak 4096 byte; teks di sekitar token tidak apa-apa). File yang bisa dibaca pengguna lain tetap berfungsi tapi memberi peringatan `token_file_shared`: lakukan `chmod 600`, atau hapus setelah setup berhasil. |
 | `--token-stdin` | Membaca token bot dari stdin (pipe atau file yang dialihkan, tidak pernah terminal). Pipe-nya harus tertutup: setup menunggu akhir stdin paling lama 30 detik, lalu keluar dengan 2 dan `token_stdin_timeout`. `printf '%s\n' "$TOKEN" \| aipager setup --token-stdin ...` dan `< token.txt` sama-sama menutupnya. |
-| `--chat-id N` | Wajib. ID pengguna Telegram numerik orang itu, yang juga ID chat pribadinya. Grup ditambahkan dengan `aipager config`. |
+| `--chat-id N` | Wajib. ID pengguna Telegram numerik orang itu, yang juga ID chat pribadinya. Dengan `setup group`: ID grup, angka negatif. |
 | `--role owner\|admin` | Peran orang itu (bawaannya `owner`). |
 | `--service` | Juga memasang dan menjalankan layanan latar belakang (dilewati selama aipager berjalan). |
-| `--force` | Membolehkan mengganti token bot, chat pribadi pemilik, atau peran pada pemasangan yang ada. Chat grup dan chat pribadi lain tetap disimpan. |
+| `--force` | Membolehkan mengganti token bot, chat pribadi pemilik, atau peran pada pemasangan yang ada. Chat grup dan chat pribadi lain tetap disimpan. Dengan `setup group`: membolehkan perubahan yang tercantum di `force_reasons`. |
 | `--dry-run` | Menjalankan setiap pemeriksaan, tidak mengirim apa pun, tidak menulis apa pun, dan melaporkan apa yang akan berubah. |
 | `--json` | Mencetak tepat satu objek JSON ke stdout; semua yang lain ke stderr. |
+| `--member ID:LABEL:ROLE` | Hanya `setup group`, bisa diulang: ID pengguna Telegram numerik, nama, dan peran seorang anggota. |
+| `--remove-member ID` | Hanya `setup group`, bisa diulang: mengeluarkan anggota ini. |
+| `--label NAME` | Hanya `setup group`: nama grup. |
+| `--root PATH` | Hanya `setup group`: folder utama para anggota. |
+| `--block-edits` | Hanya `setup group`: memblokir Write dan Edit untuk anggota `user` di grup. |
 
 Berikan tepat satu dari `--token-file` dan `--token-stdin`. Token tidak pernah diterima sebagai nilai opsi: `--token` dan `--bot-token` ditolak (`token_on_command_line`), dan nilainya tidak ditampilkan. Opsi yang disingkat (`--token-f`, `--dry`) tidak diterima. setup tidak pernah mengajukan pertanyaan, tidak pernah butuh terminal, dan tidak pernah membaca token dari variabel environment.
 
@@ -546,24 +556,52 @@ Kalau ada aipager yang berjalan untuk bot yang sama, aipager itulah yang menerim
 
 Batasan: karena detect-chat tidak pernah mengonfirmasi pesan, Telegram hanya menunjukkan kepadanya 100 pembaruan belum dibaca yang paling lama dari 24 jam terakhir. Kalau bot punya sebanyak itu yang menunggu, `/start` yang baru tidak terlihat: detect-chat lalu berakhir karena batas waktu (keluar 8) dengan peringatan `updates_backlog`, dan mengetuk Start lagi tidak akan membantu. Tanyakan saja ID Telegram numerik orang itu (atau jalankan aipager sekali, yang membaca dan menghabiskan pembaruan-pembaruan itu).
 
+### <a id="aipager-setup-group"></a>`aipager setup group`
+
+```sh
+aipager setup group --chat-id N [--member ID:LABEL:ROLE ...] [--remove-member ID ...]
+                    [--label NAME] [--root PATH] [--block-edits]
+                    [--force] [--dry-run] [--json]
+```
+
+Mengatur satu grup Telegram pada pemasangan yang sudah diatur, dengan pemeriksaan, penulisan file, dan muat ulang tanpa mulai ulang yang sama seperti `aipager config`. Perintah ini membaca token bot dari `aipager.yaml` (tanpa `--token-file` atau `--token-stdin`), tidak butuh terminal, tidak pernah memulai ulang aipager, dan tidak pernah mengirim apa pun ke grup.
+
+- `--chat-id N`: ID grup, angka negatif ([`detect-group`](#aipager-setup-detect-group) menemukannya).
+- `--member ID:LABEL:ROLE`: ID pengguna Telegram positif, nama (boleh berisi `:`), dan peran: `owner`, `admin`, `user`, `read_only`, atau peran yang didefinisikan di `policy.yaml`. ID pengirim bersama milik Telegram (1087968824, 136817688, 777000) ditolak.
+- Grup baru butuh setidaknya satu `--member`. Namanya `--label`, kalau tidak `group-<angka ID>`; folder utamanya `--root`, kalau tidak `~/aipager-users/group-<label>`, dan ditulis ke file.
+- Grup yang sudah diatur (juga dengan ID lainnya setelah Telegram mengubahnya, peringatan `group_moved`) diperluas: anggota yang tidak kamu sebut tetap ada, ID baru ditambahkan, ID yang sudah dikenal dengan nama baru diganti namanya, dan `--remove-member` untuk orang yang bukan anggota memberi peringatan `not_a_member`. `--block-edits` menambahkan `Write` dan `Edit` ke `deny_tools` grup dan tidak pernah menghapus apa pun. Anggota terakhir tidak bisa dikeluarkan (`last_member`, bahkan dengan `--force`): hapus grupnya di `aipager config`.
+- Perubahan berikut butuh `--force`, kalau tidak kode keluar 6 `needs_force` (`force_reasons` mencantumkannya): `owner_granted` (anggota baru mendapat peran dengan `bypass_safety` dan belum punya peran seperti itu di chat mana pun; menambahkan pemilik chat pribadimu sendiri tidak membutuhkannya), `role_changed`, `owner_demoted`, `owner_removed`, `root_code_loading` (folder utamanya ada di `~/bin`, `~/.local/bin`, `~/.config/systemd`, atau `~/.config/autostart`) dan `root_overlap` (folder itu sama dengan folder utama chat lain, memuatnya, atau berada di dalamnya).
+- Menjalankannya lagi dengan opsi yang sama tidak mengubah apa pun (`unchanged`): tidak menulis dan tidak memuat ulang.
+- Setiap pemberian peran `owner` dicatat sebagai `grant-owner` di log audit.
+- Perintah ini bertanya ke Telegram, hanya membaca dan tidak terlihat oleh grup (getMe, getChat, getChatMember untuk bot), apakah bot ada di grup, menjadi admin, dan boleh menyematkan pesan. Temuannya berupa peringatan, tidak pernah kode keluar; setelah galat jaringan, sisanya dilewati (`telegram_checks_skipped`).
+
+### <a id="aipager-setup-detect-group"></a>`aipager setup detect-group`
+
+```sh
+aipager setup detect-group [--timeout SECONDS] [--json]
+```
+
+Menunggu pesan terbaru di grup atau supergrup yang belum diatur (seseorang mengirim `/start` di sana) dan mencetak grupnya: ID, judul, dan jenis. Perintah ini tidak menyimpan apa pun, jadi tunjukkan dulu grup yang ditemukan, dan jalankan `aipager setup group --chat-id` hanya setelah grup itu dikonfirmasi. Yang dihitung hanya pesan yang dikirim tidak lebih dari 10 menit sebelum perintah ini dimulai; `--timeout` bekerja seperti di detect-chat. Perintah ini membaca token dari `aipager.yaml` dan tidak menerima opsi lain. Selama aipager untuk bot itu berjalan, perintah ini membaca catatan aipager (`source: "daemon"`, yang memang melihat grup); kalau tidak, ia membaca Telegram tanpa mengonfirmasi pesan apa pun (`source: "telegram"`).
+
 ### <a id="exit-codes"></a>Kode keluar
 
 | Kode | `error` | Arti |
 |---|---|---|
-| 0 | | Berhasil (`installed`, `updated`, `unchanged`, `dry_run`, atau detect-chat `found`). |
-| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `internal_error` | Gagal. `ambiguous_install`: lebih dari satu chat pribadi bisa jadi milik pemilik; perbaiki di `aipager config`. |
-| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout` | Input salah atau tidak ada; `fix` menyebutkan opsinya. Opsi yang tidak dikenal atau kata yang salah setelah `setup` dilaporkan oleh pengurai argumen (teks biasa, bukan JSON), juga dengan 2. |
+| 0 | | Berhasil (`installed`, `created`, `updated`, `unchanged`, `dry_run`, atau `found` dari detect-chat dan detect-group). |
+| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `policy_malformed`, `not_a_group_scope`, `last_member`, `config_changed`, `internal_error` | Gagal. `ambiguous_install`: lebih dari satu chat pribadi bisa jadi milik pemilik; perbaiki di `aipager config`. `config_changed`: grup berubah di `aipager.yaml` selagi `setup group` berjalan, jadi tidak ada yang ditulis; jalankan lagi. |
+| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout`, `bad_member`, `bad_member_id`, `shared_sender_id`, `duplicate_member`, `bad_label`, `duplicate_label`, `unknown_role`, `bad_root` | Input salah atau tidak ada; `fix` menyebutkan opsinya. Opsi yang tidak dikenal atau kata yang salah setelah `setup` dilaporkan oleh pengurai argumen (teks biasa, bukan JSON), juga dengan 2. |
 | 3 | `deps_missing` | dtach, claude, aipager-hook, atau aipager-statusline tidak ada; `fix` berisi perintahnya. Tidak ada yang ditulis. |
 | 4 | `token_rejected` | Telegram menolak token itu. |
 | 5 | `chat_not_started`, `bot_blocked` | Orang itu belum mengetuk Start di bot (“Open t.me/&lt;bot&gt; and press Start, then run this again.”) atau memblokirnya. Tidak ada yang ditulis. |
-| 6 | `existing_install` | Token, chat, atau peran lain sudah diatur; tambahkan `--force`. |
+| 6 | `existing_install`, `needs_force` | Token, chat, atau peran lain sudah diatur, atau `setup group` akan membuat perubahan yang tercantum di `force_reasons`; tambahkan `--force` (setelah bertanya ke orangnya). |
 | 7 | `telegram_unreachable` | Error jaringan, atau Telegram menjawab 429 atau 5xx. |
-| 8 | `detect_timeout` | detect-chat tidak melihat pesan pribadi sebelum `--timeout` (dengan peringatan `updates_backlog` saat 100 pembaruan lama yang belum dibaca menutupi yang lebih baru). |
+| 8 | `detect_timeout` | detect-chat tidak melihat pesan pribadi (detect-group: tidak ada pesan di grup baru) sebelum `--timeout` (dengan peringatan `updates_backlog` saat 100 pembaruan lama yang belum dibaca menutupi yang lebih baru). |
 | 9 | `daemon_running` | detect-chat: aipager yang sedang berjalan menerima pesan-pesan bot. |
-| 10 | `updates_conflict` | detect-chat: program lain sedang membaca pesan bot ini. |
+| 10 | `updates_conflict` | detect-chat atau detect-group: program lain sedang membaca pesan bot ini. |
+| 11 | `not_set_up` | `setup group` atau `detect-group`: belum ada `aipager.yaml` dengan token bot (juga pemasangan lama dengan `config.env`: jalankan `aipager config` sekali untuk memindahkannya). Atur aipager dulu. |
 | 130 | `interrupted` | Ctrl-C. |
 
-Kalau beberapa pemeriksaan gagal sekaligus, kodenya mengikuti urutan ini: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. `--dry-run` keluar dengan kode yang akan didapat jalankan sungguhan berdasarkan pemeriksaan-pemeriksaan itu.
+Kalau beberapa pemeriksaan gagal sekaligus, kodenya mengikuti urutan ini: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. Untuk `setup group`: `config_malformed` atau `not_set_up`, `policy_malformed`, `unknown_role`, `usage`, `duplicate_label`, `not_a_group_scope`, `last_member`, `needs_force`. `--dry-run` keluar dengan kode yang akan didapat jalankan sungguhan berdasarkan pemeriksaan-pemeriksaan itu.
 
 ### <a id="json-aipager-setup---json"></a>JSON: `aipager setup --json`
 
@@ -625,6 +663,74 @@ Setiap kunci selalu ada; nilai yang belum diketahui adalah `null`.
 ```
 
 `candidate` bernilai `null` kecuali `status` bernilai `found`. `warnings` berisi objek dengan `code` (`token_file_shared`, `updates_backlog`) dan `message`. `other_candidates` menghitung orang lain yang mengirim pesan ke bot dalam 10 menit yang sama: kalau bukan 0, pastikan kamu memilih orang yang tepat. `next_step` mengulang opsi token yang kamu pakai, tidak pernah token-nya.
+
+### <a id="json-aipager-setup-group---json"></a>JSON: `aipager setup group --json`
+
+Setiap kunci selalu ada; nilai yang belum diketahui adalah `null`.
+
+```json
+{
+  "command": "group",
+  "status": "created",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Group team (chat -1001234567890) is set up with 2 members.",
+  "fix": null,
+  "dry_run": false,
+  "force": false,
+  "bot_username": "example_bot",
+  "chat_id": -1001234567890,
+  "scope_chat_id": -1001234567890,
+  "label": "team",
+  "root": "/home/alice/aipager-users/group-team",
+  "block_edits": false,
+  "members": [{"id": 111111111, "label": "alice", "role": "owner"},
+              {"id": 222222222, "label": "bob", "role": "user"}],
+  "changed": ["group"],
+  "member_changes": [{"id": 222222222, "change": "added", "label": "bob", "role": "user", "previous_role": null}],
+  "force_reasons": [],
+  "pinned_roots": [],
+  "telegram": {"checked": true, "chat_type": "supergroup", "chat_title": "Team",
+               "bot_status": "administrator", "bot_can_pin": true, "privacy_mode": true},
+  "daemon": {"running": true, "reload": "reloaded", "restart_needed": false, "outcome": "reloaded_live"},
+  "warnings": [],
+  "next_step": "Check the group with `aipager doctor --json`."
+}
+```
+
+- `status`: `created`, `updated`, `unchanged`, `dry_run`, atau `error`.
+- `scope_chat_id`: ID tempat grup disimpan (berbeda dari `--chat-id` setelah diubah menjadi supergrup).
+- `changed`: apa yang berubah (atau akan berubah, saat uji coba), dengan urutan ini: `group` (grup baru), `label`, `root`, `deny_tools`, `member_added`, `member_relabeled`, `role`, `member_removed`.
+- `member_changes[].change`: `added`, `relabeled`, `role`, atau `removed`.
+- `members`: anggota grup setelah perubahan (yang direncanakan, saat uji coba); `null` kalau perintah berhenti sebelum itu.
+- `pinned_roots`: chat lain yang folder utamanya ditulis ke file supaya tidak berpindah.
+- `telegram.checked` bernilai false kalau pemeriksaannya dilewati; kunci `telegram` lainnya lalu bernilai `null`. `privacy_mode` hanya dilaporkan: tidak mengubah apa pun soal apa yang ditanggapi aipager.
+- `daemon.reload` sama seperti di `setup`; `daemon.outcome`: `reloaded_live`, `not_applied`, `restart_needed`, `no_daemon`, atau `not_needed` (tidak ada yang ditulis). Keluaran biasa menulis `daemon: reloaded live`, `daemon: not applied: <reason>`, `daemon: restart needed`, atau `daemon: no daemon running`.
+- `warnings` (`code` dan `message`; tidak ada yang mengubah kode keluar): `owner_granted`, `no_manager` (tidak ada peran anggota yang bisa mengelola grup), `not_a_member`, `group_moved`, `group_not_found`, `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin`, `group_upgraded`, `chat_not_a_group`, `token_rejected`, `telegram_checks_skipped`, `daemon_unknown`, `reload_refused`, `audit_write_failed`.
+- Dengan `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin`, atau `group_not_found`, `next_step` menyebutkan apa yang hanya bisa dilakukan orang itu di Telegram: menambahkan bot ke grup dan menjadikannya admin dengan hak menyematkan pesan.
+
+### <a id="json-aipager-setup-detect-group---json"></a>JSON: `aipager setup detect-group --json`
+
+```json
+{
+  "command": "detect-group",
+  "status": "found",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Found the group Team, chat id -1001234567890.",
+  "fix": null,
+  "bot_username": "example_bot",
+  "source": "telegram",
+  "candidate": {"id": -1001234567890, "title": "Team", "type": "supergroup", "date": 1700000000},
+  "other_candidates": 0,
+  "warnings": [],
+  "next_step": "Show this group to the user; once they confirm, run: aipager setup group --chat-id -1001234567890 --member ID:LABEL:ROLE"
+}
+```
+
+`candidate` bernilai `null` kecuali `status` bernilai `found`; dari sumber aipager, `date`-nya bernilai `null`. `other_candidates` menghitung grup baru lain yang menulis dalam 10 menit yang sama. `warnings` bisa berisi `updates_backlog`.
 
 ### <a id="aipager-doctor---json"></a>`aipager doctor --json`
 

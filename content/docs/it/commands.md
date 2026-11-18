@@ -1,6 +1,6 @@
 # Comandi del bot e interfaccia
 
-<!-- i18n-source: docs/commands.md @ 08e5ce80 -->
+<!-- i18n-source: docs/commands.md @ b664aeaf -->
 
 > Questa pagina è tradotta dalla pagina in inglese; se le due versioni non coincidono, vale quella in inglese. ([English](../../commands.md))
 
@@ -33,8 +33,9 @@ Sono registrati in `aipager/bot/lifecycle.py`. Il menu dei comandi di Telegram l
 | `/language` | - | La lingua che aipager usa per i propri messaggi e pulsanti in questa chat (lo stesso elenco della prima riga di `/settings`). Ogni lingua è elencata con il suo nome: English, poi Español (spagnolo), Русский (russo), Português (Brasil) (portoghese del Brasile), 简体中文 (cinese semplificato), Français (francese), Deutsch (tedesco), 한국어 (coreano), العربية (arabo), Bahasa Indonesia (indonesiano), Українська (ucraino), Italiano, Türkçe (turco), فارسی (persiano) e Tiếng Việt (vietnamita). Una chat privata iniziata dopo questa versione segue la lingua della tua app di Telegram; una che esisteva già resta in inglese finché non ne scegli una (vedi [Lingue](#languages)). In spagnolo, portoghese, francese, italiano e indonesiano le parole della tastiera di risposta restano `status`, `stop`, `new` e `kill`, come i loro comandi. Tedesco e turco usano `Status`, `Stop`, `Neu…` e `Beenden…`, e `Özet`, `Stop`, `Oluştur` e `Sonlandır`; le parole inglesi funzionano ancora se le scrivi. In persiano e in arabo il testo di aipager si legge da destra a sinistra, con cifre persiane o arabe; nomi delle sessioni, comandi, nomi dei modelli e codice restano come sono. L'elenco dice cosa cambia: solo il testo di aipager, qui e nella Mini App; le tue sessioni di Claude non cambiano, e Claude risponde nella lingua in cui gli scrivi. In un gruppo chiunque può guardarla e cambiarla richiede un admin. `language` è un nome di sessione riservato. |
 | `/whoami` | - | Dice chi sei qui: nell'uso in team, la tua etichetta, il tuo ruolo in questa chat e le regole che quel ruolo ti applica. |
 | `/update` | - | Solo per gli admin (i ruoli `owner` e `admin`, o un ruolo con `can_manage`). Controlla se aipager e Claude Code hanno una versione più recente, poi aggiorna quello che ce l'ha con un solo pulsante. Vedi [Aggiornamenti](#update). |
+| `/usage` | - | Solo per admin (i ruoli `owner` e `admin`, o un ruolo con `can_manage`; nell'uso personale, il proprietario del bot). I limiti del tuo piano come Claude Code li ha riportati l'ultima volta, e i token usati dalle sessioni di aipager. **Limiti del piano**: la finestra di 5 ore, la settimana (tutti i modelli) e il limite di spesa di un gateway, quelli che Claude Code riporta, ognuno con quanto è usato e quando si azzera (`Questa settimana (tutti i modelli): 42% usato`, `Si azzera tra 2 g 5 h`; entro la giornata indica anche l'ora del computer su cui gira aipager, `Si azzera tra 3 h 10 min, alle 21:00`), poi da dove vengono i numeri (`Dato delle 20:15 (4 minuti fa), dalla sessione x1.`). Un `admin` che non gestisce la chat della sessione da cui vengono i dati non vede né il nome di quella sessione né l'indirizzo del gateway (`da una sessione di un'altra chat.`). Una finestra il cui azzeramento è già passato mostra `Questa settimana (tutti i modelli): azzerata dall'ultima lettura` invece di una vecchia percentuale. aipager non chiede mai questi numeri ad Anthropic: tiene quello che Claude Code passa alla sua riga di stato dopo una risposta, quindi compaiono quando Claude risponde in una sessione collegata con un abbonamento Claude; le chiavi API e i gateway senza limite di spesa non li riportano. Le sessioni con accessi diversi (un token di accesso per una cartella, un'altra cartella di configurazione, un gateway) sono mostrate separate, ognuna con la sua riga. **Token**: oggi e gli ultimi 7 giorni, in entrata, in uscita, letti dalla cache e scritti nella cache (`Oggi: 1.2k in entrata, 45 in uscita, 30.0k letti dalla cache, 2.1k scritti nella cache`). Si conta ciò che Claude Code ha registrato nelle trascrizioni delle sessioni di aipager, subagenti compresi; le richieste che non sono in nessuna trascrizione (titoli delle sessioni, suggerimenti di messaggio, il controllo della modalità Auto) non sono contate. L'owner vede i token di tutte le chat; un altro admin quelli delle chat che gestisce. In un gruppo, `/usage` mostra solo i token di quella chat e nessun limite del piano (la risposta la legge tutto il gruppo). Nessun importo in dollari. La Mini App mostra lo stesso nella sua pagina Utilizzo. `usage` è un nome di sessione riservato, e il `/usage` di Claude Code resta raggiungibile come `/<label> /usage`. |
 
-Il menu `/` mostra prima le tue sessioni (`/x1 · Parla con x1`), poi i comandi di tutti i giorni: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `help` (e `app` quando la Mini App è attiva, solo nelle chat private). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` e `update` non sono nel menu ma funzionano se li scrivi; le azioni su una sessione sono anche in `/status` → `⋮`. Svuotare una conversazione non è nel menu con nessun nome, di proposito, così un tocco lì non ne cancella mai una: usa `/status` → `⋮` → `🧹 Svuota conversazione` (con conferma) o `Comandi ›` → `Svuota conversazione` sulla tastiera. Un `/clear` scritto non svuota niente: aipager lo legge come nome di sessione (`⚠️ Nessuna sessione con questo nome: clear`). `clear` e `reset` sono nomi di sessione riservati.
+Il menu `/` mostra prima le tue sessioni (`/x1 · Parla con x1`), poi i comandi di tutti i giorni: `new`, `status`, `stop`, `now`, `resume`, `mode`, `settings`, `language`, `usage`, `help` (e `app` quando la Mini App è attiva, solo nelle chat private). `kill`, `restart`, `rename`, `delete`, `diff`, `clearqueue`, `perms`, `whoami` e `update` non sono nel menu ma funzionano se li scrivi; le azioni su una sessione sono anche in `/status` → `⋮`. Svuotare una conversazione non è nel menu con nessun nome, di proposito, così un tocco lì non ne cancella mai una: usa `/status` → `⋮` → `🧹 Svuota conversazione` (con conferma) o `Comandi ›` → `Svuota conversazione` sulla tastiera. Un `/clear` scritto non svuota niente: aipager lo legge come nome di sessione (`⚠️ Nessuna sessione con questo nome: clear`). `clear` e `reset` sono nomi di sessione riservati.
 
 **I comandi che agiscono su una sessione** (`/stop`, `/mode`, `/kill`, `/restart`, `/rename`, `/delete`, `/diff`) seguono una regola:
 
@@ -103,6 +104,7 @@ aipager parla English, Español, Русский, Português (Brasil), 简体中�
 - **Hanno bisogno di te.** Una sessione che aspetta una richiesta di permesso o una domanda sta in un vassoio color ambra in alto, che mostra cosa chiede. Ci sta anche una sessione nel background di Claude Code il cui job aspetta una richiesta di permesso, perché puoi rispondere dalla chat; la sua pagina offre anche «Riportala qui». **Rispondi nella chat** rimanda quella richiesta, con i suoi pulsanti, in fondo alla chat, come il pulsante **Rispondi** della barra fissata, e rispondi lì. Se era l'unica sessione in attesa l'app si chiude, così la richiesta è subito davanti a te; altrimenti resta aperta e dice «Inviata alla chat». Serve il permesso di inviare messaggi alla sessione, e una copia toccata dopo che la richiesta ha già avuto risposta o è stata sostituita dice «già risposto».
 - **La pagina di una sessione.** In alto mostra l'anello del contesto, lo stato («Al lavoro (3:12)», «Aspetta 2 agenti», «Ha bisogno di te (permesso)», «Pronta, ultima attività 5 min fa», «Nel background di Claude Code», «Terminata») e un **Riportala qui** con un tocco (per una sessione nel background di Claude Code), un **Ferma** (mentre lavora, aspetta i suoi agenti o aspetta te) o un **Riprendi** (quando è terminata). Sotto: la richiesta in attesa con **Rispondi nella chat**, le ultime chiamate agli strumenti in una striscia (toccala per la cronologia completa), l'ultima risposta, i dati, il selettore del modello, le impostazioni della sessione, i file modificati e la cronologia. Il menu ⋮ ha tutte le azioni, con le stesse conferme di prima. Una sessione la cui conversazione è passata nel background di Claude Code (vedi [risoluzione dei problemi](troubleshooting.md#a-session-moved-to-claude-codes-background)) offre «Riportala qui», «Ferma», «Rinomina», «Termina» e «Riavvia»; quando il job in background sta ancora lavorando, «Riportala qui», «Riavvia» e «Riprendi» chiedono direttamente nella pagina, **Ferma e riporta qui** o **Lasciala andare**, e nella chat compare `↩️ x1 è tornata dal background di Claude Code.` quando è tornata. Il menu ⋮ di una sessione a riposo offre anche **Svuota conversazione**: prima chiede nella pagina, poi scrive il `/clear` di Claude Code nella sessione, come `⋮` → `🧹 Svuota conversazione` nella chat (vedi [Conferma per svuotare la conversazione](#clear-confirmation)), e nella chat compare `🧹 /clear inviato a [x1] dalla Mini App`.
 - **Nuova sessione.** Una scheda guidata: nome, poi dove girare (con suggerimenti **Recenti** delle cartelle usate dalle tue sessioni, le più nuove prima), poi il modello (con suggerimenti **Suggeriti**), poi **Altre opzioni** per la modalità dei permessi e lo stile delle risposte. Il pulsante di Telegram in basso dice **Avvia sessione**. Per un membro il cui ruolo non ha `can_manage`, «dove girare» offre solo la [cartella radice](groups.md#root-folders) della chat e le cartelle subito dentro (la cartella radice è la predefinita, e «Nuova cartella» crea la cartella dentro quella scelta); una cartella fuori viene rifiutata con il motivo, e Riprendi, Riavvia e il cambio di modalità di una sessione che lavora fuori rispondono «Questa sessione lavora fuori dalla tua cartella ~/..., quindi il tuo ruolo non può riprenderla, riavviarla o cambiarne la modalità. Chiedi a un admin.»
+- **Utilizzo.** Per l'owner e gli admin, una scheda **Utilizzo** tra Sessioni e Impostazioni mostra i limiti del piano che Claude Code ha riportato l'ultima volta, ognuno con una barra e quando si azzera, da dove vengono i numeri, e i token di oggi, degli ultimi 7 giorni, di ogni giorno e di ogni modello, come [`/usage`](#slash-commands). Sopra le tabelle, un grafico a barre mostra i token in entrata e in uscita di ciascuno degli ultimi 7 giorni, con la barra di oggi nel colore di accento. Ogni volta che apri la scheda li rilegge. In una chat in cui non sei admin la scheda non compare.
 - **Impostazioni.** **Lingua dell'app** è in cima: la tua lingua personale per il testo di aipager nell'app e nella tua chat privata (inglese, spagnolo, russo, portoghese (Brasile), cinese (semplificato), francese, tedesco, coreano, arabo, indonesiano, ucraino, italiano, turco, persiano o vietnamita; «Automatico» segue la lingua della tua app di Telegram, vedi [Lingue](#languages)). Chiunque può cambiare la propria, non viene mai pubblicata in chat e non cambia le tue sessioni di Claude. Poi le preferenze della chat (in un gruppo le cambiano solo gli admin; nella tua chat privata le cambi tu, qualunque sia il ruolo, come `/settings` lì) e, per un admin, **Aggiornamenti**, che rispecchia [`/update`](#update). Per il proprietario nella sua chat privata, **Segnala un problema** apre una pagina a parte: scrivi una nota, rivedi la segnalazione, inviala e vedi il suo riferimento senza lasciare l'app (vedi [segnalazioni di problemi](problem-reports.md#how-to-send-one)).
 
 L'app segue il tema chiaro o scuro di Telegram quando lo cambi e ferma le piccole animazioni quando il telefono chiede meno movimento. Tutto quello che c'è nella Mini App si può fare anche dalla chat: il menu ⋮ sul pannello di una sessione ha le stesse azioni.
@@ -190,7 +192,7 @@ La scheda mostra il comando vero (o il percorso del file) che Claude chiede di e
 - **Consenti**: approva questa chiamata.
 - **Nega**: la rifiuta; Claude non esegue lo strumento.
 - **Consenti sempre**: approva e aggiunge la regola permanente proposta da Claude («don't ask again for …»). Il pulsante **compare solo quando Claude propone una regola così**; per un comando per cui non sa costruirne una (la maggior parte dei comandi composti) la scheda ha invece Consenti / Nega / Ferma, e così per un accesso in sola lettura a un file (`Read`, `Grep`, `Glob`) fuori dalla cartella di lavoro della sessione. Claude Code 2.1.259 e successivi mettono in quel posto una riga «switch to auto mode» nel loro dialogo di Bash, una riga «block reads outside the working directories from now on» nel dialogo delle letture esterne e, per un Write/Edit per cui non sanno costruire una regola per file, un cambio della modalità dei permessi come accettare in automatico tutte le modifiche ai file (`acceptEdits`); aipager non sceglie mai queste righe; cambia modalità di proposito con `/mode`.
-- **Ferma**: interrompe l'attività invece di rispondere. Sulla richiesta di un agente in background, quando l'attività di Claude è già finita, Ferma ferma invece gli agenti in background (come `/stop`) e la richiesta si chiude.
+- **Ferma**: interrompe l'attività invece di rispondere. La richiesta di un agente in background che si apre quando l'attività di Claude è già finita arriva come messaggio a parte, con Consenti e Nega; Ferma sulla scheda che aspetta gli agenti ferma allora gli agenti in background (come `/stop`) e la richiesta si chiude.
 
 La risposta arriva a Claude Code tramite l'hook dei permessi di aipager, che la aspetta fino a 20 secondi. Una richiesta che arriva prima della scheda di attività (allora viene inviata come messaggio a parte, solo con Consenti e Nega) riceve risposta allo stesso modo. Quando quell'attesa è già passata, i pulsanti scrivono la risposta nel dialogo di Claude Code; allora Nega preme Esc («No, and tell Claude what to do differently»), che chiude l'attività di Claude come Ferma, e la scheda dice `🚫 jim · Negato`. Sulla domanda che Claude Code fa in modalità «Automatico» prima della prima lettura fuori dal progetto, un Consenti in ritardo non viene scritto: il suo Invio sceglierebbe «Yes, and keep allowing any reads outside the working directories», quindi il tocco ti dice di rispondere nel terminale (Nega funziona comunque).
 
@@ -474,7 +476,7 @@ Esegui `aipager <command> --help` per lo stesso elenco sul tuo computer.
 | Comando | Cosa fa |
 |---|---|
 | `aipager config` | Procedura guidata interattiva: token del bot, chat, membri e ruoli, hook di Claude Code. Rieseguila per cambiare qualsiasi cosa (vedi [gruppi](groups.md#setup)). |
-| `aipager setup` | La stessa prima configurazione senza domande, per script e agenti di programmazione (vedi [sotto](#command-line-aipager-setup-for-coding-agents)). |
+| `aipager setup` | La stessa prima configurazione senza domande, per script e agenti di programmazione; `aipager setup group` aggiunge allo stesso modo un gruppo di Telegram, i suoi membri e i loro ruoli (vedi [sotto](#command-line-aipager-setup-for-coding-agents)). |
 | `aipager start` | Fa girare aipager in primo piano. Si rifiuta di partire quando c'è già un altro aipager in esecuzione. |
 | `aipager service install [--yes]` | Installa aipager come servizio in background (servizio utente di systemd su Linux, agente launchd su macOS) e lo avvia. `--yes` salta la domanda quando il file del servizio installato è diverso. |
 | `aipager service start\|stop\|status\|logs\|uninstall` | Avvia, ferma o controlla il servizio, ne segue il log o lo toglie. |
@@ -496,7 +498,7 @@ Esegui `aipager <command> --help` per lo stesso elenco sul tuo computer.
 
 ## <a id="command-line-aipager-setup-for-coding-agents"></a>Riga di comando: `aipager setup` (per agenti di programmazione)
 
-Le sezioni qui sopra descrivono il bot di Telegram. Questa descrive un comando che esegui in un terminale, o che un tuo script o agente di programmazione esegue per te: `aipager setup` configura aipager senza domande e dà lo stesso risultato del primo avvio di `aipager config`.
+Le sezioni qui sopra descrivono il bot di Telegram. Questa descrive un comando che esegui in un terminale, o che un tuo script o agente di programmazione esegue per te: `aipager setup` configura aipager senza domande e dà lo stesso risultato del primo avvio di `aipager config`. Su un'installazione già configurata, `aipager setup group` aggiunge un gruppo di Telegram con i suoi membri e i loro ruoli, anche lui senza domande (vedi [`aipager setup group`](#aipager-setup-group)).
 
 ```sh
 # 1. trova l'ID di Telegram della persona (apre il bot e tocca Start)
@@ -505,6 +507,9 @@ aipager setup detect-chat --token-file ~/bot-token.txt --json
 aipager setup --token-file ~/bot-token.txt --chat-id 123456789 --service --json
 # 3. controlla l'installazione
 aipager doctor --json
+# più tardi: trovare un gruppo (inviandoci /start), poi configurarlo
+aipager setup detect-group --json
+aipager setup group --chat-id -1001234567890 --member 123456789:alice:owner --json
 ```
 
 Cosa fa, in quest'ordine: legge il token del bot, lo controlla con Telegram (getMe), controlla tutto su questo computer senza scrivere niente (configurazione esistente, dipendenze, `~/.claude/settings.json` (o `$CLAUDE_CONFIG_DIR/settings.json`), se c'è un aipager in esecuzione), invia alla persona un messaggio di prova ("aipager is set up for you. ...") e solo dopo scrive. I file scritti, gli stessi della procedura guidata:
@@ -523,12 +528,17 @@ Se un controllo fallisce, non viene inviato niente e non viene scritto niente. Q
 |---|---|
 | `--token-file PATH` | Legge il token del bot da questo file (al massimo 4096 byte; va bene anche altro testo intorno al token). Un file che altri utenti possono leggere funziona ma dà un avviso `token_file_shared`: fai `chmod 600`, o cancellalo una volta che setup è riuscito. |
 | `--token-stdin` | Legge il token del bot da stdin (una pipe o un file rediretto, mai un terminale). La pipe deve chiudersi: setup aspetta fino a 30 secondi la fine di stdin, poi esce con codice 2 e `token_stdin_timeout`. `printf '%s\n' "$TOKEN" \| aipager setup --token-stdin ...` e `< token.txt` la chiudono entrambi. |
-| `--chat-id N` | Obbligatorio. L'ID numerico dell'utente di Telegram della persona, che è anche l'ID della sua chat privata. I gruppi si aggiungono con `aipager config`. |
+| `--chat-id N` | Obbligatorio. L'ID numerico dell'utente di Telegram della persona, che è anche l'ID della sua chat privata. Con `setup group`: l'ID del gruppo, un numero negativo. |
 | `--role owner\|admin` | Il ruolo della persona (predefinito `owner`). |
 | `--service` | Installa e avvia anche il servizio in background (ignorato quando un aipager è in esecuzione). |
-| `--force` | Permette di sostituire il token del bot, la chat privata del proprietario o il ruolo di un'installazione esistente. I gruppi configurati e le altre chat private restano come sono. |
+| `--force` | Permette di sostituire il token del bot, la chat privata del proprietario o il ruolo di un'installazione esistente. I gruppi configurati e le altre chat private restano come sono. Con `setup group`: permette le modifiche elencate in `force_reasons`. |
 | `--dry-run` | Esegue tutti i controlli, non invia niente, non scrive niente e riferisce cosa cambierebbe. |
 | `--json` | Stampa esattamente un oggetto JSON su stdout; tutto il resto va su stderr. |
+| `--member ID:LABEL:ROLE` | Solo `setup group`, ripetibile: l'ID numerico dell'utente di Telegram, il nome e il ruolo di un membro. |
+| `--remove-member ID` | Solo `setup group`, ripetibile: toglie questo membro. |
+| `--label NAME` | Solo `setup group`: il nome del gruppo. |
+| `--root PATH` | Solo `setup group`: la cartella radice dei membri. |
+| `--block-edits` | Solo `setup group`: blocca Write ed Edit per i membri `user` del gruppo. |
 
 Dai esattamente uno tra `--token-file` e `--token-stdin`. Il token non viene mai accettato come valore di un'opzione: `--token` e `--bot-token` vengono rifiutati (`token_on_command_line`) e il valore non viene mostrato. Le opzioni abbreviate (`--token-f`, `--dry`) non vengono accettate. setup non fa mai domande, non ha mai bisogno di un terminale e non legge mai il token da una variabile d'ambiente.
 
@@ -546,24 +556,52 @@ Mentre è in esecuzione un aipager per lo stesso bot, quell'aipager riceve i mes
 
 Limite: siccome detect-chat non conferma mai i messaggi, Telegram gli mostra solo i 100 aggiornamenti non letti più vecchi delle ultime 24 ore. Quando il bot ne ha così tanti in attesa, un nuovo `/start` non si vede: allora detect-chat scade (codice 8) con l'avviso `updates_backlog`, e toccare di nuovo «Avvia» non serve. Chiedi invece alla persona il suo ID numerico di Telegram (oppure avvia aipager una volta, che legge e svuota l'arretrato).
 
+### <a id="aipager-setup-group"></a>`aipager setup group`
+
+```sh
+aipager setup group --chat-id N [--member ID:LABEL:ROLE ...] [--remove-member ID ...]
+                    [--label NAME] [--root PATH] [--block-edits]
+                    [--force] [--dry-run] [--json]
+```
+
+Configura un gruppo di Telegram su un'installazione già configurata, con gli stessi controlli, la stessa scrittura del file e lo stesso ricaricamento senza riavvio di `aipager config`. Legge il token del bot da `aipager.yaml` (niente `--token-file` né `--token-stdin`), non ha bisogno di un terminale, non riavvia mai aipager e non invia mai niente al gruppo.
+
+- `--chat-id N`: l'ID del gruppo, un numero negativo ([`detect-group`](#aipager-setup-detect-group) lo trova).
+- `--member ID:LABEL:ROLE`: un ID positivo di utente di Telegram, un nome (può contenere `:`) e un ruolo: `owner`, `admin`, `user`, `read_only` o un ruolo definito in `policy.yaml`. Gli ID di mittente condivisi di Telegram (1087968824, 136817688, 777000) vengono rifiutati.
+- Un gruppo nuovo richiede almeno un `--member`. Il suo nome è `--label`, altrimenti `group-<cifre dell'ID>`; la sua cartella radice è `--root`, altrimenti `~/aipager-users/group-<label>`, scritta nel file.
+- Un gruppo già configurato (anche con il suo altro ID dopo che Telegram l'ha trasformato, avviso `group_moved`) viene ampliato: i membri che non nomini restano, un ID nuovo viene aggiunto, un ID noto con un nome nuovo viene rinominato, e `--remove-member` di qualcuno che non è membro dà l'avviso `not_a_member`. `--block-edits` aggiunge `Write` ed `Edit` ai `deny_tools` del gruppo e non toglie mai niente. L'ultimo membro non si può togliere (`last_member`, nemmeno con `--force`): togli il gruppo in `aipager config`.
+- Queste modifiche richiedono `--force`, altrimenti uscita 6 `needs_force` (`force_reasons` le elenca): `owner_granted` (un membro nuovo riceve un ruolo con `bypass_safety` e non ha ancora un ruolo così in nessuna chat; aggiungere il proprietario della tua chat privata non lo richiede), `role_changed`, `owner_demoted`, `owner_removed`, `root_code_loading` (la cartella radice è in `~/bin`, `~/.local/bin`, `~/.config/systemd` o `~/.config/autostart`) e `root_overlap` (è la cartella radice di un'altra chat, la contiene o ci sta dentro).
+- Eseguirlo di nuovo con le stesse opzioni non cambia niente (`unchanged`): niente scrittura e niente ricaricamento.
+- Ogni assegnazione del ruolo `owner` riceve una voce `grant-owner` nel registro di controllo.
+- Chiede a Telegram, solo in lettura e senza che il gruppo lo veda (getMe, getChat, getChatMember per il bot), se il bot è nel gruppo, è amministratore e può fissare i messaggi. Quello che trova è un avviso, mai un codice di uscita; dopo un errore di rete il resto viene saltato (`telegram_checks_skipped`).
+
+### <a id="aipager-setup-detect-group"></a>`aipager setup detect-group`
+
+```sh
+aipager setup detect-group [--timeout SECONDS] [--json]
+```
+
+Aspetta il messaggio più recente in un gruppo o supergruppo non ancora configurato (qualcuno ci invia `/start`) e stampa il gruppo: ID, titolo e tipo. Non salva niente, quindi mostra il gruppo a chi stai aiutando ed esegui `aipager setup group --chat-id` solo quando conferma. Contano solo i messaggi inviati al massimo 10 minuti prima dell'avvio del comando; `--timeout` funziona come per detect-chat. Legge il token da `aipager.yaml` e non accetta altre opzioni. Mentre un aipager per il bot è in esecuzione, legge quello che ha annotato aipager (`source: "daemon"`, che i gruppi li vede); altrimenti legge Telegram senza confermare nessun messaggio (`source: "telegram"`).
+
 ### <a id="exit-codes"></a>Codici di uscita
 
 | Codice | `error` | Significato |
 |---|---|---|
-| 0 | | Riuscito (`installed`, `updated`, `unchanged`, `dry_run`, o `found` di detect-chat). |
-| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `internal_error` | Fallito. `ambiguous_install`: più di una chat privata potrebbe essere del proprietario; sistemalo in `aipager config`. |
-| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout` | Input sbagliato o mancante; `fix` nomina l'opzione. Un'opzione sconosciuta o una parola sbagliata dopo `setup` vengono riferite dall'analizzatore degli argomenti (testo semplice, niente JSON), sempre con codice 2. |
+| 0 | | Riuscito (`installed`, `created`, `updated`, `unchanged`, `dry_run`, o `found` di detect-chat e detect-group). |
+| 1 | `config_malformed`, `ambiguous_install`, `settings_invalid`, `test_send_failed`, `write_failed`, `service_failed`, `policy_malformed`, `not_a_group_scope`, `last_member`, `config_changed`, `internal_error` | Fallito. `ambiguous_install`: più di una chat privata potrebbe essere del proprietario; sistemalo in `aipager config`. `config_changed`: il gruppo è cambiato in `aipager.yaml` mentre `setup group` era in esecuzione, quindi non è stato scritto niente; eseguilo di nuovo. |
+| 2 | `usage`, `missing_token_source`, `token_source_conflict`, `token_file_unreadable`, `token_stdin_is_tty`, `token_stdin_timeout`, `token_malformed`, `token_on_command_line`, `bad_chat_id`, `bad_role`, `bad_timeout`, `bad_member`, `bad_member_id`, `shared_sender_id`, `duplicate_member`, `bad_label`, `duplicate_label`, `unknown_role`, `bad_root` | Input sbagliato o mancante; `fix` nomina l'opzione. Un'opzione sconosciuta o una parola sbagliata dopo `setup` vengono riferite dall'analizzatore degli argomenti (testo semplice, niente JSON), sempre con codice 2. |
 | 3 | `deps_missing` | Mancano dtach, claude, aipager-hook o aipager-statusline; `fix` contiene i comandi da eseguire. Non viene scritto niente. |
 | 4 | `token_rejected` | Telegram ha rifiutato il token. |
 | 5 | `chat_not_started`, `bot_blocked` | La persona non ha toccato «Avvia» nel bot ("Open t.me/&lt;bot&gt; and press Start, then run this again."), oppure l'ha bloccato. Non viene scritto niente. |
-| 6 | `existing_install` | È già configurato un altro token, un'altra chat o un altro ruolo; aggiungi `--force`. |
+| 6 | `existing_install`, `needs_force` | È già configurato un altro token, un'altra chat o un altro ruolo, oppure `setup group` farebbe una modifica elencata in `force_reasons`; aggiungi `--force` (dopo averlo chiesto alla persona). |
 | 7 | `telegram_unreachable` | Errore di rete, oppure Telegram ha risposto 429 o 5xx. |
-| 8 | `detect_timeout` | detect-chat non ha visto nessun messaggio privato prima della fine di `--timeout` (con l'avviso `updates_backlog` quando 100 vecchi aggiornamenti non letti nascondono quelli più nuovi). |
+| 8 | `detect_timeout` | detect-chat non ha visto nessun messaggio privato (detect-group: nessun messaggio in un gruppo nuovo) prima della fine di `--timeout` (con l'avviso `updates_backlog` quando 100 vecchi aggiornamenti non letti nascondono quelli più nuovi). |
 | 9 | `daemon_running` | detect-chat: un aipager in esecuzione riceve i messaggi del bot. |
-| 10 | `updates_conflict` | detect-chat: un altro programma sta leggendo i messaggi di questo bot. |
+| 10 | `updates_conflict` | detect-chat o detect-group: un altro programma sta leggendo i messaggi di questo bot. |
+| 11 | `not_set_up` | `setup group` o `detect-group`: non c'è ancora un `aipager.yaml` con un token del bot (anche su una vecchia installazione con `config.env`: esegui `aipager config` una volta per spostarla). Prima configura aipager. |
 | 130 | `interrupted` | Ctrl-C. |
 
-Quando più controlli falliscono insieme, il codice di uscita segue quest'ordine: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. `--dry-run` esce con il codice che darebbero questi controlli in un'esecuzione vera.
+Quando più controlli falliscono insieme, il codice di uscita segue quest'ordine: `config_malformed`, `ambiguous_install`, `existing_install`, `settings_invalid`, `deps_missing`. Per `setup group`: `config_malformed` o `not_set_up`, `policy_malformed`, `unknown_role`, `usage`, `duplicate_label`, `not_a_group_scope`, `last_member`, `needs_force`. `--dry-run` esce con il codice che darebbero questi controlli in un'esecuzione vera.
 
 ### <a id="json-aipager-setup---json"></a>JSON: `aipager setup --json`
 
@@ -625,6 +663,74 @@ Ogni chiave c'è sempre; un valore sconosciuto è `null`.
 ```
 
 `candidate` è `null` a meno che `status` non sia `found`. `warnings` contiene oggetti con `code` (`token_file_shared`, `updates_backlog`) e `message`. `other_candidates` conta le altre persone che hanno scritto al bot negli stessi 10 minuti: quando non è 0, assicurati di aver scelto la persona giusta. `next_step` ripete l'opzione del token che hai usato, mai il token stesso.
+
+### <a id="json-aipager-setup-group---json"></a>JSON: `aipager setup group --json`
+
+Ogni chiave c'è sempre; un valore non ancora noto è `null`.
+
+```json
+{
+  "command": "group",
+  "status": "created",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Group team (chat -1001234567890) is set up with 2 members.",
+  "fix": null,
+  "dry_run": false,
+  "force": false,
+  "bot_username": "example_bot",
+  "chat_id": -1001234567890,
+  "scope_chat_id": -1001234567890,
+  "label": "team",
+  "root": "/home/alice/aipager-users/group-team",
+  "block_edits": false,
+  "members": [{"id": 111111111, "label": "alice", "role": "owner"},
+              {"id": 222222222, "label": "bob", "role": "user"}],
+  "changed": ["group"],
+  "member_changes": [{"id": 222222222, "change": "added", "label": "bob", "role": "user", "previous_role": null}],
+  "force_reasons": [],
+  "pinned_roots": [],
+  "telegram": {"checked": true, "chat_type": "supergroup", "chat_title": "Team",
+               "bot_status": "administrator", "bot_can_pin": true, "privacy_mode": true},
+  "daemon": {"running": true, "reload": "reloaded", "restart_needed": false, "outcome": "reloaded_live"},
+  "warnings": [],
+  "next_step": "Check the group with `aipager doctor --json`."
+}
+```
+
+- `status`: `created`, `updated`, `unchanged`, `dry_run` o `error`.
+- `scope_chat_id`: l'ID con cui è salvato il gruppo (diverso da `--chat-id` dopo il passaggio a supergruppo).
+- `changed`: cosa è cambiato (o cambierebbe, in una prova), in quest'ordine: `group` (un gruppo nuovo), `label`, `root`, `deny_tools`, `member_added`, `member_relabeled`, `role`, `member_removed`.
+- `member_changes[].change`: `added`, `relabeled`, `role` o `removed`.
+- `members`: i membri del gruppo dopo la modifica (quelli previsti, in una prova); `null` quando l'esecuzione si è fermata prima.
+- `pinned_roots`: altre chat la cui cartella radice viene scritta nel file perché non si sposti.
+- `telegram.checked` è false quando i controlli sono stati saltati; le altre chiavi di `telegram` sono allora `null`. `privacy_mode` viene solo riportato: non cambia niente di ciò su cui aipager agisce.
+- `daemon.reload` come per `setup`; `daemon.outcome`: `reloaded_live`, `not_applied`, `restart_needed`, `no_daemon` o `not_needed` (non è stato scritto niente). L'output semplice dice `daemon: reloaded live`, `daemon: not applied: <reason>`, `daemon: restart needed` o `daemon: no daemon running`.
+- `warnings` (`code` e `message`; nessuno cambia il codice di uscita): `owner_granted`, `no_manager` (il ruolo di nessun membro può gestire il gruppo), `not_a_member`, `group_moved`, `group_not_found`, `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin`, `group_upgraded`, `chat_not_a_group`, `token_rejected`, `telegram_checks_skipped`, `daemon_unknown`, `reload_refused`, `audit_write_failed`.
+- Con `bot_not_in_group`, `bot_not_admin`, `bot_cannot_pin` o `group_not_found`, `next_step` dice cosa può fare solo la persona in Telegram: aggiungere il bot al gruppo e renderlo amministratore con il permesso di fissare i messaggi.
+
+### <a id="json-aipager-setup-detect-group---json"></a>JSON: `aipager setup detect-group --json`
+
+```json
+{
+  "command": "detect-group",
+  "status": "found",
+  "ok": true,
+  "exit_code": 0,
+  "error": null,
+  "message": "Found the group Team, chat id -1001234567890.",
+  "fix": null,
+  "bot_username": "example_bot",
+  "source": "telegram",
+  "candidate": {"id": -1001234567890, "title": "Team", "type": "supergroup", "date": 1700000000},
+  "other_candidates": 0,
+  "warnings": [],
+  "next_step": "Show this group to the user; once they confirm, run: aipager setup group --chat-id -1001234567890 --member ID:LABEL:ROLE"
+}
+```
+
+`candidate` è `null` a meno che `status` non sia `found`; dalla fonte aipager la sua `date` è `null`. `other_candidates` conta gli altri gruppi nuovi che hanno scritto negli stessi 10 minuti. `warnings` può contenere `updates_backlog`.
 
 ### <a id="aipager-doctor---json"></a>`aipager doctor --json`
 
